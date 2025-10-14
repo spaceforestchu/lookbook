@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-const SEMANTIC = process.env.NEXT_PUBLIC_FEATURE_SEMANTIC_SEARCH === '1';
+const SEMANTIC = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FEATURE_SEMANTIC_SEARCH === '1';
 
 type PersonRow = { slug: string; name: string; title?: string|null; skills: string[]; open_to_work: boolean; score?: number };
 type ProjectRow = { slug: string; title: string; summary?: string|null; skills: string[]; sectors: string[]; score?: number };
