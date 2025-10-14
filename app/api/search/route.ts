@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import { pool } from '@/db/client';
 
 export const runtime = 'nodejs';
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+export const dynamic = 'force-dynamic';
 
 type Query = {
   q?: string;
@@ -14,9 +14,19 @@ type Query = {
   limit?: number;
 };
 
+// Lazy-load OpenAI client only when needed
+function getOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY not configured');
+  }
+  return new OpenAI({ apiKey });
+}
+
 async function embedOptional(q?: string): Promise<number[] | null> {
   const s = (q ?? '').trim();
   if (!s) return null;
+  const openai = getOpenAIClient();
   const { data } = await openai.embeddings.create({
     model: 'text-embedding-3-small',
     input: s.slice(0, 8000)

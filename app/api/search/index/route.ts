@@ -4,9 +4,19 @@ import { pool, ensureSchema } from '@/db/client';
 import { getAllPeople, getAllProjects } from '@/sanity/lib/queries';
 
 export const runtime = 'nodejs';
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+export const dynamic = 'force-dynamic';
+
+// Lazy-load OpenAI client
+function getOpenAIClient() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY not configured');
+  }
+  return new OpenAI({ apiKey });
+}
 
 async function embed(text: string): Promise<number[]> {
+  const openai = getOpenAIClient();
   const input = text.replace(/\s+/g, ' ').trim().slice(0, 8000); // safety cap
   const { data } = await openai.embeddings.create({
     model: 'text-embedding-3-small',
