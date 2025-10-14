@@ -1,53 +1,87 @@
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
-import { getAllPeople, getPersonBySlug, type Person } from '@/sanity/lib/queries';
-import { urlForImage } from '@/sanity/lib/image';
+import Image from 'next/image';
 
-export const revalidate = 300;
-
-type Props = { params: Promise<{ slug: string }> };
-
-export async function generateStaticParams() {
-  const people = await getAllPeople();
-  return people.map(p => ({ slug: p.slug }));
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const person = await getPersonBySlug(slug);
-  if (!person) return {};
-  const title = `${person.name} — Lookbook`;
-  const description = person.title ? `${person.name} — ${person.title}` : person.name;
-
-  const ogBuilder = urlForImage(person.photo);
-  const ogImg = ogBuilder?.width(1200).height(630).fit('crop').url() ?? '/og.svg';
-
-  return {
-    title,
-    description,
-    openGraph: { title, description, images: [ogImg] },
-    twitter: { card: 'summary_large_image', title, description, images: [ogImg] },
+export default function DemoPersonPage() {
+  const person = {
+    slug: 'demo',
+    name: 'Jovanni Luna',
+    title: 'Full-Stack Software Engineer',
+    bio: 'A child of immigrants and a proud New Yorker, Jovanni knew that he wanted to go into technology as a kid. He gained business, logistics, and customer skills working as a lead concierge at a luxury building and a sales associate at Best Buy.\n\nAfter completing Pursuit, Jovanni worked as a Software Engineer II at Foursquare. He focused on backend engineering, developing scalable systems with Scala, Python, PostgreSQL, and MongoDB. He also worked on web development with JavaScript, React, and Ruby on Rails, modernized legacy code, and designed data pipelines with Airflow and AWS services like S3, Athena, and Glue. Jovanni built cross-functional projects, managed both frontend and backend development, and improved UI/UX experiences. Additionally, he contributed to documentation and project management using Jira.',
+    highlights: [
+      '3 years of experience at FSQ',
+      'Customer service and consumer expert',
+    ],
+    skills: [
+      'JavaScript',
+      'Ruby',
+      'SQL',
+      'MongoDB',
+      'Amazon DynamoDB',
+      'PostgreSQL',
+      'React',
+      'Ruby on Rails',
+      'Node.js',
+      'Express',
+      'Next.js',
+    ],
+    industryExpertise: ['AI', 'TRAVEL', 'CONSUMER'],
+    openToWork: true,
+    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
+    links: {
+      linkedin: 'https://linkedin.com',
+      github: 'https://github.com',
+      website: 'https://example.com',
+      x: 'https://twitter.com',
+    },
+    experience: [
+      {
+        org: 'Foursquare',
+        role: 'Software Engineer II',
+        dateFrom: '2021',
+        dateTo: '2024',
+        summary: 'Backend engineering with Scala, Python, PostgreSQL, MongoDB',
+      },
+      {
+        org: 'Pursuit',
+        role: 'Fellowship: Full-stack Web',
+        dateFrom: '2019',
+        dateTo: '2021',
+        summary: 'Intensive software engineering fellowship',
+      },
+      {
+        org: 'PBS Facility Service',
+        role: 'Lead Concierge',
+        dateFrom: '2016',
+        dateTo: '2019',
+        summary: 'Customer service at luxury building',
+      },
+    ],
+    projects: [
+      {
+        slug: 'twitch',
+        title: 'Twitch',
+        summary: 'A global community creating the future of live entertainment',
+        coverUrl: 'https://logo.clearbit.com/twitch.tv',
+      },
+      {
+        slug: 'airbnb',
+        title: 'Airbnb',
+        summary: 'Book accommodations around the world.',
+        coverUrl: 'https://logo.clearbit.com/airbnb.com',
+      },
+      {
+        slug: 'reddit',
+        title: 'Reddit',
+        summary: 'The frontpage of the internet',
+        coverUrl: 'https://logo.clearbit.com/reddit.com',
+      },
+    ],
   };
-}
 
-export default async function PersonPage({ params }: Props) {
-  const { slug } = await params;
-  const person = await getPersonBySlug(slug);
-  if (!person) notFound();
-
-  // Get all people to calculate position and navigation
-  const allPeople = await getAllPeople();
-  const sortedPeople = allPeople.sort((a, b) => a.name.localeCompare(b.name));
-  const currentIndex = sortedPeople.findIndex(p => p.slug === slug);
-  const position = currentIndex + 1;
-  const total = sortedPeople.length;
-  const prevSlug = currentIndex > 0 ? sortedPeople[currentIndex - 1].slug : undefined;
-  const nextSlug = currentIndex < sortedPeople.length - 1 ? sortedPeople[currentIndex + 1].slug : undefined;
-
-  const heroBuilder = urlForImage(person.photo);
-  const heroUrl = heroBuilder?.width(800).height(800).fit('crop').url() ?? null;
+  const position = 5;
+  const total = 24;
+  const prevSlug = undefined;
+  const nextSlug = 'john-doe';
 
   return (
     <main className="relative mx-auto max-w-[1200px] px-4 py-8">
@@ -71,10 +105,10 @@ export default async function PersonPage({ params }: Props) {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr]">
           {/* Photo */}
           <div className="relative h-[320px] w-full overflow-hidden rounded-xl bg-neutral-200">
-            {heroUrl ? (
+            {person.photoUrl ? (
               <Image
-                src={heroUrl}
-                alt={person.photo?.alt || person.name}
+                src={person.photoUrl}
+                alt={person.name}
                 fill
                 className="object-cover"
                 sizes="280px"
@@ -206,7 +240,7 @@ export default async function PersonPage({ params }: Props) {
                   <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
                     {p.coverUrl && (
                       <Image
-                        src={p.coverUrl + '?w=100&h=100&fit=crop'}
+                        src={p.coverUrl}
                         alt={p.title}
                         fill
                         className="object-cover"
@@ -221,7 +255,7 @@ export default async function PersonPage({ params }: Props) {
                 {p.summary && (
                   <p className="line-clamp-2 text-sm text-neutral-600">{p.summary}</p>
                 )}
-                <div className="mt-2 text-xs text-blue-600">View project →</div>
+                <div className="mt-2 text-xs text-blue-600">Github →</div>
               </Link>
             ))}
           </div>

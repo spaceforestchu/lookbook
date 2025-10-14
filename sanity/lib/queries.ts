@@ -5,8 +5,24 @@ export type Person = {
   slug: string;
   name: string;
   title?: string;
+  bio?: string;
   skills: string[];
   openToWork?: boolean;
+  highlights?: string[];
+  industryExpertise?: string[];
+  links?: {
+    linkedin?: string;
+    github?: string;
+    website?: string;
+    x?: string;
+  };
+  experience?: Array<{
+    org?: string;
+    role?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    summary?: string;
+  }>;
   photo?: {
     alt?: string;
     asset?: { _ref?: string };  // keep ref so the image builder works
@@ -19,6 +35,7 @@ export type Person = {
     summary?: string;
     skills: string[];
     sectors?: string[];
+    coverUrl?: string | null;
   }>;
 };
 
@@ -52,8 +69,19 @@ export const personBySlugQuery = groq`*[_type=="person" && slug.current==$slug][
   "slug": slug.current,
   name,
   title,
+  bio,
   skills,
   openToWork,
+  highlights,
+  industryExpertise,
+  links,
+  experience[]{
+    org,
+    role,
+    dateFrom,
+    dateTo,
+    summary
+  },
   photo{
     alt,
     asset,                                // keep ref for builder
@@ -65,7 +93,8 @@ export const personBySlugQuery = groq`*[_type=="person" && slug.current==$slug][
     title,
     summary,
     skills,
-    sectors
+    sectors,
+    "coverUrl": coalesce(cover.asset->url, image.asset->url)
   } | order(title asc)
 }`;
 

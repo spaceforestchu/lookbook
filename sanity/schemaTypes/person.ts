@@ -50,6 +50,55 @@ export default defineType({
         hotspot: true,
       },
     }),
+    defineField({
+      name: 'bio',
+      title: 'Bio',
+      type: 'text',
+      rows: 5,
+    }),
+    defineField({
+      name: 'highlights',
+      title: 'Highlights',
+      type: 'array',
+      of: [{ type: 'string' }],
+    }),
+    defineField({
+      name: 'industryExpertise',
+      title: 'Industry Expertise',
+      type: 'array',
+      of: [{ type: 'string' }],
+      options: {
+        layout: 'tags',
+      },
+    }),
+    defineField({
+      name: 'links',
+      title: 'Links',
+      type: 'object',
+      fields: [
+        { name: 'linkedin', title: 'LinkedIn', type: 'url' },
+        { name: 'github', title: 'GitHub', type: 'url' },
+        { name: 'website', title: 'Website', type: 'url' },
+        { name: 'x', title: 'X (Twitter)', type: 'url' },
+      ],
+    }),
+    defineField({
+      name: 'experience',
+      title: 'Experience & Education',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'org', title: 'Organization', type: 'string' },
+            { name: 'role', title: 'Role/Title', type: 'string' },
+            { name: 'dateFrom', title: 'From', type: 'string' },
+            { name: 'dateTo', title: 'To', type: 'string' },
+            { name: 'summary', title: 'Summary', type: 'text', rows: 3 },
+          ],
+        },
+      ],
+    }),
   ],
   preview: {
     select: {

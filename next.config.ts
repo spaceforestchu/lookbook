@@ -15,7 +15,9 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'cdn.sanity.io' } // Sanity asset CDN
+      { protocol: 'https', hostname: 'cdn.sanity.io' }, // Sanity asset CDN
+      { protocol: 'https', hostname: 'images.unsplash.com' }, // Demo images
+      { protocol: 'https', hostname: 'logo.clearbit.com' }, // Company logos
     ],
   },
 };

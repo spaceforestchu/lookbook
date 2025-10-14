@@ -318,3 +318,82 @@ When ready to enable vector search:
 - `/admin` → Quick hub for accessing Studio and Search
 - No crashy environment dependencies; public pages remain read-only
 - Graceful degradation: semantic features are optional, not required
+
+## Browsing UI (Projects + People Polish)
+
+### Projects Browsing (`/projects`)
+The projects page features a comprehensive filtering and browsing experience:
+
+**Features**:
+- **Left sticky filter panel** with sections for:
+  - Text search (title/summary)
+  - Cohort selection (2024, 2023, 2022, 2021, Earlier)
+  - Industry Expertise (multi-select checkboxes)
+  - Attribute flags (Has Demo Video, Open to Relocate, Open to Work, Freelance, NYC Based, Remote Only)
+  - Reset filters button
+- **Grid/list view toggles** (grid active, list coming soon)
+- **Pagination controls** with prev/next buttons and "X of Y" counter
+- **Project cards** showing:
+  - Main project image (aspect-video)
+  - Title
+  - Team members (avatars + names)
+  - Skills and sectors as colored chips
+  - "View details" arrow link
+
+**API Endpoint**:
+```bash
+POST /api/browse/projects
+Content-Type: application/json
+
+{
+  "search": "fintech",
+  "cohort": "2024",
+  "industries": ["Finance", "Technology"],
+  "hasDemoVideo": true,
+  "openToWork": true,
+  "page": 1,
+  "perPage": 12
+}
+```
+
+**Filter Semantics**:
+- All filters use **AND** logic
+- Text search matches title OR summary (case-insensitive)
+- Industry filters require ALL selected industries to be present
+- Attribute flags only filter when explicitly set to `true`
+- Pagination limits results to 12 per page (configurable, max 50)
+
+### People Profile Polish (`/people/[slug]`)
+Enhanced profile pages with professional layout:
+
+**Features**:
+- **Hero layout** with:
+  - Large professional photo (1/3 width on desktop, full width on mobile)
+  - Name and title prominently displayed
+  - Industry expertise badges (purple)
+  - "Open to Work" badge (green) when applicable
+- **Skills display** with organized chips
+- **Highlights box** (fail-soft if field missing):
+  - Bulleted list of key achievements or points
+  - Styled in neutral background box
+- **Experience section** (fail-soft if field missing):
+  - Timeline-style display with blue accent border
+  - Position title, company, duration, and description
+- **Projects section**:
+  - Grid of project cards with hover effects
+  - Skills chips and "View project" CTA
+  - Empty state when no projects
+
+**Fail-Soft Design**:
+All optional fields (industries, highlights, experience) gracefully degrade if not present in Sanity schema. The page works with minimal data (just name and photo) and progressively enhances with additional fields.
+
+**Example Usage**:
+```bash
+# View a polished profile
+curl http://localhost:3000/people/jane-doe
+
+# Profile works with minimal schema, adding optional fields enhances display:
+# - industries: string[] → Shows as purple badges
+# - highlights: string[] → Shows in sidebar box
+# - experience: array of { title, company, duration, description }
+```
