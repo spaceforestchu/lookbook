@@ -1,6 +1,6 @@
 export default function FilterSidebar() {
   return (
-    <aside className="hidden lg:block w-64 bg-white border-r border-neutral-200 p-6 overflow-y-auto flex-shrink-0">
+    <aside className="hidden lg:block w-64 bg-white rounded-2xl border border-white shadow-sm p-6 overflow-y-auto flex-shrink-0 m-4 self-start">
       {/* Cohort Section */}
       <div className="mb-8">
         <h2 className="mb-3 text-sm font-semibold text-neutral-900">Cohort</h2>
