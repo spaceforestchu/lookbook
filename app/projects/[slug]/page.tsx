@@ -235,6 +235,7 @@ export default async function ProjectDetailPage({
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
