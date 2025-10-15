@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { getAllProjects, getProjectBySlug } from '@/sanity/lib/queries';
 import Link from 'next/link';
+import Image from 'next/image';
+import { urlForImage } from '@/sanity/lib/image';
 import type { Metadata } from 'next';
 
 // ISR: Revalidate every 300 seconds (5 minutes)
@@ -51,6 +53,11 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
+  // Get image URL if available
+  const imageUrl = project.mainImage
+    ? urlForImage(project.mainImage)?.width(1200).height(600).url()
+    : null;
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Back link */}
@@ -75,16 +82,31 @@ export default async function ProjectDetailPage({
       </Link>
 
       {/* Main content card */}
-      <div className="bg-white border border-gray-300 rounded-lg p-8">
-        {/* Title */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          {project.title}
-        </h1>
-
-        {/* Summary */}
-        {project.summary && (
-          <p className="text-lg text-gray-600 mb-6">{project.summary}</p>
+      <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
+        {/* Hero Image */}
+        {imageUrl && (
+          <div className="relative w-full aspect-[2/1] bg-gradient-to-br from-neutral-800 to-neutral-900">
+            <Image
+              src={imageUrl}
+              alt={project.mainImage?.alt || project.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 896px) 100vw, 896px"
+              priority
+            />
+          </div>
         )}
+
+        <div className="p-8">
+          {/* Title */}
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            {project.title}
+          </h1>
+
+          {/* Summary */}
+          {project.summary && (
+            <p className="text-lg text-gray-600 mb-6">{project.summary}</p>
+          )}
 
         {/* Links section */}
         {(project.githubUrl || project.liveUrl) && (

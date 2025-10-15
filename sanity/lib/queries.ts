@@ -43,6 +43,12 @@ export type Project = {
   slug: string;
   title: string;
   summary?: string;
+  mainImage?: {
+    alt?: string;
+    asset?: { _ref?: string };
+    url?: string;
+    lqip?: string;
+  };
   skills: string[];
   sectors?: string[];
   participants?: Array<{ slug: string; name: string }>;
@@ -122,6 +128,12 @@ export const projectBySlugQuery = groq`*[_type=="project" && slug.current==$slug
   "slug": slug.current,
   title,
   summary,
+  mainImage{
+    alt,
+    asset,
+    "url": asset->url,
+    "lqip": asset->metadata.lqip
+  },
   skills,
   sectors,
   "participants": participants[]->{"slug": slug.current, name},
