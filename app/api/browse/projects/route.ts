@@ -27,10 +27,7 @@ const PROJECTS_QUERY = groq`
     "slug": slug.current,
     title,
     summary,
-    mainImage {
-      asset->,
-      alt
-    },
+    mainImage,
     skills,
     sectors,
     cohort,
