@@ -1,122 +1,122 @@
 export default function FilterSidebar() {
   return (
-    <aside className="hidden lg:block w-64 bg-white rounded-2xl border border-white shadow-sm p-6 overflow-y-auto flex-shrink-0 m-4 self-start">
+    <aside className="hidden lg:block w-64 bg-white rounded-3xl border-2 border-white/60 shadow-lg p-6 overflow-y-auto flex-shrink-0 m-4 self-start">
       {/* Cohort Section */}
-      <div className="mb-8">
-        <h2 className="mb-3 text-sm font-semibold text-neutral-900">Cohort</h2>
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 cursor-pointer">
+      <div className="mb-6 pb-6 border-b border-gray-200">
+        <h2 className="mb-4 text-base font-bold text-gray-900">Cohort</h2>
+        <div className="space-y-3">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
               defaultChecked
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">March '25: AI-Native</span>
+            <span className="text-sm text-gray-700">March '25: AI-Native</span>
           </label>
-          <label className="flex items-center gap-2 pl-6 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">11.0: Web</span>
+            <span className="text-sm text-gray-700">11.0: Web</span>
           </label>
-          <label className="flex items-center gap-2 pl-6 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">10.0: Web</span>
+            <span className="text-sm text-gray-700">10.0: Web</span>
           </label>
         </div>
       </div>
 
       {/* Industry Expertise Section */}
-      <div className="mb-8">
-        <h2 className="mb-3 text-sm font-semibold text-neutral-900">Industry Expertise</h2>
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 cursor-pointer">
+      <div className="mb-6 pb-6 border-b border-gray-200">
+        <h2 className="mb-4 text-base font-bold text-gray-900">Industry</h2>
+        <div className="space-y-3">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">All</span>
+            <span className="text-sm text-gray-700">All</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
               defaultChecked
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">Consumer</span>
+            <span className="text-sm text-gray-700">Consumer</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">Fintech</span>
+            <span className="text-sm text-gray-700">Fintech</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">Healthcare</span>
+            <span className="text-sm text-gray-700">Healthcare</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">Real Estate</span>
+            <span className="text-sm text-gray-700">Real Estate</span>
           </label>
         </div>
       </div>
 
       {/* Additional Filters Section */}
-      <div className="mb-8">
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 cursor-pointer">
+      <div className="mb-6">
+        <div className="space-y-3">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">Has Demo Video</span>
+            <span className="text-sm text-gray-700">Has Demo Video</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">Open to Relocate</span>
+            <span className="text-sm text-gray-700">Open to Relocate</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">Open to Work</span>
+            <span className="text-sm text-gray-700">Open to Work</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">Freelance</span>
+            <span className="text-sm text-gray-700">Freelance</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">NYC-based</span>
+            <span className="text-sm text-gray-700">NYC-based</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
-            <span className="text-sm text-neutral-700">Remote Only</span>
+            <span className="text-sm text-gray-700">Remote Only</span>
           </label>
         </div>
       </div>
