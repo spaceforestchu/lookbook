@@ -89,13 +89,155 @@ export default function ModalDemoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Modal Profile Demo</h1>
-        <p className="text-neutral-600 mb-8">Click on a person card to open their profile in a modal</p>
+    <div className="flex min-h-screen bg-[#E8E8E8]">
+      {/* Left Sidebar */}
+      <aside className="hidden lg:block w-64 bg-white border-r border-neutral-200 p-6 overflow-y-auto">
+        <div className="mb-8">
+          <h2 className="mb-3 text-sm font-semibold">Cohort</h2>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" defaultChecked className="rounded text-blue-600" />
+              <span className="text-sm">March '25: AI-Native</span>
+            </label>
+            <label className="flex items-center gap-2 pl-6">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">11.0: Web</span>
+            </label>
+            <label className="flex items-center gap-2 pl-6">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">10.0: Web</span>
+            </label>
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <h2 className="mb-3 text-sm font-semibold">Industry Expertise</h2>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">All</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" defaultChecked className="rounded text-blue-600" />
+              <span className="text-sm">Consumer</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">Fintech</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">Healthcare</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">Real Estate</span>
+            </label>
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">Has Demo Video</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">Open to Relocate</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">Open to Work</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">Freelance</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">NYC-based</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-blue-600" />
+              <span className="text-sm">Remote Only</span>
+            </label>
+          </div>
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-neutral-200">
+          <h3 className="mb-2 text-sm font-semibold text-blue-600">Looking to hire?<br/>Get in touch:</h3>
+          <p className="text-sm text-neutral-900 mb-1">Timothy Asprec</p>
+          <a href="mailto:timothyasprec@pursuit.org" className="text-sm text-neutral-900 hover:underline break-all">
+            timothyasprec@pursuit.org
+          </a>
+          <p className="mt-2 text-xs text-neutral-500">Unauthorized contact violates Fair privacy policies</p>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-8">
+        {/* Top Bar */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold">PURSUIT PAGES</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm hover:bg-neutral-50 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              Filter
+            </button>
+            <input
+              type="search"
+              placeholder="Search"
+              className="rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm w-48"
+            />
+            <span className="text-sm text-neutral-600">5 of 24</span>
+            <div className="flex gap-1 border border-neutral-300 rounded bg-white">
+              <button className="p-2 hover:bg-neutral-50 rounded-l">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect width="7" height="7" x="3" y="3" rx="1" />
+                  <rect width="7" height="7" x="14" y="3" rx="1" />
+                  <rect width="7" height="7" x="14" y="14" rx="1" />
+                  <rect width="7" height="7" x="3" y="14" rx="1" />
+                </svg>
+              </button>
+              <button className="p-2 hover:bg-neutral-50 bg-neutral-100">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect width="7" height="7" x="3" y="3" rx="1" />
+                  <rect width="7" height="7" x="14" y="3" rx="1" />
+                  <rect width="7" height="7" x="14" y="14" rx="1" />
+                  <rect width="7" height="7" x="3" y="14" rx="1" />
+                </svg>
+              </button>
+              <button className="p-2 hover:bg-neutral-50 rounded-r">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <line x1="8" x2="21" y1="6" y2="6" />
+                  <line x1="8" x2="21" y1="12" y2="12" />
+                  <line x1="8" x2="21" y1="18" y2="18" />
+                  <line x1="3" x2="3.01" y1="6" y2="6" />
+                  <line x1="3" x2="3.01" y1="12" y2="12" />
+                  <line x1="3" x2="3.01" y1="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="mb-6 flex items-center gap-4">
+          <Link href="/projects" className="rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-sm hover:bg-neutral-50">
+            PROJECTS
+          </Link>
+          <Link href="/people" className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white">
+            PEOPLE
+          </Link>
+        </div>
 
         {/* People Grid */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {DEMO_PEOPLE.map((person, index) => (
             <button
               key={person.id}
@@ -109,7 +251,7 @@ export default function ModalDemoPage() {
                   alt={person.name}
                   fill
                   className="object-cover transition group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
               </div>
 
@@ -133,6 +275,7 @@ export default function ModalDemoPage() {
             </button>
           ))}
         </div>
+      </main>
 
         {/* Modal */}
         {selectedPerson && (
