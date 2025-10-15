@@ -89,9 +89,10 @@ export default function ModalDemoPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#E8E8E8]">
-      {/* Left Sidebar */}
-      <aside className="hidden lg:block w-64 bg-white border-r border-neutral-200 p-6 overflow-y-auto">
+    <>
+      <div className="flex min-h-screen bg-[#E8E8E8]">
+        {/* Left Sidebar */}
+        <aside className="hidden lg:block w-64 bg-white border-r border-neutral-200 p-6 overflow-y-auto">
         <div className="mb-8">
           <h2 className="mb-3 text-sm font-semibold">Cohort</h2>
           <div className="space-y-2">
@@ -274,8 +275,8 @@ export default function ModalDemoPage() {
               </div>
             </button>
           ))}
-        </div>
-      </main>
+          </div>
+        </main>
       </div>
 
       {/* Modal */}
@@ -445,10 +446,10 @@ export default function ModalDemoPage() {
               {/* Position Counter */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-neutral-500">
                 {selectedPersonIndex !== null && `${selectedPersonIndex + 1} of ${DEMO_PEOPLE.length}`}
+                </div>
               </div>
             </div>
-          </div>
-        )}
-    </>
-  );
-}
+          )}
+      </>
+    );
+  }
