@@ -179,10 +179,10 @@ export default function ProjectsModalDemo() {
 
           {/* Tab Navigation */}
           <div className="mb-6 flex items-center gap-4">
-            <Link href="/projects" className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white">
+            <Link href="/projects/modal-demo" className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white">
               PROJECTS
             </Link>
-            <Link href="/people" className="rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-sm hover:bg-neutral-50">
+            <Link href="/people/modal-demo" className="rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-sm hover:bg-neutral-50">
               PEOPLE
             </Link>
           </div>
