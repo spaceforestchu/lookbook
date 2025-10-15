@@ -137,8 +137,8 @@ export default function ProjectsModalDemo() {
         {/* Left Sidebar */}
         <FilterSidebar />
 
-        {/* Main Content - adjust margin for fixed sidebar */}
-        <main className="flex-1 p-8 lg:ml-64">
+        {/* Main Content */}
+        <main className="flex-1 p-8">
           {/* Top Bar */}
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
