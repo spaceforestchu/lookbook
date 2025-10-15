@@ -276,10 +276,11 @@ export default function ModalDemoPage() {
           ))}
         </div>
       </main>
+      </div>
 
-        {/* Modal */}
-        {selectedPerson && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      {/* Modal */}
+      {selectedPerson && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             {/* Navigation Arrows */}
             {selectedPersonIndex !== null && selectedPersonIndex > 0 && (
               <button
@@ -448,7 +449,6 @@ export default function ModalDemoPage() {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 }
