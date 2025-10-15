@@ -31,6 +31,15 @@ const dummyPeople = [
     openToWork: true,
     highlights: ['3 years of experience at FSQ', 'Customer service and consumer expert'],
     industryExpertise: ['AI', 'TRAVEL', 'CONSUMER'],
+    photo: {
+      _type: 'image',
+      asset: {
+        _type: 'reference',
+        _ref: 'image-placeholder-1',
+      },
+      // External URL that will be used
+      url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop',
+    },
     links: {
       linkedin: 'https://linkedin.com/in/jovanniluna',
       github: 'https://github.com/jovanniluna',
@@ -71,6 +80,14 @@ const dummyPeople = [
     openToWork: false,
     highlights: ['Led design for 10M+ user products', 'Built 3 design systems from scratch'],
     industryExpertise: ['FINTECH', 'HEALTHTECH', 'CONSUMER'],
+    photo: {
+      _type: 'image',
+      asset: {
+        _type: 'reference',
+        _ref: 'image-placeholder-2',
+      },
+      url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&h=800&fit=crop',
+    },
     links: {
       linkedin: 'https://linkedin.com/in/sarahchen',
       website: 'https://sarahchen.design',
@@ -110,6 +127,14 @@ const dummyPeople = [
     openToWork: true,
     highlights: ['PhD in Computer Science (ML)', 'Built ML platform serving 100M+ predictions/day'],
     industryExpertise: ['AI', 'EDTECH', 'FINTECH'],
+    photo: {
+      _type: 'image',
+      asset: {
+        _type: 'reference',
+        _ref: 'image-placeholder-3',
+      },
+      url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=800&fit=crop',
+    },
     links: {
       linkedin: 'https://linkedin.com/in/marcusjohnson',
       github: 'https://github.com/marcusj',

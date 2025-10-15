@@ -114,7 +114,7 @@ export default async function PeoplePage({ searchParams }: PeoplePageProps) {
               <span className="text-sm">Open to Relocate</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={openToWorkOnly} className="rounded" />
+              <input type="checkbox" defaultChecked={openToWorkOnly} className="rounded" />
               <span className="text-sm">Open to Work</span>
             </label>
             <label className="flex items-center gap-2">

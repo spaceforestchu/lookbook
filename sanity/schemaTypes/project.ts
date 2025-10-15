@@ -28,6 +28,14 @@ export default defineType({
       rows: 3,
     }),
     defineField({
+      name: 'mainImage',
+      title: 'Main Image',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+    }),
+    defineField({
       name: 'skills',
       title: 'Skills',
       type: 'array',
