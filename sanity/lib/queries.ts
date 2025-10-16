@@ -63,6 +63,7 @@ export const allPeopleQuery = groq`*[_type=="person"]{
   title,
   skills,
   openToWork,
+  industryExpertise,
   photo{
     alt,
     asset,                                // keep ref for builder

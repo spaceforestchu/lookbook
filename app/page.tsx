@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import FilterSidebar from '@/components/FilterSidebar';
+import FilterSidebar, { type FilterState } from '@/components/FilterSidebar';
 import { getAllPeople, getAllProjects, getPersonBySlug, type Person, type Project } from '@/sanity/lib/queries';
 import { urlForImage } from '@/sanity/lib/image';
 
@@ -17,6 +17,7 @@ export default function Home() {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [selectedProjectIndex, setSelectedProjectIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [filters, setFilters] = useState<FilterState>({ industries: [], hasOpenToWork: false });
 
   useEffect(() => {
     async function fetchData() {
@@ -36,9 +37,29 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // Filter people based on selected filters
+  const filteredPeople = useMemo(() => {
+    return people.filter(person => {
+      // Filter by industry
+      if (filters.industries.length > 0) {
+        const hasMatchingIndustry = person.industryExpertise?.some(
+          industry => filters.industries.includes(industry)
+        );
+        if (!hasMatchingIndustry) return false;
+      }
+
+      // Filter by open to work
+      if (filters.hasOpenToWork && !person.openToWork) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [people, filters]);
+
   const openModal = async (index: number) => {
     setSelectedPersonIndex(index);
-    const slug = people[index].slug;
+    const slug = filteredPeople[index].slug;
     try {
       const person = await getPersonBySlug(slug);
       if (person) {
@@ -96,7 +117,7 @@ export default function Home() {
     if (selectedPersonIndex !== null && selectedPersonIndex > 0) {
       const newIndex = selectedPersonIndex - 1;
       setSelectedPersonIndex(newIndex);
-      const slug = people[newIndex].slug;
+      const slug = filteredPeople[newIndex].slug;
       try {
         const person = await getPersonBySlug(slug);
         if (person) {
@@ -109,10 +130,10 @@ export default function Home() {
   };
 
   const goToNext = async () => {
-    if (selectedPersonIndex !== null && selectedPersonIndex < people.length - 1) {
+    if (selectedPersonIndex !== null && selectedPersonIndex < filteredPeople.length - 1) {
       const newIndex = selectedPersonIndex + 1;
       setSelectedPersonIndex(newIndex);
-      const slug = people[newIndex].slug;
+      const slug = filteredPeople[newIndex].slug;
       try {
         const person = await getPersonBySlug(slug);
         if (person) {
@@ -128,7 +149,7 @@ export default function Home() {
     <>
       <div className="flex min-h-screen bg-[#E8E8E8]">
         {/* Left Sidebar */}
-        <FilterSidebar currentPage="people" />
+        <FilterSidebar currentPage="people" filters={filters} onFilterChange={setFilters} />
 
         {/* Main Content */}
         <main className="flex-1 p-8 bg-[#E8E8E8]">
@@ -138,7 +159,7 @@ export default function Home() {
             <h1 className="text-2xl font-bold">PURSUIT PAGES</h1>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-neutral-600">{people.length} of {people.length}</span>
+            <span className="text-sm text-neutral-600">{filteredPeople.length} of {people.length}</span>
             <div className="flex gap-1 border border-neutral-300 rounded bg-white">
               <button
                 onClick={() => setViewMode('grid')}
@@ -181,7 +202,7 @@ export default function Home() {
               ? 'space-y-4'
               : 'grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
           }>
-            {people.map((person, index) => {
+            {filteredPeople.map((person, index) => {
               const imageUrl = person.photo ? urlForImage(person.photo)?.width(400).height(400).fit('crop').url() : null;
 
               return viewMode === 'list' ? (
@@ -302,7 +323,7 @@ export default function Home() {
               </button>
             )}
 
-            {selectedPersonIndex !== null && selectedPersonIndex < people.length - 1 && (
+            {selectedPersonIndex !== null && selectedPersonIndex < filteredPeople.length - 1 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -485,7 +506,7 @@ export default function Home() {
 
               {/* Position Counter */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-neutral-500">
-                {selectedPersonIndex !== null && `${selectedPersonIndex + 1} of ${people.length}`}
+                {selectedPersonIndex !== null && `${selectedPersonIndex + 1} of ${filteredPeople.length}`}
                 </div>
               </div>
             </div>

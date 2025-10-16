@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import FilterSidebar from '@/components/FilterSidebar';
+import FilterSidebar, { type FilterState } from '@/components/FilterSidebar';
 import { getAllProjects, getAllPeople, getPersonBySlug, type Project, type Person } from '@/sanity/lib/queries';
 import { urlForImage } from '@/sanity/lib/image';
 
@@ -16,6 +16,7 @@ export default function ProjectsModalDemo() {
   const [selectedProjectIndex, setSelectedProjectIndex] = useState<number | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [filters, setFilters] = useState<FilterState>({ industries: [], hasOpenToWork: false });
 
   useEffect(() => {
     async function fetchData() {
@@ -35,7 +36,22 @@ export default function ProjectsModalDemo() {
     fetchData();
   }, []);
 
-  const selectedProject = selectedProjectIndex !== null ? projects[selectedProjectIndex] : null;
+  // Filter projects based on selected filters
+  const filteredProjects = useMemo(() => {
+    return projects.filter(project => {
+      // Filter by industry/sectors
+      if (filters.industries.length > 0) {
+        const hasMatchingSector = project.sectors?.some(
+          sector => filters.industries.includes(sector)
+        );
+        if (!hasMatchingSector) return false;
+      }
+
+      return true;
+    });
+  }, [projects, filters]);
+
+  const selectedProject = selectedProjectIndex !== null ? filteredProjects[selectedProjectIndex] : null;
 
   const openProjectModal = (index: number) => {
     setSelectedProjectIndex(index);
@@ -69,7 +85,7 @@ export default function ProjectsModalDemo() {
   };
 
   const goToNext = () => {
-    if (selectedProjectIndex !== null && selectedProjectIndex < projects.length - 1) {
+    if (selectedProjectIndex !== null && selectedProjectIndex < filteredProjects.length - 1) {
       setSelectedProjectIndex(selectedProjectIndex + 1);
     }
   };
@@ -78,7 +94,7 @@ export default function ProjectsModalDemo() {
     <>
       <div className="flex min-h-screen bg-[#E8E8E8]">
         {/* Left Sidebar */}
-        <FilterSidebar currentPage="projects" />
+        <FilterSidebar currentPage="projects" filters={filters} onFilterChange={setFilters} />
 
         {/* Main Content */}
         <main className="flex-1 p-8 bg-[#E8E8E8]">
@@ -88,7 +104,7 @@ export default function ProjectsModalDemo() {
               <h1 className="text-2xl font-bold">PURSUIT PAGES</h1>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-neutral-600">{projects.length} of {projects.length}</span>
+              <span className="text-sm text-neutral-600">{filteredProjects.length} of {projects.length}</span>
               <div className="flex gap-1 border border-neutral-300 rounded bg-white">
                 <button
                   onClick={() => setViewMode('grid')}
@@ -131,7 +147,7 @@ export default function ProjectsModalDemo() {
                 ? 'space-y-4'
                 : 'grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
             }>
-              {projects.map((project, index) => {
+              {filteredProjects.map((project, index) => {
                 const imageUrl = project.mainImage ? urlForImage(project.mainImage)?.width(800).height(600).url() : null;
                 // Generate colors for projects without images
                 const colorOptions = [
@@ -272,7 +288,7 @@ export default function ProjectsModalDemo() {
             </button>
           )}
 
-          {selectedProjectIndex !== null && selectedProjectIndex < projects.length - 1 && (
+          {selectedProjectIndex !== null && selectedProjectIndex < filteredProjects.length - 1 && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -409,7 +425,7 @@ export default function ProjectsModalDemo() {
 
             {/* Position Counter */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-neutral-500">
-              {selectedProjectIndex !== null && `${selectedProjectIndex + 1} of ${projects.length}`}
+              {selectedProjectIndex !== null && `${selectedProjectIndex + 1} of ${filteredProjects.length}`}
             </div>
           </div>
         </div>

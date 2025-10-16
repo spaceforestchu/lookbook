@@ -38,7 +38,7 @@ export default function RootLayout({
           </Link>
           <div className="flex gap-4">
             <Link
-              href="/people"
+              href="/"
               className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
             >
               People

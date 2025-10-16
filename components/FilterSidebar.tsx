@@ -1,10 +1,37 @@
+'use client';
+
 import Link from 'next/link';
+
+export type FilterState = {
+  industries: string[];
+  hasOpenToWork: boolean;
+};
 
 type FilterSidebarProps = {
   currentPage?: 'projects' | 'people';
+  filters?: FilterState;
+  onFilterChange?: (filters: FilterState) => void;
 };
 
-export default function FilterSidebar({ currentPage = 'people' }: FilterSidebarProps) {
+export default function FilterSidebar({
+  currentPage = 'people',
+  filters = { industries: [], hasOpenToWork: false },
+  onFilterChange
+}: FilterSidebarProps) {
+  const handleIndustryChange = (industry: string, checked: boolean) => {
+    if (!onFilterChange) return;
+
+    const newIndustries = checked
+      ? [...filters.industries, industry]
+      : filters.industries.filter(i => i !== industry);
+
+    onFilterChange({ ...filters, industries: newIndustries });
+  };
+
+  const handleOpenToWorkChange = (checked: boolean) => {
+    if (!onFilterChange) return;
+    onFilterChange({ ...filters, hasOpenToWork: checked });
+  };
   return (
     <div className="hidden lg:block flex-shrink-0 m-4 self-start w-64">
       {/* Tab Navigation - Above the panel */}
@@ -87,6 +114,12 @@ export default function FilterSidebar({ currentPage = 'people' }: FilterSidebarP
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
+              checked={filters.industries.length === 0}
+              onChange={(e) => {
+                if (e.target.checked && onFilterChange) {
+                  onFilterChange({ ...filters, industries: [] });
+                }
+              }}
               className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
             <span className="text-sm text-gray-700">All</span>
@@ -94,7 +127,8 @@ export default function FilterSidebar({ currentPage = 'people' }: FilterSidebarP
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              defaultChecked
+              checked={filters.industries.includes('Consumer')}
+              onChange={(e) => handleIndustryChange('Consumer', e.target.checked)}
               className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
             <span className="text-sm text-gray-700">Consumer</span>
@@ -102,6 +136,8 @@ export default function FilterSidebar({ currentPage = 'people' }: FilterSidebarP
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
+              checked={filters.industries.includes('Fintech')}
+              onChange={(e) => handleIndustryChange('Fintech', e.target.checked)}
               className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
             <span className="text-sm text-gray-700">Fintech</span>
@@ -109,6 +145,8 @@ export default function FilterSidebar({ currentPage = 'people' }: FilterSidebarP
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
+              checked={filters.industries.includes('Healthcare')}
+              onChange={(e) => handleIndustryChange('Healthcare', e.target.checked)}
               className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
             <span className="text-sm text-gray-700">Healthcare</span>
@@ -116,6 +154,8 @@ export default function FilterSidebar({ currentPage = 'people' }: FilterSidebarP
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
+              checked={filters.industries.includes('Real Estate')}
+              onChange={(e) => handleIndustryChange('Real Estate', e.target.checked)}
               className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
             <span className="text-sm text-gray-700">Real Estate</span>
@@ -143,6 +183,8 @@ export default function FilterSidebar({ currentPage = 'people' }: FilterSidebarP
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
+              checked={filters.hasOpenToWork}
+              onChange={(e) => handleOpenToWorkChange(e.target.checked)}
               className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
             />
             <span className="text-sm text-gray-700">Open to Work</span>
