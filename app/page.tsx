@@ -156,7 +156,7 @@ export default function Home() {
         {/* Top Bar */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">PURSUIT PAGES</h1>
+            <h1 className="text-2xl font-bold">FELLOWS</h1>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-neutral-600">{filteredPeople.length} of {people.length}</span>
