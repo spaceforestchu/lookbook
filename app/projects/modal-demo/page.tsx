@@ -78,7 +78,7 @@ export default function ProjectsModalDemo() {
     <>
       <div className="flex min-h-screen bg-[#E8E8E8]">
         {/* Left Sidebar */}
-        <FilterSidebar />
+        <FilterSidebar currentPage="projects" />
 
         {/* Main Content */}
         <main className="flex-1 p-8 bg-[#E8E8E8]">
@@ -118,16 +118,6 @@ export default function ProjectsModalDemo() {
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="mb-6 flex items-center gap-4">
-            <Link href="/projects/modal-demo" className="rounded-full border border-black bg-black px-4 py-1.5 text-sm text-white">
-              PROJECTS
-            </Link>
-            <Link href="/people/modal-demo" className="rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-sm hover:bg-neutral-50">
-              PEOPLE
-            </Link>
           </div>
 
           {/* Projects Grid */}

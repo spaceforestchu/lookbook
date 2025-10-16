@@ -1,8 +1,58 @@
-export default function FilterSidebar() {
+import Link from 'next/link';
+
+type FilterSidebarProps = {
+  currentPage?: 'projects' | 'people';
+};
+
+export default function FilterSidebar({ currentPage = 'people' }: FilterSidebarProps) {
   return (
-    <aside className="hidden lg:block w-64 bg-[#E8E8E8] rounded-3xl border-2 border-white shadow-lg p-6 overflow-y-auto flex-shrink-0 m-4 self-start">
+    <div className="hidden lg:block flex-shrink-0 m-4 self-start w-64">
+      {/* Tab Navigation - Above the panel */}
+      <div className="flex items-center gap-0 relative z-10" style={{ marginBottom: '-2px' }}>
+        <Link
+          href="/projects/modal-demo"
+          className={`flex-1 text-center px-6 py-4 text-sm font-bold transition-all ${
+            currentPage === 'projects'
+              ? 'bg-[#E8E8E8] text-blue-600 border-l-2 border-r-2 border-t-2 border-white rounded-tl-3xl rounded-tr-3xl'
+              : 'bg-transparent text-gray-500 hover:text-gray-700 border-l-2 border-t-2 border-white rounded-tl-3xl rounded-tr-3xl'
+          }`}
+        >
+          PROJECTS
+        </Link>
+        <Link
+          href="/people/modal-demo"
+          className={`flex-1 text-center px-6 py-4 text-sm font-bold transition-all ${
+            currentPage === 'people'
+              ? 'bg-[#E8E8E8] text-blue-600 border-l-2 border-r-2 border-t-2 border-white rounded-tl-3xl rounded-tr-3xl'
+              : 'bg-transparent text-gray-500 hover:text-gray-700 border-r-2 border-t-2 border-white rounded-tl-3xl rounded-tr-3xl'
+          }`}
+        >
+          PEOPLE
+        </Link>
+      </div>
+
+      {/* Sidebar Panel - Below the tabs */}
+      <aside className={`bg-[#E8E8E8] rounded-b-3xl border-l-2 border-r-2 border-b-2 border-t-2 border-white shadow-lg overflow-y-auto w-full relative ${
+        currentPage === 'people' ? 'rounded-tl-lg' : ''
+      }`}>
+      {/* Cover panels top corners to prevent double border */}
+      {currentPage === 'people' && (
+        <>
+          <div className="absolute top-[-2px] left-0 right-1/2 mr-1 h-0 border-t-2 border-white z-20"></div>
+          <div className="absolute top-[-2px] right-[-2px] w-[2px] h-[4px] bg-white z-20"></div>
+          <div className="absolute top-[-2px] left-[-2px] w-[12px] h-[12px] bg-[#E8E8E8] rounded-tl-xl z-10"></div>
+        </>
+      )}
+      {currentPage === 'projects' && (
+        <>
+          <div className="absolute top-[-2px] right-0 left-1/2 ml-1 h-0 border-t-2 border-white z-20"></div>
+          <div className="absolute top-[-2px] left-[-2px] w-[2px] h-[4px] bg-white z-20"></div>
+        </>
+      )}
+      <div className="px-6 pt-6">
+
       {/* Cohort Section */}
-      <div className="mb-6 pb-6 border-b border-gray-400">
+      <div className="mb-6 pb-6 border-b border-white">
         <h2 className="mb-4 text-base font-bold text-gray-900">Cohort</h2>
         <div className="space-y-3">
           <label className="flex items-center gap-3 cursor-pointer">
@@ -31,7 +81,7 @@ export default function FilterSidebar() {
       </div>
 
       {/* Industry Expertise Section */}
-      <div className="mb-6 pb-6 border-b border-gray-400">
+      <div className="mb-6 pb-6 border-b border-white">
         <h2 className="mb-4 text-base font-bold text-gray-900">Industry</h2>
         <div className="space-y-3">
           <label className="flex items-center gap-3 cursor-pointer">
@@ -122,7 +172,7 @@ export default function FilterSidebar() {
       </div>
 
       {/* Contact Section */}
-      <div className="mt-12 pt-8 border-t border-neutral-200">
+      <div className="mt-12 pt-8 pb-8 border-t border-white">
         <h3 className="mb-2 text-sm font-semibold text-blue-600">
           Contact for Resume /<br/>Hiring Interest
         </h3>
@@ -133,10 +183,13 @@ export default function FilterSidebar() {
         >
           timothyasprec@pursuit.org
         </a>
-        <p className="mt-2 text-xs text-neutral-500">
+        <p className="mt-4 text-xs text-neutral-500">
           Unauthorized contact violates Fair privacy policies
         </p>
       </div>
-    </aside>
+
+      </div>
+      </aside>
+    </div>
   );
 }
