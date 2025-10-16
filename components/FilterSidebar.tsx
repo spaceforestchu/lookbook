@@ -10,7 +10,7 @@ export default function FilterSidebar({ currentPage = 'people' }: FilterSidebarP
       {/* Tab Navigation - Above the panel */}
       <div className="flex items-center gap-0 relative z-10" style={{ marginBottom: '-2px' }}>
         <Link
-          href="/projects/modal-demo"
+          href="/projects"
           className={`flex-1 text-center px-6 py-4 text-sm font-bold transition-all ${
             currentPage === 'projects'
               ? 'bg-[#E8E8E8] text-blue-600 border-l-2 border-r-2 border-t-2 border-white rounded-tl-3xl rounded-tr-3xl'
@@ -20,7 +20,7 @@ export default function FilterSidebar({ currentPage = 'people' }: FilterSidebarP
           PROJECTS
         </Link>
         <Link
-          href="/people/modal-demo"
+          href="/"
           className={`flex-1 text-center px-6 py-4 text-sm font-bold transition-all ${
             currentPage === 'people'
               ? 'bg-[#E8E8E8] text-blue-600 border-l-2 border-r-2 border-t-2 border-white rounded-tl-3xl rounded-tr-3xl'
