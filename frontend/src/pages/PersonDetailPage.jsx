@@ -187,7 +187,7 @@ function PersonDetailPage() {
     
     // If there's a slug, show detail view
     setLayoutView('detail');
-    setLoading(true);
+        setLoading(true);
     
     if (viewMode === 'people') {
       const fetchPerson = async () => {
@@ -198,8 +198,8 @@ function PersonDetailPage() {
             setProject(null); // Clear project data
             // Find current index in all profiles (only if profiles are loaded)
             if (allProfiles.length > 0) {
-              const index = allProfiles.findIndex(p => p.slug === slug);
-              setCurrentIndex(index);
+            const index = allProfiles.findIndex(p => p.slug === slug);
+            setCurrentIndex(index);
             }
             setError(null);
           } else {
@@ -223,8 +223,8 @@ function PersonDetailPage() {
             setPerson(null); // Clear person data
             // Find current index in all projects (only if projects are loaded)
             if (allProjects.length > 0) {
-              const index = allProjects.findIndex(p => p.slug === slug);
-              setCurrentIndex(index);
+            const index = allProjects.findIndex(p => p.slug === slug);
+            setCurrentIndex(index);
             }
             setError(null);
           } else {
@@ -241,7 +241,10 @@ function PersonDetailPage() {
     } else {
       setLoading(false);
     }
-    
+  }, [slug, viewMode]);
+
+  // Fetch filters separately - always run
+  useEffect(() => {
     const fetchFilters = async () => {
       try {
         const peopleFiltersData = await profilesAPI.getFilters();
@@ -258,7 +261,7 @@ function PersonDetailPage() {
       }
     };
     fetchFilters();
-  }, [slug, viewMode]);
+  }, []); // Run once on mount
 
   // Navigation handlers
   const handlePrevious = () => {
@@ -379,7 +382,7 @@ function PersonDetailPage() {
           
           <div className="flex items-center gap-3 ml-auto">
           {layoutView === 'grid' && (
-            <Input
+          <Input
               placeholder={viewMode === 'people' ? 'Search People' : 'Search Projects'}
               value={viewMode === 'people' ? peopleFilters.search : projectFilters.search}
               onChange={(e) => {
@@ -389,8 +392,8 @@ function PersonDetailPage() {
                   setProjectFilters({ ...projectFilters, search: e.target.value });
                 }
               }}
-              className="w-64 bg-white"
-            />
+            className="w-64 bg-white"
+          />
           )}
           {/* View Toggle Icons */}
           <div className="flex items-center gap-2 bg-white rounded-md border p-1">
@@ -478,7 +481,8 @@ function PersonDetailPage() {
                   <div className="space-y-2">
                     <h4 className="font-semibold text-sm">Skills</h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {availablePeopleFilters.skills.map(skill => (
+                      {availablePeopleFilters.skills.length > 0 ? (
+                        availablePeopleFilters.skills.map(skill => (
                         <div key={skill} className="flex items-center space-x-2">
                           <Checkbox
                             id={`skill-${skill}`}
@@ -496,7 +500,10 @@ function PersonDetailPage() {
                             {skill}
                           </label>
                         </div>
-                      ))}
+                        ))
+                      ) : (
+                        <p className="text-xs text-gray-500">Loading skills...</p>
+                      )}
                     </div>
                   </div>
 
@@ -505,7 +512,8 @@ function PersonDetailPage() {
                   <div className="space-y-2">
                     <h4 className="font-semibold text-sm">Industries</h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {availablePeopleFilters.industries.map(industry => (
+                      {availablePeopleFilters.industries.length > 0 ? (
+                        availablePeopleFilters.industries.map(industry => (
                         <div key={industry} className="flex items-center space-x-2">
                           <Checkbox
                             id={`industry-${industry}`}
@@ -523,7 +531,10 @@ function PersonDetailPage() {
                             {industry}
                           </label>
                         </div>
-                      ))}
+                        ))
+                      ) : (
+                        <p className="text-xs text-gray-500">Loading industries...</p>
+                      )}
                     </div>
                   </div>
 
@@ -644,7 +655,7 @@ function PersonDetailPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 mt-20" style={{marginLeft: '264px', marginRight: '48px'}}>
+      <div className="flex-1 mt-20" style={{marginLeft: '344px', marginRight: '80px'}}>
         <div className="max-w-7xl mx-auto relative">
           
           {/* Grid View */}
@@ -656,7 +667,7 @@ function PersonDetailPage() {
                   onClick={() => setGridPage(Math.max(0, gridPage - 1))}
                   disabled={gridPage === 0}
                   className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
-                  style={{left: '-80px'}}
+                  style={{left: '-70px'}}
                   aria-label="Previous page"
                 >
                   <div className="rounded-full p-3 shadow-lg transition-all hover:scale-110 disabled:hover:scale-100" style={{backgroundColor: '#4242ea'}}>
@@ -669,7 +680,7 @@ function PersonDetailPage() {
                   onClick={() => setGridPage(Math.min(Math.ceil(filteredProjects.length / 8) - 1, gridPage + 1))}
                   disabled={gridPage >= Math.ceil(filteredProjects.length / 8) - 1}
                   className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
-                  style={{right: '-80px'}}
+                  style={{right: '-70px'}}
                   aria-label="Next page"
                 >
                   <div className="rounded-full p-3 shadow-lg transition-all hover:scale-110 disabled:hover:scale-100" style={{backgroundColor: '#4242ea'}}>
@@ -681,9 +692,9 @@ function PersonDetailPage() {
 
               <div 
                 key={`projects-grid-${gridPage}-${projectFilters.skills.join(',')}-${projectFilters.sectors.join(',')}-${projectFilters.search}`}
-                className="grid grid-cols-4 grid-rows-2 gap-6" 
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-2 gap-6" 
                 style={{
-                  animation: 'fadeIn 0.3s ease-in-out',
+                animation: 'fadeIn 0.3s ease-in-out',
                 }}
               >
               <style>{`
@@ -772,7 +783,7 @@ function PersonDetailPage() {
                         <h4 className="text-white font-semibold mb-2" style={{fontSize: '14px'}}>Project Team</h4>
                         <div className="flex items-center gap-2">
                           <div className="flex -space-x-2">
-                            {proj.participants && proj.participants.slice(0, 4).map((participant, i) => (
+                          {proj.participants && proj.participants.slice(0, 4).map((participant, i) => (
                               <div 
                                 key={i}
                                 className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-semibold"
@@ -787,8 +798,8 @@ function PersonDetailPage() {
                                 ) : (
                                   <span>{(participant.name || participant).split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}</span>
                                 )}
-                              </div>
-                            ))}
+                            </div>
+                          ))}
                             {proj.participants && proj.participants.length > 4 && (
                               <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-400 flex items-center justify-center text-white text-xs font-semibold">
                                 +{proj.participants.length - 4}
@@ -805,20 +816,20 @@ function PersonDetailPage() {
                       {/* Category Badge and Arrow */}
                       <div className="flex items-center justify-between">
                         <div className="flex flex-wrap gap-1">
-                          {proj.sectors && proj.sectors.length > 0 ? (
+                        {proj.sectors && proj.sectors.length > 0 ? (
                             proj.sectors.map((sector, i) => (
                               <span key={i} className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase">
                                 {sector}
-                              </span>
+                            </span>
                             ))
-                          ) : proj.skills && proj.skills.length > 0 ? (
+                        ) : proj.skills && proj.skills.length > 0 ? (
                             proj.skills.slice(0, 2).map((skill, i) => (
                               <span key={i} className="text-xs px-2 py-1 rounded-full bg-blue-600 text-white font-semibold">
                                 {skill}
-                              </span>
+                            </span>
                             ))
                           ) : null}
-                        </div>
+                          </div>
                         
                         {/* Arrow Button */}
                         <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
@@ -844,7 +855,7 @@ function PersonDetailPage() {
                   onClick={() => setGridPage(Math.max(0, gridPage - 1))}
                   disabled={gridPage === 0}
                   className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
-                  style={{left: '-80px'}}
+                  style={{left: '-70px'}}
                   aria-label="Previous page"
                 >
                   <div className="rounded-full p-3 shadow-lg transition-all hover:scale-110 disabled:hover:scale-100" style={{backgroundColor: '#4242ea'}}>
@@ -857,7 +868,7 @@ function PersonDetailPage() {
                   onClick={() => setGridPage(Math.min(Math.ceil(filteredProfiles.length / 8) - 1, gridPage + 1))}
                   disabled={gridPage >= Math.ceil(filteredProfiles.length / 8) - 1}
                   className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
-                  style={{right: '-80px'}}
+                  style={{right: '-70px'}}
                   aria-label="Next page"
                 >
                   <div className="rounded-full p-3 shadow-lg transition-all hover:scale-110 disabled:hover:scale-100" style={{backgroundColor: '#4242ea'}}>
@@ -869,7 +880,7 @@ function PersonDetailPage() {
 
               <div 
                 key={`people-grid-${gridPage}-${peopleFilters.skills.join(',')}-${peopleFilters.industries.join(',')}-${peopleFilters.search}-${peopleFilters.openToWork}`}
-                className="grid grid-cols-4 grid-rows-2 gap-6" 
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-2 gap-6" 
                 style={{
                   animation: 'fadeIn 0.3s ease-in-out',
                 }}
@@ -1188,7 +1199,7 @@ function PersonDetailPage() {
               onClick={handlePrevious}
               disabled={!canGoPrevious}
               className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
-              style={{left: '-80px'}}
+              style={{left: '-70px'}}
               aria-label="Previous profile"
             >
               <div className="rounded-full p-3 shadow-lg transition-all hover:scale-110 disabled:hover:scale-100" style={{backgroundColor: '#4242ea'}}>
@@ -1201,7 +1212,7 @@ function PersonDetailPage() {
               onClick={handleNext}
               disabled={!canGoNext}
               className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
-              style={{right: '-80px'}}
+              style={{right: '-70px'}}
               aria-label="Next profile"
             >
               <div className="rounded-full p-3 shadow-lg transition-all hover:scale-110 disabled:hover:scale-100" style={{backgroundColor: '#4242ea'}}>
@@ -1361,7 +1372,7 @@ function PersonDetailPage() {
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
-                                  <Icon className="w-6 h-6" />
+                                <Icon className="w-6 h-6" />
                                 )}
                               </div>
                               <div className="flex-1">
