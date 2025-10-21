@@ -60,6 +60,7 @@ app.get('/api/health/db', async (req, res) => {
 });
 
 // Import route modules
+const authRouter = require('./routes/auth');
 const profilesRouter = require('./routes/profiles');
 const projectsRouter = require('./routes/projects');
 const searchRouter = require('./routes/search');
@@ -67,6 +68,7 @@ const sharepackRouter = require('./routes/sharepack');
 const aiRouter = require('./routes/ai');
 
 // Mount routes
+app.use('/api/auth', authRouter);
 app.use('/api/profiles', profilesRouter);
 app.use('/api/projects', projectsRouter);
 app.use('/api/search', searchRouter);

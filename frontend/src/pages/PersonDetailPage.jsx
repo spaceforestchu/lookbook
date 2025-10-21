@@ -11,6 +11,19 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Linkedin, Globe, Camera, Code, Rocket, Zap, Lightbulb, Target, Square, Grid3x3, List, ChevronLeft, ChevronRight } from 'lucide-react';
 
+// Helper function to adjust color brightness for gradients
+const adjustColor = (hex, percent) => {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = (num >> 16) + amt;
+  const G = (num >> 8 & 0x00FF) + amt;
+  const B = (num & 0x0000FF) + amt;
+  return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+    (B < 255 ? B < 1 ? 0 : B : 255))
+    .toString(16).slice(1);
+};
+
 function PersonDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -23,18 +36,19 @@ function PersonDetailPage() {
   const [allProjects, setAllProjects] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [viewMode, setViewMode] = useState('people'); // 'people' or 'projects'
-  const [layoutView, setLayoutView] = useState('detail'); // 'detail' or 'grid'
+  const [layoutView, setLayoutView] = useState('grid'); // 'detail' or 'grid' - default to grid
   const [gridPage, setGridPage] = useState(0); // For grid pagination
+  const [projectCarouselIndex, setProjectCarouselIndex] = useState(0); // For project carousel
   
-  // Detect viewMode from URL
+  // Detect viewMode from URL - run this first
   useEffect(() => {
-    if (location.pathname.startsWith('/projects')) {
-      setViewMode('projects');
-      setFilterView('projects');
-    } else {
-      setViewMode('people');
-      setFilterView('people');
-    }
+    const newViewMode = location.pathname.startsWith('/projects') ? 'projects' : 'people';
+    setViewMode(newViewMode);
+    setFilterView(newViewMode);
+    // Reset error when switching modes
+    setError(null);
+    setPerson(null);
+    setProject(null);
   }, [location.pathname]);
   
   // Sidebar state
@@ -61,6 +75,76 @@ function PersonDetailPage() {
     skills: [],
     sectors: []
   });
+
+  // Filtered data based on search and filters
+  const filteredProfiles = allProfiles.filter(profile => {
+    // Search filter
+    if (peopleFilters.search) {
+      const searchLower = peopleFilters.search.toLowerCase();
+      const matchesName = profile.name?.toLowerCase().includes(searchLower);
+      const matchesBio = profile.bio?.toLowerCase().includes(searchLower);
+      const matchesSkills = profile.skills?.some(skill => skill.toLowerCase().includes(searchLower));
+      if (!matchesName && !matchesBio && !matchesSkills) return false;
+    }
+    
+    // Skills filter
+    if (peopleFilters.skills.length > 0) {
+      const hasSkill = peopleFilters.skills.some(filterSkill => 
+        profile.skills?.includes(filterSkill)
+      );
+      if (!hasSkill) return false;
+    }
+    
+    // Industries filter
+    if (peopleFilters.industries.length > 0) {
+      const hasIndustry = peopleFilters.industries.some(filterIndustry => 
+        profile.industries?.includes(filterIndustry)
+      );
+      if (!hasIndustry) return false;
+    }
+    
+    // Open to work filter
+    if (peopleFilters.openToWork && !profile.open_to_work) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  const filteredProjects = allProjects.filter(project => {
+    // Search filter
+    if (projectFilters.search) {
+      const searchLower = projectFilters.search.toLowerCase();
+      const matchesTitle = project.title?.toLowerCase().includes(searchLower);
+      const matchesSummary = project.summary?.toLowerCase().includes(searchLower);
+      const matchesDescription = project.short_description?.toLowerCase().includes(searchLower);
+      const matchesSkills = project.skills?.some(skill => skill.toLowerCase().includes(searchLower));
+      if (!matchesTitle && !matchesSummary && !matchesDescription && !matchesSkills) return false;
+    }
+    
+    // Skills filter
+    if (projectFilters.skills.length > 0) {
+      const hasSkill = projectFilters.skills.some(filterSkill => 
+        project.skills?.includes(filterSkill)
+      );
+      if (!hasSkill) return false;
+    }
+    
+    // Sectors filter
+    if (projectFilters.sectors.length > 0) {
+      const hasSector = projectFilters.sectors.some(filterSector => 
+        project.sectors?.includes(filterSector)
+      );
+      if (!hasSector) return false;
+    }
+    
+    return true;
+  });
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setGridPage(0);
+  }, [peopleFilters, projectFilters]);
 
   // Fetch all profiles for navigation
   useEffect(() => {
@@ -93,43 +177,69 @@ function PersonDetailPage() {
   }, []);
 
   useEffect(() => {
-    if (viewMode === 'people' && allProfiles.length > 0) {
+    // If no slug, default to grid view
+    if (!slug) {
+      setLayoutView('grid');
+      setLoading(false);
+      console.log('No slug, setting grid view. ViewMode:', viewMode, 'AllProfiles:', allProfiles.length, 'AllProjects:', allProjects.length);
+      return;
+    }
+    
+    // If there's a slug, show detail view
+    setLayoutView('detail');
+    setLoading(true);
+    
+    if (viewMode === 'people') {
       const fetchPerson = async () => {
-        setLoading(true);
         try {
           const data = await profilesAPI.getBySlug(slug);
           if (data.success) {
             setPerson(data.data);
-            // Find current index in all profiles
-            const index = allProfiles.findIndex(p => p.slug === slug);
-            setCurrentIndex(index);
+            setProject(null); // Clear project data
+            // Find current index in all profiles (only if profiles are loaded)
+            if (allProfiles.length > 0) {
+              const index = allProfiles.findIndex(p => p.slug === slug);
+              setCurrentIndex(index);
+            }
+            setError(null);
+          } else {
+            setError('Person not found');
           }
         } catch (err) {
-          setError('Profile not found');
+          console.error('Error fetching person:', err);
+          setError('Person not found');
         } finally {
           setLoading(false);
         }
       };
       fetchPerson();
-    } else if (viewMode === 'projects' && allProjects.length > 0) {
+    } else if (viewMode === 'projects') {
       // Fetch the current project by slug
       const fetchProject = async () => {
-        setLoading(true);
         try {
           const data = await projectsAPI.getBySlug(slug);
           if (data.success) {
             setProject(data.data);
-            // Find current index in all projects
-            const index = allProjects.findIndex(p => p.slug === slug);
-            setCurrentIndex(index);
+            setPerson(null); // Clear person data
+            // Find current index in all projects (only if projects are loaded)
+            if (allProjects.length > 0) {
+              const index = allProjects.findIndex(p => p.slug === slug);
+              setCurrentIndex(index);
+            }
+            setError(null);
+          } else {
+            setError('Project not found');
           }
         } catch (err) {
+          console.error('Error fetching project:', err);
           setError('Project not found');
         } finally {
           setLoading(false);
         }
       };
       fetchProject();
+    } else {
+      setLoading(false);
     }
     
     const fetchFilters = async () => {
@@ -148,7 +258,7 @@ function PersonDetailPage() {
       }
     };
     fetchFilters();
-  }, [slug, allProfiles, viewMode, allProjects]);
+  }, [slug, viewMode]);
 
   // Navigation handlers
   const handlePrevious = () => {
@@ -180,10 +290,11 @@ function PersonDetailPage() {
     setFilterView(tab);
     setViewMode(tab);
     setCurrentIndex(-1);
-    if (tab === 'people' && allProfiles.length > 0) {
-      navigate(`/people/${allProfiles[0].slug}`);
-    } else if (tab === 'projects' && allProjects.length > 0) {
-      navigate(`/projects/${allProjects[0].slug}`);
+    // Navigate to base route (grid view will be set by useEffect if no slug)
+    if (tab === 'people') {
+      navigate('/people');
+    } else if (tab === 'projects') {
+      navigate('/projects');
     }
   };
 
@@ -192,7 +303,7 @@ function PersonDetailPage() {
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowLeft') {
         // In grid view, navigate between pages
-        if (layoutView === 'grid' && viewMode === 'projects') {
+        if (layoutView === 'grid') {
           if (gridPage > 0) {
             setGridPage(gridPage - 1);
           }
@@ -202,8 +313,11 @@ function PersonDetailPage() {
         }
       } else if (e.key === 'ArrowRight') {
         // In grid view, navigate between pages
-        if (layoutView === 'grid' && viewMode === 'projects') {
-          if (gridPage < Math.ceil(allProjects.length / 8) - 1) {
+        if (layoutView === 'grid') {
+          const maxPage = viewMode === 'people' 
+            ? Math.ceil(filteredProfiles.length / 8) - 1 
+            : Math.ceil(filteredProjects.length / 8) - 1;
+          if (gridPage < maxPage) {
             setGridPage(gridPage + 1);
           }
         } else {
@@ -224,8 +338,8 @@ function PersonDetailPage() {
   const canGoNext = currentIndex >= 0 && currentIndex < currentLength - 1;
 
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  if (error) return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
-  if (!person && !project) return <div className="flex items-center justify-center min-h-screen">Not found</div>;
+  if (error && slug) return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
+  if (!person && !project && slug && layoutView === 'detail') return <div className="flex items-center justify-center min-h-screen">Not found</div>;
 
   const initials = person?.name?.split(' ').map(n => n.charAt(0)).join('') || project?.title?.charAt(0) || '?';
 
@@ -234,9 +348,11 @@ function PersonDetailPage() {
       {/* Logo - Top Left - Fixed */}
       <div className="fixed left-4 top-4 z-50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-md flex items-center justify-center text-white font-bold text-xl" style={{backgroundColor: '#4242ea'}}>
-            L
-          </div>
+          <img 
+            src="/pursuit-wordmark.png" 
+            alt="Pursuit" 
+            className="h-8"
+          />
           <span className="font-semibold text-base">Lookbook</span>
         </div>
       </div>
@@ -245,9 +361,9 @@ function PersonDetailPage() {
       <div className="absolute top-4 z-40" style={{left: '272px', right: '1rem'}}>
         <div className="max-w-7xl mx-auto flex justify-between items-end gap-3">
           {/* Page indicator */}
-          {layoutView === 'grid' && viewMode === 'projects' && allProjects.length > 0 && (
+          {layoutView === 'grid' && (
             <div className="text-base font-semibold text-gray-700">
-              Page {gridPage + 1} of {Math.ceil(allProjects.length / 8)}
+              Page {gridPage + 1} of {Math.ceil((viewMode === 'people' ? filteredProfiles.length : filteredProjects.length) / 8)}
             </div>
           )}
           {layoutView === 'detail' && currentLength > 0 && currentIndex >= 0 && (
@@ -255,31 +371,67 @@ function PersonDetailPage() {
               {currentIndex + 1} of {currentLength}
             </div>
           )}
+          {layoutView === 'list' && (
+            <div className="text-base font-semibold text-gray-700">
+              {viewMode === 'people' ? filteredProfiles.length : filteredProjects.length} {viewMode === 'people' ? 'People' : 'Projects'}
+            </div>
+          )}
           
-          <div className="flex items-center gap-3">
-          <Input
-            placeholder="Search"
-            value={peopleFilters.search}
-            onChange={(e) => setPeopleFilters({ ...peopleFilters, search: e.target.value })}
-            className="w-64 bg-white"
-          />
+          <div className="flex items-center gap-3 ml-auto">
+          {layoutView === 'grid' && (
+            <Input
+              placeholder={viewMode === 'people' ? 'Search People' : 'Search Projects'}
+              value={viewMode === 'people' ? peopleFilters.search : projectFilters.search}
+              onChange={(e) => {
+                if (viewMode === 'people') {
+                  setPeopleFilters({ ...peopleFilters, search: e.target.value });
+                } else {
+                  setProjectFilters({ ...projectFilters, search: e.target.value });
+                }
+              }}
+              className="w-64 bg-white"
+            />
+          )}
           {/* View Toggle Icons */}
           <div className="flex items-center gap-2 bg-white rounded-md border p-1">
             <button 
+              className="p-2 rounded hover:bg-gray-100"
+              style={{backgroundColor: layoutView === 'grid' ? '#4242ea' : 'transparent', color: layoutView === 'grid' ? 'white' : 'black'}}
+              onClick={() => {
+                setLayoutView('grid');
+                // Navigate to base route when switching to grid view
+                if (viewMode === 'people') {
+                  navigate('/people');
+                } else {
+                  navigate('/projects');
+                }
+              }}
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </button>
+            <button 
               className="p-2 rounded" 
               style={{backgroundColor: layoutView === 'detail' ? '#4242ea' : 'transparent', color: layoutView === 'detail' ? 'white' : 'black'}}
-              onClick={() => setLayoutView('detail')}
+              onClick={() => {
+                // When switching to detail view, navigate to first item if no slug
+                if (!slug) {
+                  if (viewMode === 'people' && filteredProfiles.length > 0) {
+                    navigate(`/people/${filteredProfiles[0].slug}`);
+                  } else if (viewMode === 'projects' && filteredProjects.length > 0) {
+                    navigate(`/projects/${filteredProjects[0].slug}`);
+                  }
+                } else {
+                  setLayoutView('detail');
+                }
+              }}
             >
               <Square className="w-4 h-4" />
             </button>
             <button 
               className="p-2 rounded hover:bg-gray-100"
-              style={{backgroundColor: layoutView === 'grid' ? '#4242ea' : 'transparent', color: layoutView === 'grid' ? 'white' : 'black'}}
-              onClick={() => setLayoutView('grid')}
+              style={{backgroundColor: layoutView === 'list' ? '#4242ea' : 'transparent', color: layoutView === 'list' ? 'white' : 'black'}}
+              onClick={() => setLayoutView('list')}
             >
-              <Grid3x3 className="w-4 h-4" />
-            </button>
-            <button className="p-2 hover:bg-gray-100 rounded">
               <List className="w-4 h-4" />
             </button>
           </div>
@@ -446,9 +598,11 @@ function PersonDetailPage() {
                     </div>
                   </div>
 
+                  <Separator className="bg-white" />
+
                   <div className="space-y-2">
                     <h4 className="font-semibold text-sm">Industries</h4>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
                       {availableProjectFilters.sectors.map(sector => (
                         <div key={sector} className="flex items-center space-x-2">
                           <Checkbox 
@@ -472,6 +626,13 @@ function PersonDetailPage() {
                   </div>
                 </div>
               )}
+              
+              {/* Contact Section */}
+              <Separator className="bg-white" />
+              <div className="space-y-1">
+                <p className="text-sm font-bold">Contact for Resume / Hiring Interest</p>
+                <p className="text-sm">hiring@pursuit.org</p>
+              </div>
             </div>
         </div>
       </aside>
@@ -505,8 +666,8 @@ function PersonDetailPage() {
                 </button>
 
                 <button
-                  onClick={() => setGridPage(Math.min(Math.ceil(allProjects.length / 8) - 1, gridPage + 1))}
-                  disabled={gridPage >= Math.ceil(allProjects.length / 8) - 1}
+                  onClick={() => setGridPage(Math.min(Math.ceil(filteredProjects.length / 8) - 1, gridPage + 1))}
+                  disabled={gridPage >= Math.ceil(filteredProjects.length / 8) - 1}
                   className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
                   style={{right: '-80px'}}
                   aria-label="Next page"
@@ -518,9 +679,13 @@ function PersonDetailPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-4 grid-rows-2 gap-6" style={{
-                animation: 'fadeIn 0.3s ease-in-out',
-              }}>
+              <div 
+                key={`projects-grid-${gridPage}-${projectFilters.skills.join(',')}-${projectFilters.sectors.join(',')}-${projectFilters.search}`}
+                className="grid grid-cols-4 grid-rows-2 gap-6" 
+                style={{
+                  animation: 'fadeIn 0.3s ease-in-out',
+                }}
+              >
               <style>{`
                 @keyframes fadeIn {
                   from {
@@ -533,7 +698,7 @@ function PersonDetailPage() {
                   }
                 }
               `}</style>
-              {allProjects.slice(gridPage * 8, (gridPage + 1) * 8).map((proj, idx) => (
+              {filteredProjects.slice(gridPage * 8, (gridPage + 1) * 8).map((proj, idx) => (
                 <Card 
                   key={proj.slug} 
                   className="rounded-xl border-0 shadow-none cursor-pointer hover:shadow-lg transition-all overflow-hidden relative"
@@ -543,8 +708,8 @@ function PersonDetailPage() {
                     navigate(`/projects/${proj.slug}`);
                   }}
                 >
-                  {/* Background Image */}
-                  {proj.main_image_url && (
+                  {/* Background Image or Color */}
+                  {proj.main_image_url ? (
                     <div className="absolute inset-0 z-0">
                       <img 
                         src={(() => {
@@ -562,12 +727,39 @@ function PersonDetailPage() {
                       {/* Gradient Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
                     </div>
+                  ) : (
+                    <div className="absolute inset-0 z-0" style={{
+                      background: `linear-gradient(135deg, ${proj.background_color || '#6366f1'} 0%, ${adjustColor(proj.background_color || '#6366f1', -30)} 100%)`
+                    }}>
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
+                      {/* Display icon if available */}
+                      {proj.icon_url && (
+                        <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                          <img 
+                            src={proj.icon_url} 
+                            alt={`${proj.title} icon`}
+                            className="w-32 h-32 object-contain"
+                          />
+                        </div>
+                      )}
+                    </div>
                   )}
                   
                   <CardContent className="relative z-10 p-6 h-full flex flex-col justify-between">
+                    {/* Icon Badge (top-right) */}
+                    {proj.icon_url && (
+                      <div className="absolute top-4 right-4 w-12 h-12 bg-white rounded-lg shadow-lg p-2 flex items-center justify-center">
+                        <img 
+                          src={proj.icon_url} 
+                          alt={`${proj.title} icon`}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    )}
+                    
                     {/* Top Section - Title and Description */}
                     <div>
-                      <h3 className="font-bold text-white uppercase mb-3" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '1.5rem'}}>{proj.title}</h3>
+                      <h3 className="font-bold text-white uppercase mb-3 leading-tight" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '1.5rem'}}>{proj.title}</h3>
                       {proj.short_description && (
                         <p className="text-white leading-snug mb-2" style={{fontSize: '14px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{proj.short_description}</p>
                       )}
@@ -578,32 +770,55 @@ function PersonDetailPage() {
                       {/* Project Team */}
                       <div className="mb-4">
                         <h4 className="text-white font-semibold mb-2" style={{fontSize: '14px'}}>Project Team</h4>
-                        <div className="space-y-1">
-                          {proj.participants && proj.participants.slice(0, 4).map((participant, i) => (
-                            <div key={i} className="text-white" style={{fontSize: '14px'}}>
-                              • {participant.name || participant}
-                            </div>
-                          ))}
+                        <div className="flex items-center gap-2">
+                          <div className="flex -space-x-2">
+                            {proj.participants && proj.participants.slice(0, 4).map((participant, i) => (
+                              <div 
+                                key={i}
+                                className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-semibold"
+                                title={participant.name || participant}
+                              >
+                                {(participant.photo_url || participant.photoUrl) ? (
+                                  <img 
+                                    src={participant.photo_url || participant.photoUrl}
+                                    alt={participant.name || participant}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <span>{(participant.name || participant).split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}</span>
+                                )}
+                              </div>
+                            ))}
+                            {proj.participants && proj.participants.length > 4 && (
+                              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-400 flex items-center justify-center text-white text-xs font-semibold">
+                                +{proj.participants.length - 4}
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-white text-sm">
+                            {proj.participants && proj.participants.slice(0, 3).map(p => p.name || p).join(', ')}
+                            {proj.participants && proj.participants.length > 3 && ` +${proj.participants.length - 3}`}
+                          </p>
                         </div>
                       </div>
                       
                       {/* Category Badge and Arrow */}
                       <div className="flex items-center justify-between">
-                        {proj.sectors && proj.sectors.length > 0 ? (
-                          <div className="bg-white/90 rounded-full px-4 py-1.5">
-                            <span className="text-xs font-semibold uppercase tracking-wide" style={{color: '#4242ea'}}>
-                              {proj.sectors[0]}
-                            </span>
-                          </div>
-                        ) : proj.skills && proj.skills.length > 0 ? (
-                          <div className="bg-white/90 rounded-full px-4 py-1.5">
-                            <span className="text-xs font-semibold uppercase tracking-wide" style={{color: '#4242ea'}}>
-                              {proj.skills[0]}
-                            </span>
-                          </div>
-                        ) : (
-                          <div></div>
-                        )}
+                        <div className="flex flex-wrap gap-1">
+                          {proj.sectors && proj.sectors.length > 0 ? (
+                            proj.sectors.map((sector, i) => (
+                              <span key={i} className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase">
+                                {sector}
+                              </span>
+                            ))
+                          ) : proj.skills && proj.skills.length > 0 ? (
+                            proj.skills.slice(0, 2).map((skill, i) => (
+                              <span key={i} className="text-xs px-2 py-1 rounded-full bg-blue-600 text-white font-semibold">
+                                {skill}
+                              </span>
+                            ))
+                          ) : null}
+                        </div>
                         
                         {/* Arrow Button */}
                         <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
@@ -618,6 +833,350 @@ function PersonDetailPage() {
               ))}
             </div>
             </>
+          )}
+
+          {/* People Grid View */}
+          {layoutView === 'grid' && viewMode === 'people' && (
+            <>
+              {/* Grid Navigation Arrows */}
+              <div className="sticky top-1/2 -translate-y-1/2 left-0 right-0 h-0 pointer-events-none z-50">
+                <button
+                  onClick={() => setGridPage(Math.max(0, gridPage - 1))}
+                  disabled={gridPage === 0}
+                  className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
+                  style={{left: '-80px'}}
+                  aria-label="Previous page"
+                >
+                  <div className="rounded-full p-3 shadow-lg transition-all hover:scale-110 disabled:hover:scale-100" style={{backgroundColor: '#4242ea'}}>
+                    <ChevronLeft className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xs text-gray-500">Previous</span>
+                </button>
+
+                <button
+                  onClick={() => setGridPage(Math.min(Math.ceil(filteredProfiles.length / 8) - 1, gridPage + 1))}
+                  disabled={gridPage >= Math.ceil(filteredProfiles.length / 8) - 1}
+                  className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
+                  style={{right: '-80px'}}
+                  aria-label="Next page"
+                >
+                  <div className="rounded-full p-3 shadow-lg transition-all hover:scale-110 disabled:hover:scale-100" style={{backgroundColor: '#4242ea'}}>
+                    <ChevronRight className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xs text-gray-500">Next</span>
+                </button>
+              </div>
+
+              <div 
+                key={`people-grid-${gridPage}-${peopleFilters.skills.join(',')}-${peopleFilters.industries.join(',')}-${peopleFilters.search}-${peopleFilters.openToWork}`}
+                className="grid grid-cols-4 grid-rows-2 gap-6" 
+                style={{
+                  animation: 'fadeIn 0.3s ease-in-out',
+                }}
+              >
+              <style>{`
+                @keyframes fadeIn {
+                  from {
+                    opacity: 0;
+                    transform: scale(0.95);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: scale(1);
+                  }
+                }
+              `}</style>
+              {filteredProfiles.slice(gridPage * 8, (gridPage + 1) * 8).map((prof, idx) => (
+                <Card 
+                  key={prof.slug} 
+                  className="rounded-xl border-0 shadow-none cursor-pointer hover:shadow-lg transition-all overflow-hidden relative"
+                  style={{backgroundColor: 'white', height: '380px'}}
+                  onClick={() => {
+                    setLayoutView('detail');
+                    navigate(`/people/${prof.slug}`);
+                  }}
+                >
+                  {/* Background Image */}
+                  {(prof.photo_url || prof.photoUrl) && (
+                    <div className="absolute inset-0 z-0">
+                      <img 
+                        src={prof.photo_url || prof.photoUrl}
+                        alt={prof.name}
+                        className="w-full h-full object-cover opacity-90"
+                      />
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/70"></div>
+                    </div>
+                  )}
+                  {!(prof.photo_url || prof.photoUrl) && (
+                    <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-600 to-purple-600"></div>
+                  )}
+                  
+                  <CardContent className="relative z-10 p-6 h-full flex flex-col justify-between">
+                    {/* Top Section - Name and Bio */}
+                    <div>
+                      <h3 className="font-bold text-white uppercase mb-2" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '1.5rem'}}>{prof.name}</h3>
+                      {prof.title && (
+                        <p className="text-white mb-2" style={{fontSize: '14px', fontWeight: '500', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{prof.title}</p>
+                      )}
+                      {prof.bio && (
+                        <p className="text-white leading-snug mb-2 line-clamp-3" style={{fontSize: '14px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{prof.bio}</p>
+                      )}
+                    </div>
+                    
+                    {/* Bottom Section - Skills and Status */}
+                    <div>
+                      {/* Skills */}
+                      {prof.skills && prof.skills.length > 0 && (
+                        <div className="mb-4">
+                          <h4 className="text-white font-semibold mb-2" style={{fontSize: '14px'}}>Skills</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {prof.skills.slice(0, 5).map((skill, i) => (
+                              <span key={i} className="text-xs px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
+                                {skill}
+                              </span>
+                            ))}
+                            {prof.skills.length > 5 && (
+                              <span className="text-xs px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
+                                +{prof.skills.length - 5}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Industry Tags and Status */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-wrap gap-1">
+                          {prof.industries && prof.industries.slice(0, 2).map((industry, i) => (
+                            <span key={i} className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase">
+                              {industry}
+                            </span>
+                          ))}
+                        </div>
+                        
+                        {/* Arrow Button */}
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+                          <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            </>
+          )}
+
+          {/* List View */}
+          {layoutView === 'list' && (
+            <Card className="rounded-xl border-2 border-white shadow-none mb-12" style={{
+              backgroundColor: 'white',
+              animation: 'fadeIn 0.3s ease-in-out',
+            }}>
+              <CardContent className="p-6">
+                {viewMode === 'projects' && (
+                  <div>
+                    {filteredProjects.map((proj, index) => (
+                      <div key={proj.slug}>
+                        {index > 0 && <div className="border-t border-gray-200 my-0"></div>}
+                        <div 
+                          onClick={() => {
+                            setLayoutView('detail');
+                            navigate(`/projects/${proj.slug}`);
+                          }}
+                          className="flex items-center gap-6 p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                        >
+                        {/* Project Icon/Image */}
+                        <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-orange-500 to-red-500">
+                          {(proj.icon_url || proj.main_image_url) ? (
+                            <img 
+                              src={(() => {
+                                // Use icon_url if available, otherwise use main_image_url
+                                const imageUrl = proj.icon_url || proj.main_image_url;
+                                try {
+                                  const images = JSON.parse(imageUrl);
+                                  if (Array.isArray(images)) {
+                                    return typeof images[0] === 'string' ? images[0] : images[0].url;
+                                  }
+                                } catch {}
+                                return imageUrl;
+                              })()}
+                              alt={proj.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
+                              {proj.title?.charAt(0)}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Project Name and Description */}
+                        <div className="flex-1 min-w-0" style={{maxWidth: '550px'}}>
+                          <h3 className="font-bold text-lg uppercase" style={{fontFamily: "'Galano Grotesque', sans-serif"}}>
+                            {proj.title}
+                          </h3>
+                          {proj.short_description && (
+                            <p className="text-gray-600 mb-2" style={{fontSize: '14px'}}>
+                              {proj.short_description}
+                            </p>
+                          )}
+                          {/* Industry Pills */}
+                          <div className="flex gap-2 flex-wrap">
+                            {proj.sectors && proj.sectors.slice(0, 2).map((sector, i) => (
+                              <span 
+                                key={i} 
+                                className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase"
+                              >
+                                {sector}
+                              </span>
+                            ))}
+                            {proj.sectors && proj.sectors.length > 2 && (
+                              <span 
+                                className="text-xs px-2 py-1 rounded-full bg-gray-400 text-white font-semibold"
+                              >
+                                +{proj.sectors.length - 2}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Project Team */}
+                        <div className="w-48 flex-shrink-0 ml-14">
+                          <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Project Team</h4>
+                          {proj.participants && proj.participants.length > 0 ? (
+                            <div className="space-y-2">
+                              {proj.participants.slice(0, 3).map((participant, i) => (
+                                <div key={i} className="flex items-center gap-2">
+                                  <div 
+                                    className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
+                                    title={participant.name || participant}
+                                  >
+                                    {(participant.photo_url || participant.photoUrl) ? (
+                                      <img 
+                                        src={participant.photo_url || participant.photoUrl}
+                                        alt={participant.name || participant}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <span>{(participant.name || participant).split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}</span>
+                                    )}
+                                  </div>
+                                  <span className="text-sm text-gray-700 truncate">{participant.name || participant}</span>
+                                </div>
+                              ))}
+                              {proj.participants.length > 3 && (
+                                <div className="text-xs text-gray-500 pl-8">
+                                  +{proj.participants.length - 3} more
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500">No team listed</p>
+                          )}
+                        </div>
+                      </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {viewMode === 'people' && (
+                  <div>
+                    {filteredProfiles.map((prof, index) => (
+                      <div key={prof.slug}>
+                        {index > 0 && <div className="border-t border-gray-200 my-0"></div>}
+                        <div 
+                          onClick={() => {
+                            setLayoutView('detail');
+                            navigate(`/people/${prof.slug}`);
+                          }}
+                          className="flex items-start gap-6 p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                        >
+                          {/* Profile Photo */}
+                          <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0">
+                            {(prof.photo_url || prof.photoUrl) ? (
+                              <img 
+                                src={prof.photo_url || prof.photoUrl}
+                                alt={prof.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
+                                {prof.name?.split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Name and Bio */}
+                          <div className="flex-1 min-w-0" style={{maxWidth: '550px'}}>
+                            <h3 className="font-bold text-lg uppercase" style={{fontFamily: "'Galano Grotesque', sans-serif"}}>
+                              {prof.name}
+                            </h3>
+                            {prof.title && (
+                              <p className="text-sm text-gray-700 mb-1" style={{fontWeight: '500'}}>
+                                {prof.title}
+                              </p>
+                            )}
+                            {prof.bio && (
+                              <p className="text-gray-600 mb-2 line-clamp-2" style={{fontSize: '14px'}}>
+                                {prof.bio}
+                              </p>
+                            )}
+                            {/* Skills/Industries Pills */}
+                            <div className="flex gap-2 flex-wrap">
+                              {prof.skills && prof.skills.slice(0, 3).map((skill, i) => (
+                                <span 
+                                  key={i} 
+                                  className="text-xs px-2 py-1 rounded-full bg-blue-600 text-white font-semibold"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                              {prof.skills && prof.skills.length > 3 && (
+                                <span 
+                                  className="text-xs px-2 py-1 rounded-full bg-gray-400 text-white font-semibold"
+                                >
+                                  +{prof.skills.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Industries/Status */}
+                          <div className="w-48 flex-shrink-0 ml-14">
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Industry Expertise</h4>
+                            {prof.industry_expertise && prof.industry_expertise.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {prof.industry_expertise.slice(0, 3).map((industry, i) => (
+                                  <span 
+                                    key={i} 
+                                    className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase"
+                                  >
+                                    {industry}
+                                  </span>
+                                ))}
+                                {prof.industry_expertise.length > 3 && (
+                                  <span 
+                                    className="text-xs px-2 py-1 rounded-full bg-gray-400 text-white font-semibold"
+                                  >
+                                    +{prof.industry_expertise.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-500">No industries listed</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
 
           {/* Detail View */}
@@ -652,7 +1211,7 @@ function PersonDetailPage() {
             </button>
           </div>
 
-          <Card className="rounded-xl border-2 border-white shadow-none" style={{
+          <Card className="rounded-xl border-2 border-white shadow-none mb-12" style={{
             backgroundColor: 'white', 
             minHeight: '800px',
             animation: 'fadeIn 0.3s ease-in-out',
@@ -703,19 +1262,26 @@ function PersonDetailPage() {
                 <div className="flex-1 pt-4">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h1 className="font-bold uppercase tracking-tight mb-2" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '2rem'}}>{person.name}</h1>
+                      <div className="flex items-baseline gap-3">
+                        <h1 className="font-bold uppercase tracking-tight" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '2rem'}}>{person.name}</h1>
+                        {person.title && (
+                          <p className="text-lg text-gray-600">{person.title}</p>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       {person.linkedin_url && (
                         <a href={person.linkedin_url} target="_blank" rel="noopener noreferrer">
-                          <Button variant="outline" size="icon">
-                            <Linkedin className="h-4 w-4" />
+                          <Button size="icon" style={{ backgroundColor: '#0A66C2', color: 'white' }} className="hover:opacity-90">
+                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
                           </Button>
                         </a>
                       )}
                       {person.x_url && (
                         <a href={person.x_url} target="_blank" rel="noopener noreferrer">
-                          <Button variant="outline" size="icon">
+                          <Button size="icon" style={{ backgroundColor: '#000000', color: 'white' }} className="hover:opacity-90">
                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                             </svg>
@@ -743,26 +1309,76 @@ function PersonDetailPage() {
                   {/* Select Projects - Before Experience Section */}
                   {person.projects && person.projects.length > 0 && (
                     <div className="mb-4 pb-4 border-b">
-                      <h3 className="text-lg font-bold mb-1">Select Projects</h3>
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-lg font-bold">Select Projects</h3>
+                        {person.projects.length > 3 && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setProjectCarouselIndex(Math.max(0, projectCarouselIndex - 3))}
+                              disabled={projectCarouselIndex === 0}
+                              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                const maxIndex = Math.floor((person.projects.length - 1) / 3) * 3;
+                                setProjectCarouselIndex(Math.min(maxIndex, projectCarouselIndex + 3));
+                              }}
+                              disabled={projectCarouselIndex >= Math.floor((person.projects.length - 1) / 3) * 3}
+                              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-3">
-                        {person.projects.map((project, idx) => {
+                        {person.projects.slice(projectCarouselIndex, projectCarouselIndex + 3).map((project, idx) => {
                           // Cycle through different icons for variety
                           const icons = [Camera, Code, Rocket, Zap, Lightbulb, Target];
-                          const Icon = icons[idx % icons.length];
+                          const Icon = icons[(projectCarouselIndex + idx) % icons.length];
+                          
+                          // Check if project has an icon_url or main_image_url
+                          const hasProjectImage = project.icon_url || project.main_image_url;
+                          const imageUrl = project.icon_url || project.main_image_url;
                           
                           return (
                             <div key={idx} className="flex gap-3 items-start">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white flex-shrink-0">
-                                <Icon className="w-6 h-6" />
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white flex-shrink-0 overflow-hidden">
+                                {hasProjectImage ? (
+                                  <img
+                                    src={(() => {
+                                      try {
+                                        const images = JSON.parse(imageUrl);
+                                        if (Array.isArray(images)) {
+                                          return typeof images[0] === 'string' ? images[0] : images[0].url;
+                                        }
+                                      } catch {}
+                                      return imageUrl;
+                                    })()}
+                                    alt={project.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <Icon className="w-6 h-6" />
+                                )}
                               </div>
                               <div className="flex-1">
                                 <h4 className="font-bold text-base mb-1">{project.title}</h4>
                                 {(project.short_description || project.summary) && (
                                   <p className="text-gray-600 leading-snug mb-2" style={{fontSize: '16px'}}>{project.short_description || project.summary}</p>
                                 )}
-                                <a href="#" className="text-sm inline-flex items-center gap-1" style={{color: '#4242ea'}}>
+                                <button
+                                  onClick={() => {
+                                    setViewMode('projects');
+                                    navigate(`/projects/${project.slug}`);
+                                  }}
+                                  className="text-sm inline-flex items-center gap-1 hover:underline cursor-pointer"
+                                  style={{color: '#4242ea'}}
+                                >
                                   Learn More →
-                                </a>
+                                </button>
                               </div>
                             </div>
                           );
@@ -822,9 +1438,9 @@ function PersonDetailPage() {
                       {person.industry_expertise && person.industry_expertise.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
                           {person.industry_expertise.map((industry, idx) => (
-                            <Badge key={idx} className="bg-purple-600 hover:bg-purple-700 text-white text-xs py-1.5 px-3 font-bold uppercase">
+                            <span key={idx} className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase">
                               {industry}
-                            </Badge>
+                            </span>
                           ))}
                         </div>
                       ) : (
@@ -889,9 +1505,9 @@ function PersonDetailPage() {
                       {project.skills && project.skills.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
                           {project.skills.map((skill, idx) => (
-                            <Badge key={idx} className="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 px-3">
+                            <span key={idx} className="text-xs px-2 py-1 rounded-full bg-blue-600 text-white font-semibold">
                               {skill}
-                            </Badge>
+                            </span>
                           ))}
                         </div>
                       ) : (
@@ -963,7 +1579,7 @@ function PersonDetailPage() {
                           if (Array.isArray(images)) {
                             return images.map((image, idx) => (
                               <div key={idx}>
-                                <div className="rounded-lg overflow-hidden border-2 border-gray-200">
+                                <div className="rounded-lg overflow-hidden">
                                   <img 
                                     src={typeof image === 'string' ? image : image.url}
                                     alt={`${project.title} screenshot ${idx + 1}`}
@@ -981,7 +1597,7 @@ function PersonDetailPage() {
                         }
                         // Single image
                         return (
-                          <div className="rounded-lg overflow-hidden border-2 border-gray-200">
+                          <div className="rounded-lg overflow-hidden">
                             <img 
                               src={project.main_image_url} 
                               alt={`${project.title} screenshot`}
@@ -1013,7 +1629,7 @@ function PersonDetailPage() {
                           if (Array.isArray(videos)) {
                             return videos.map((video, idx) => (
                               <div key={idx}>
-                                <div className="rounded-lg overflow-hidden border-2 border-gray-200" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
+                                <div className="rounded-lg overflow-hidden" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
                                   <iframe
                                     src={typeof video === 'string' ? video : video.url}
                                     title={`Demo Video ${idx + 1}`}
@@ -1027,7 +1643,7 @@ function PersonDetailPage() {
                                   <p className="mt-12 mb-12 text-gray-700 leading-snug" style={{fontSize: '16px', maxWidth: '75%'}}>{video.description}</p>
                                 )}
                                 {typeof video === 'object' && video.screenshot_after && (
-                                  <div className="mt-6 rounded-lg overflow-hidden border-2 border-gray-200">
+                                  <div className="mt-6 rounded-lg overflow-hidden">
                                     <img 
                                       src={video.screenshot_after}
                                       alt={`${project.title} screenshot`}
@@ -1043,7 +1659,7 @@ function PersonDetailPage() {
                         }
                         // Single video
                         return (
-                          <div className="rounded-lg overflow-hidden border-2 border-gray-200" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
+                          <div className="rounded-lg overflow-hidden" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
                             <iframe
                               src={project.demo_video_url}
                               title="Demo Video"

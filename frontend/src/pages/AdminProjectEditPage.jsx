@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { projectsAPI, profilesAPI } from '../utils/api';
 import AdminLayout from '../components/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, ArrowLeft, Plus, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Save, ArrowLeft, Plus, X, Upload, Link as LinkIcon, Eye, Edit3, ExternalLink, Github } from 'lucide-react';
 
 function AdminProjectEditPage() {
   const { slug } = useParams();
@@ -22,9 +24,11 @@ function AdminProjectEditPage() {
     summary: '',
     short_description: '',
     main_image_url: '',
+    icon_url: '',
     demo_video_url: '',
     github_url: '',
     live_url: '',
+    background_color: '#6366f1', // Default indigo color
     skills: [],
     sectors: [],
     slug: ''
@@ -32,6 +36,108 @@ function AdminProjectEditPage() {
 
   const [skillInput, setSkillInput] = useState('');
   const [sectorInput, setSectorInput] = useState('');
+  const [imageInputMode, setImageInputMode] = useState('url'); // 'url' or 'upload'
+  const [iconInputMode, setIconInputMode] = useState('url'); // 'url' or 'upload'
+  const [editMode, setEditMode] = useState('form'); // 'form' or 'wysiwyg'
+
+  // Helper function to adjust color brightness for gradients
+  const adjustColor = (hex, percent) => {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+      (B < 255 ? B < 1 ? 0 : B : 255))
+      .toString(16).slice(1);
+  };
+
+  // Helper function to convert file to base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  // Handle main image file upload
+  const handleMainImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Invalid file type', {
+        description: 'Please upload an image file (PNG, JPG, SVG, etc.)'
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large', {
+        description: 'Please upload an image smaller than 5MB'
+      });
+      return;
+    }
+
+    try {
+      toast.info('Uploading image...', {
+        description: 'Converting image to base64...'
+      });
+      const base64 = await fileToBase64(file);
+      setFormData({ ...formData, main_image_url: base64 });
+      toast.success('Image uploaded!', {
+        description: 'Image has been converted and will be saved with the project'
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Upload failed', {
+        description: 'Failed to process the image. Please try again.'
+      });
+    }
+  };
+
+  // Handle icon file upload
+  const handleIconUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Invalid file type', {
+        description: 'Please upload an image file (PNG, JPG, SVG, etc.)'
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB for icons)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('File too large', {
+        description: 'Please upload an icon smaller than 2MB'
+      });
+      return;
+    }
+
+    try {
+      toast.info('Uploading icon...', {
+        description: 'Converting icon to base64...'
+      });
+      const base64 = await fileToBase64(file);
+      setFormData({ ...formData, icon_url: base64 });
+      toast.success('Icon uploaded!', {
+        description: 'Icon has been converted and will be saved with the project'
+      });
+    } catch (error) {
+      console.error('Error uploading icon:', error);
+      toast.error('Upload failed', {
+        description: 'Failed to process the icon. Please try again.'
+      });
+    }
+  };
 
   useEffect(() => {
     fetchAllPeople();
@@ -60,9 +166,11 @@ function AdminProjectEditPage() {
         summary: project.summary || '',
         short_description: project.short_description || '',
         main_image_url: project.main_image_url || '',
+        icon_url: project.icon_url || '',
         demo_video_url: project.demo_video_url || '',
         github_url: project.github_url || '',
         live_url: project.live_url || '',
+        background_color: project.background_color || '#6366f1',
         skills: project.skills || [],
         sectors: project.sectors || [],
         slug: project.slug || ''
@@ -81,13 +189,21 @@ function AdminProjectEditPage() {
     try {
       if (isNew) {
         await projectsAPI.create(formData);
+        toast.success('Project created successfully!', {
+          description: `${formData.title} has been added to the lookbook.`
+        });
       } else {
         await projectsAPI.update(slug, formData);
+        toast.success('Project updated successfully!', {
+          description: `Changes to ${formData.title} have been saved.`
+        });
       }
       navigate('/admin/projects');
     } catch (error) {
       console.error('Error saving project:', error);
-      alert('Error saving project. Please try again.');
+      toast.error('Failed to save project', {
+        description: error.message || 'An error occurred. Please try again.'
+      });
     } finally {
       setSaving(false);
     }
@@ -136,12 +252,40 @@ function AdminProjectEditPage() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Projects
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isNew ? 'Add New Project' : `Edit ${formData.title}`}
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-900">
+              {isNew ? 'Add New Project' : `Edit ${formData.title}`}
+            </h1>
+            {/* Edit Mode Toggle */}
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={editMode === 'form' ? 'default' : 'outline'}
+                onClick={() => setEditMode('form')}
+                className="flex items-center gap-2"
+                style={editMode === 'form' ? {backgroundColor: '#4242ea'} : {}}
+              >
+                <Edit3 className="w-4 h-4" />
+                Form Mode
+              </Button>
+              <Button
+                type="button"
+                variant={editMode === 'wysiwyg' ? 'default' : 'outline'}
+                onClick={() => setEditMode('wysiwyg')}
+                className="flex items-center gap-2"
+                style={editMode === 'wysiwyg' ? {backgroundColor: '#4242ea'} : {}}
+              >
+                <Eye className="w-4 h-4" />
+                WYSIWYG Mode
+              </Button>
+            </div>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {editMode === 'form' ? (
+            // FORM MODE - Original form inputs
+            <>
           {/* Basic Information */}
           <Card>
             <CardHeader>
@@ -202,16 +346,223 @@ function AdminProjectEditPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="main_image_url">Main Image URL</Label>
-                <Textarea
-                  id="main_image_url"
-                  value={formData.main_image_url}
-                  onChange={(e) => setFormData({ ...formData, main_image_url: e.target.value })}
-                  rows={3}
-                  placeholder="Single URL or JSON array: ['url1', 'url2']"
-                />
+                <Label htmlFor="main_image_url">Main Image</Label>
+                
+                {/* Toggle between URL and Upload */}
+                <div className="flex gap-2 mb-3 mt-2">
+                  <Button
+                    type="button"
+                    variant={imageInputMode === 'url' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setImageInputMode('url')}
+                    className="flex items-center gap-2"
+                  >
+                    <LinkIcon className="w-4 h-4" />
+                    URL
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={imageInputMode === 'upload' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setImageInputMode('upload')}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload
+                  </Button>
+                </div>
+
+                {imageInputMode === 'url' ? (
+                  <>
+                    <Textarea
+                      id="main_image_url"
+                      value={formData.main_image_url}
+                      onChange={(e) => setFormData({ ...formData, main_image_url: e.target.value })}
+                      rows={3}
+                      placeholder="Single URL or JSON array: ['url1', 'url2']"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      For multiple images, use JSON array format
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                      <input
+                        type="file"
+                        id="main_image_upload"
+                        accept="image/*"
+                        onChange={handleMainImageUpload}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="main_image_upload"
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        <Upload className="w-8 h-8 text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          Click to upload or drag and drop
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          PNG, JPG, SVG up to 5MB
+                        </span>
+                      </label>
+                    </div>
+                    {formData.main_image_url && formData.main_image_url.startsWith('data:') && (
+                      <div className="mt-2 flex items-center gap-2 text-sm text-green-600">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Image uploaded successfully
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Image Preview */}
+                {formData.main_image_url && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded border border-gray-200">
+                    <p className="text-xs text-gray-600 mb-2">Preview:</p>
+                    <img 
+                      src={formData.main_image_url} 
+                      alt="Main image preview" 
+                      className="w-full h-48 object-cover rounded"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                    <p className="text-xs text-red-500 mt-1" style={{display: 'none'}}>
+                      Unable to load image preview
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="icon_url">Project Icon</Label>
+                
+                {/* Toggle between URL and Upload */}
+                <div className="flex gap-2 mb-3 mt-2">
+                  <Button
+                    type="button"
+                    variant={iconInputMode === 'url' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setIconInputMode('url')}
+                    className="flex items-center gap-2"
+                  >
+                    <LinkIcon className="w-4 h-4" />
+                    URL
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={iconInputMode === 'upload' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setIconInputMode('upload')}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload
+                  </Button>
+                </div>
+
+                {iconInputMode === 'url' ? (
+                  <>
+                    <Input
+                      id="icon_url"
+                      value={formData.icon_url}
+                      onChange={(e) => setFormData({ ...formData, icon_url: e.target.value })}
+                      placeholder="https://example.com/icon.svg"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Square icon/logo for the project (SVG or PNG recommended)
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                      <input
+                        type="file"
+                        id="icon_upload"
+                        accept="image/*"
+                        onChange={handleIconUpload}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="icon_upload"
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        <Upload className="w-8 h-8 text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          Click to upload icon
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          PNG, JPG, SVG up to 2MB (square recommended)
+                        </span>
+                      </label>
+                    </div>
+                    {formData.icon_url && formData.icon_url.startsWith('data:') && (
+                      <div className="mt-2 flex items-center gap-2 text-sm text-green-600">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Icon uploaded successfully
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Icon Preview */}
+                {formData.icon_url && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded border border-gray-200">
+                    <p className="text-xs text-gray-600 mb-2">Preview:</p>
+                    <img 
+                      src={formData.icon_url} 
+                      alt="Project icon" 
+                      className="w-16 h-16 object-contain"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                    <p className="text-xs text-red-500 mt-1" style={{display: 'none'}}>
+                      Unable to load icon preview
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="background_color">Background Color (if no image)</Label>
+                <div className="flex gap-3 items-center">
+                  <input
+                    type="color"
+                    id="background_color"
+                    value={formData.background_color}
+                    onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
+                    className="h-10 w-20 rounded border border-gray-300 cursor-pointer"
+                  />
+                  <Input
+                    value={formData.background_color}
+                    onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
+                    placeholder="#6366f1"
+                    className="flex-1"
+                  />
+                  <div className="flex gap-2">
+                    {['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444'].map(color => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, background_color: color })}
+                        className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-500 transition-colors"
+                        style={{backgroundColor: color}}
+                        title={color}
+                      />
+                    ))}
+                  </div>
+                </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  For multiple images, use JSON array format
+                  Used as background when no image is provided. Click a preset or use custom color.
                 </p>
               </div>
 
@@ -348,6 +699,274 @@ function AdminProjectEditPage() {
               Cancel
             </Button>
           </div>
+          </>
+          ) : (
+            // WYSIWYG MODE - Live preview with inline editing
+            <>
+              <Card className="relative overflow-hidden rounded-xl border-2 border-gray-200 shadow-sm" style={{height: '400px'}}>
+                {/* Background Image or Color */}
+                {formData.main_image_url ? (
+                  <div className="absolute inset-0 z-0">
+                    <img 
+                      src={formData.main_image_url}
+                      alt={formData.title}
+                      className="w-full h-full object-cover opacity-90"
+                    />
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 z-0" style={{
+                    background: `linear-gradient(135deg, ${formData.background_color || '#6366f1'} 0%, ${adjustColor(formData.background_color || '#6366f1', -30)} 100%)`
+                  }}>
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
+                    {/* Display icon if available */}
+                    {formData.icon_url && (
+                      <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                        <img 
+                          src={formData.icon_url} 
+                          alt={`${formData.title} icon`}
+                          className="w-32 h-32 object-contain"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <CardContent className="relative z-10 p-6 h-full flex flex-col justify-between">
+                  {/* Icon Badge (top-right) */}
+                  {formData.icon_url && (
+                    <div className="absolute top-4 right-4 w-12 h-12 bg-white rounded-lg shadow-lg p-2 flex items-center justify-center">
+                      <img 
+                        src={formData.icon_url} 
+                        alt={`${formData.title} icon`}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Top Section - Title and Description */}
+                  <div>
+                    <h3 
+                      className="font-bold text-white uppercase mb-3 leading-tight cursor-text hover:bg-white/10 px-2 py-1 rounded transition-colors" 
+                      style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '1.5rem'}}
+                      contentEditable
+                      suppressContentEditableWarning
+                      onBlur={(e) => setFormData({ ...formData, title: e.target.textContent })}
+                    >
+                      {formData.title}
+                    </h3>
+                    {formData.short_description && (
+                      <p 
+                        className="text-white leading-snug mb-2 cursor-text hover:bg-white/10 px-2 py-1 rounded transition-colors" 
+                        style={{fontSize: '14px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => setFormData({ ...formData, short_description: e.target.textContent })}
+                      >
+                        {formData.short_description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Bottom Section - Technologies and Links */}
+                  <div>
+                    {/* Technologies */}
+                    {formData.skills && formData.skills.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {formData.skills.map((skill, idx) => (
+                          <Badge 
+                            key={idx} 
+                            className="text-xs bg-white/90 text-gray-800 hover:bg-white border-0 font-semibold group relative"
+                          >
+                            {skill}
+                            <button
+                              type="button"
+                              onClick={() => removeSkill(skill)}
+                              className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                            >
+                              <X className="w-2 h-2" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Project Links */}
+                    <div className="flex gap-2">
+                      {formData.github_url && (
+                        <Button 
+                          type="button"
+                          size="sm" 
+                          className="bg-white/90 text-gray-800 hover:bg-white font-semibold gap-2"
+                          onClick={() => {
+                            const newUrl = prompt('GitHub URL:', formData.github_url);
+                            if (newUrl !== null) setFormData({ ...formData, github_url: newUrl });
+                          }}
+                        >
+                          <Github className="w-4 h-4" />
+                          GitHub
+                        </Button>
+                      )}
+                      {formData.live_url && (
+                        <Button 
+                          type="button"
+                          size="sm" 
+                          className="bg-white/90 text-gray-800 hover:bg-white font-semibold gap-2"
+                          onClick={() => {
+                            const newUrl = prompt('Live URL:', formData.live_url);
+                            if (newUrl !== null) setFormData({ ...formData, live_url: newUrl });
+                          }}
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Live Site
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Edit Cards Below */}
+              <div className="grid grid-cols-2 gap-6">
+                {/* Left Column - Add Skills & Industries */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Technologies</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        value={skillInput}
+                        onChange={(e) => setSkillInput(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                        placeholder="Add technology..."
+                        className="text-sm"
+                      />
+                      <Button type="button" onClick={addSkill} size="sm">
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {formData.skills.map((skill, idx) => (
+                        <Badge 
+                          key={idx} 
+                          className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 border-0 group relative"
+                        >
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <div className="pt-3 border-t">
+                      <h4 className="font-semibold text-sm mb-2">Industries</h4>
+                      <div className="flex gap-2">
+                        <Input
+                          value={sectorInput}
+                          onChange={(e) => setSectorInput(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSector())}
+                          placeholder="Add industry..."
+                          className="text-sm"
+                        />
+                        <Button type="button" onClick={addSector} size="sm">
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {formData.sectors.map((sector, idx) => (
+                          <Badge 
+                            key={idx} 
+                            className="text-xs group relative"
+                            style={{backgroundColor: '#4242ea', color: 'white'}}
+                          >
+                            {sector}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Right Column - Summary, Links, Media */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Project Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-semibold">Long Description</Label>
+                      <Textarea
+                        value={formData.summary}
+                        onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                        rows={4}
+                        placeholder="Detailed description..."
+                        className="mt-1 text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-semibold">Demo Video URL</Label>
+                      <Input
+                        value={formData.demo_video_url}
+                        onChange={(e) => setFormData({ ...formData, demo_video_url: e.target.value })}
+                        placeholder="https://vimeo.com/..."
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-semibold">Background Color</Label>
+                      <div className="flex gap-2 mt-1">
+                        <input
+                          type="color"
+                          value={formData.background_color}
+                          onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
+                          className="h-10 w-16 rounded border border-gray-300 cursor-pointer"
+                        />
+                        <Input
+                          value={formData.background_color}
+                          onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
+                          placeholder="#6366f1"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-semibold">URL Slug</Label>
+                      <Input
+                        value={formData.slug}
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                        placeholder="project-slug"
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Will appear in URL: /projects/{formData.slug}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center gap-2"
+                  style={{backgroundColor: '#4242ea'}}
+                >
+                  <Save className="w-4 h-4" />
+                  {saving ? 'Saving...' : 'Save Project'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/admin/projects')}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </>
+          )}
         </form>
       </div>
     </AdminLayout>

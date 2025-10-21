@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { profilesAPI } from '../utils/api';
 import AdminLayout from '../components/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Save, ArrowLeft, Plus, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Save, ArrowLeft, Plus, X, Eye, Edit3, Linkedin, Globe } from 'lucide-react';
 
 function AdminPersonEditPage() {
   const { slug } = useParams();
@@ -17,6 +20,7 @@ function AdminPersonEditPage() {
   
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editMode, setEditMode] = useState('form'); // 'form' or 'wysiwyg'
   const [formData, setFormData] = useState({
     name: '',
     title: '',
@@ -76,16 +80,32 @@ function AdminPersonEditPage() {
     e.preventDefault();
     setSaving(true);
     
+    const slugChanged = !isNew && formData.slug !== slug;
+    
     try {
       if (isNew) {
         await profilesAPI.create(formData);
+        toast.success('Person created successfully!', {
+          description: `${formData.name} has been added to the lookbook.`
+        });
       } else {
         await profilesAPI.update(slug, formData);
+        if (slugChanged) {
+          toast.success('Person updated successfully!', {
+            description: `Slug changed to ${formData.slug}. URL updated.`
+          });
+        } else {
+          toast.success('Person updated successfully!', {
+            description: `Changes to ${formData.name} have been saved.`
+          });
+        }
       }
       navigate('/admin/people');
     } catch (error) {
       console.error('Error saving person:', error);
-      alert('Error saving person. Please try again.');
+      toast.error('Failed to save person', {
+        description: error.message || 'An error occurred. Please try again.'
+      });
     } finally {
       setSaving(false);
     }
@@ -151,7 +171,7 @@ function AdminPersonEditPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <Button
@@ -162,12 +182,39 @@ function AdminPersonEditPage() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to People
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isNew ? 'Add New Person' : `Edit ${formData.name}`}
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-900">
+              {isNew ? 'Add New Person' : `Edit ${formData.name}`}
+            </h1>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={editMode === 'form' ? 'default' : 'outline'}
+                onClick={() => setEditMode('form')}
+                className="flex items-center gap-2"
+                style={editMode === 'form' ? {backgroundColor: '#4242ea'} : {}}
+              >
+                <Edit3 className="w-4 h-4" />
+                Form Mode
+              </Button>
+              <Button
+                type="button"
+                variant={editMode === 'wysiwyg' ? 'default' : 'outline'}
+                onClick={() => setEditMode('wysiwyg')}
+                className="flex items-center gap-2"
+                style={editMode === 'wysiwyg' ? {backgroundColor: '#4242ea'} : {}}
+              >
+                <Eye className="w-4 h-4" />
+                WYSIWYG Mode
+              </Button>
+            </div>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {editMode === 'form' ? (
+            // FORM MODE - Original form inputs
+            <>
           {/* Basic Information */}
           <Card>
             <CardHeader>
@@ -463,6 +510,398 @@ function AdminPersonEditPage() {
               Cancel
             </Button>
           </div>
+          </>
+          ) : (
+            // WYSIWYG MODE - Live preview with inline editing
+            <>
+              <Card className="rounded-xl border-2 border-gray-200 shadow-sm">
+                <CardContent className="p-8">
+                  {/* Header with Photo and Name */}
+                  <div className="flex items-start gap-6 mb-6">
+                    {/* Profile Photo Card */}
+                    <div className="flex-shrink-0 w-60">
+                      <div className="rounded-lg overflow-hidden mb-4 bg-gray-100 border-2 border-dashed border-gray-300 hover:border-blue-400 cursor-pointer transition-colors" style={{height: '270px'}}>
+                        {formData.photo_url ? (
+                          <div className="relative group h-full">
+                            <img 
+                              src={formData.photo_url} 
+                              alt={formData.name}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Input
+                                value={formData.photo_url}
+                                onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
+                                placeholder="Photo URL"
+                                className="w-5/6 bg-white"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-6xl">
+                            <div className="text-center">
+                              <div className="mb-2">{formData.name?.split(' ').map(n => n.charAt(0)).join('') || '?'}</div>
+                              <Input
+                                value={formData.photo_url}
+                                onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
+                                placeholder="Add photo URL"
+                                className="text-xs mt-2"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Highlights */}
+                      <Card className="bg-black border-black">
+                        <CardContent className="p-4">
+                          <h3 className="font-bold text-sm mb-3 text-white">Highlights</h3>
+                          <div className="space-y-2">
+                            {formData.highlights.map((highlight, idx) => (
+                              <div key={idx} className="flex gap-2 items-start group">
+                                <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                                  ✓
+                                </div>
+                                <div className="flex-1">
+                                  <p 
+                                    className="text-base text-white leading-snug cursor-text hover:bg-white/10 px-1 rounded"
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onBlur={(e) => {
+                                      const updated = [...formData.highlights];
+                                      updated[idx] = e.target.textContent;
+                                      setFormData({ ...formData, highlights: updated });
+                                    }}
+                                    style={{fontSize: '14px'}}
+                                  >
+                                    {highlight}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeHighlight(idx)}
+                                  className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 transition-opacity"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                            <div className="flex gap-2 mt-2">
+                              <Input
+                                value={highlightInput}
+                                onChange={(e) => setHighlightInput(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addHighlight())}
+                                placeholder="Add highlight..."
+                                className="text-xs"
+                              />
+                              <Button type="button" onClick={addHighlight} size="sm">
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                    
+                    {/* Name and Info */}
+                    <div className="flex-1 pt-4">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <div className="flex items-baseline gap-3">
+                            <h1 
+                              className="font-bold uppercase tracking-tight cursor-text hover:bg-gray-50 px-2 py-1 rounded transition-colors border-2 border-transparent hover:border-gray-200"
+                              style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '2rem'}}
+                              contentEditable
+                              suppressContentEditableWarning
+                              onBlur={(e) => setFormData({ ...formData, name: e.target.textContent })}
+                            >
+                              {formData.name}
+                            </h1>
+                            {formData.title && (
+                              <p 
+                                className="text-lg text-gray-600 cursor-text hover:bg-gray-50 px-2 py-1 rounded transition-colors border-2 border-transparent hover:border-gray-200"
+                                contentEditable
+                                suppressContentEditableWarning
+                                onBlur={(e) => setFormData({ ...formData, title: e.target.textContent })}
+                              >
+                                {formData.title}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          {formData.linkedin_url && (
+                            <Button 
+                              size="icon" 
+                              style={{ backgroundColor: '#0A66C2', color: 'white' }} 
+                              className="hover:opacity-90"
+                              onClick={() => {
+                                const newUrl = prompt('LinkedIn URL:', formData.linkedin_url);
+                                if (newUrl !== null) setFormData({ ...formData, linkedin_url: newUrl });
+                              }}
+                            >
+                              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                              </svg>
+                            </Button>
+                          )}
+                          {formData.x_url && (
+                            <Button 
+                              size="icon" 
+                              style={{ backgroundColor: '#000000', color: 'white' }} 
+                              className="hover:opacity-90"
+                              onClick={() => {
+                                const newUrl = prompt('X (Twitter) URL:', formData.x_url);
+                                if (newUrl !== null) setFormData({ ...formData, x_url: newUrl });
+                              }}
+                            >
+                              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                              </svg>
+                            </Button>
+                          )}
+                          {formData.website_url && (
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              onClick={() => {
+                                const newUrl = prompt('Website URL:', formData.website_url);
+                                if (newUrl !== null) setFormData({ ...formData, website_url: newUrl });
+                              }}
+                            >
+                              <Globe className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {!formData.linkedin_url && !formData.x_url && !formData.website_url && (
+                            <Button variant="outline" size="sm" onClick={() => {
+                              const type = prompt('Add social link (linkedin/x/website):');
+                              if (type) {
+                                const url = prompt('Enter URL:');
+                                if (url) {
+                                  if (type === 'linkedin') setFormData({ ...formData, linkedin_url: url });
+                                  else if (type === 'x') setFormData({ ...formData, x_url: url });
+                                  else if (type === 'website') setFormData({ ...formData, website_url: url });
+                                }
+                              }
+                            }}>
+                              <Plus className="w-4 h-4 mr-1" />
+                              Add Social
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Bio & Credentials */}
+                      <div className="mb-4 pb-4 border-b">
+                        <h2 className="text-lg font-bold mb-2">Bio & Credentials</h2>
+                        <p 
+                          className="text-gray-700 leading-snug cursor-text hover:bg-gray-50 px-2 py-1 rounded transition-colors border-2 border-transparent hover:border-gray-200"
+                          style={{fontSize: '16px', minHeight: '60px'}}
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) => setFormData({ ...formData, bio: e.target.textContent })}
+                        >
+                          {formData.bio || 'Click to add bio...'}
+                        </p>
+                      </div>
+
+                      {/* Three Column Layout - Experience, Skills, Industry Expertise */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 pt-2">
+                        {/* Experience */}
+                        <div>
+                          <h3 className="text-lg font-bold mb-3">Experience + Education</h3>
+                          {formData.experience && formData.experience.length > 0 ? (
+                            <div className="space-y-3">
+                              {formData.experience.map((exp, idx) => (
+                                <div key={idx} className="flex gap-3 items-start group">
+                                  <div className="w-10 h-10 rounded-lg bg-gray-100 border flex items-center justify-center flex-shrink-0 font-bold text-lg" style={{color: '#4242ea'}}>
+                                    {exp.org?.charAt(0) || '📄'}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div 
+                                      className="font-semibold cursor-text hover:bg-gray-50 px-1 rounded"
+                                      style={{fontSize: '16px'}}
+                                      contentEditable
+                                      suppressContentEditableWarning
+                                      onBlur={(e) => updateExperience(idx, 'role', e.target.textContent)}
+                                    >
+                                      {exp.role}
+                                    </div>
+                                    <div 
+                                      className="text-gray-600 cursor-text hover:bg-gray-50 px-1 rounded"
+                                      style={{fontSize: '16px'}}
+                                      contentEditable
+                                      suppressContentEditableWarning
+                                      onBlur={(e) => updateExperience(idx, 'org', e.target.textContent)}
+                                    >
+                                      {exp.org}
+                                    </div>
+                                    <div className="text-gray-500 mt-0.5 flex gap-1" style={{fontSize: '14px'}}>
+                                      <span 
+                                        className="cursor-text hover:bg-gray-50 px-1 rounded"
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        onBlur={(e) => updateExperience(idx, 'dateFrom', e.target.textContent)}
+                                      >
+                                        {exp.dateFrom || 'Start'}
+                                      </span>
+                                      <span>-</span>
+                                      <span 
+                                        className="cursor-text hover:bg-gray-50 px-1 rounded"
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        onBlur={(e) => updateExperience(idx, 'dateTo', e.target.textContent)}
+                                      >
+                                        {exp.dateTo || 'Present'}
+                                      </span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeExperience(idx)}
+                                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 text-xs mt-1 transition-opacity"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-gray-500 text-sm">No experience listed</p>
+                          )}
+                          <Button type="button" onClick={addExperience} size="sm" variant="outline" className="mt-3 w-full">
+                            <Plus className="w-3 h-3 mr-1" />
+                            Add Experience
+                          </Button>
+                        </div>
+
+                        {/* Skills */}
+                        <div>
+                          <h3 className="text-lg font-bold mb-3">Skills</h3>
+                          {formData.skills && formData.skills.length > 0 ? (
+                            <div className="space-y-1">
+                              {formData.skills.map((skill, idx) => (
+                                <div key={idx} className="flex items-center justify-between group hover:bg-gray-50 px-2 py-1 rounded">
+                                  <span className="text-gray-700" style={{fontSize: '14px'}}>
+                                    • {skill}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeSkill(skill)}
+                                    className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-gray-500 text-sm">No skills listed</p>
+                          )}
+                          <div className="flex gap-2 mt-3">
+                            <Input
+                              value={skillInput}
+                              onChange={(e) => setSkillInput(e.target.value)}
+                              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                              placeholder="Add skill..."
+                              className="text-sm"
+                            />
+                            <Button type="button" onClick={addSkill} size="sm">
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Industry Expertise */}
+                        <div>
+                          <h3 className="text-lg font-bold mb-3">Industry Expertise</h3>
+                          {formData.industry_expertise && formData.industry_expertise.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {formData.industry_expertise.map((industry, idx) => (
+                                <div key={idx} className="group relative">
+                                  <Badge className="bg-purple-600 hover:bg-purple-700 text-white text-xs py-1.5 px-3 font-bold uppercase">
+                                    {industry}
+                                  </Badge>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeIndustry(industry)}
+                                    className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-gray-500 text-sm">No industry expertise listed</p>
+                          )}
+                          <div className="flex gap-2 mt-3">
+                            <Input
+                              value={industryInput}
+                              onChange={(e) => setIndustryInput(e.target.value)}
+                              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addIndustry())}
+                              placeholder="Add industry..."
+                              className="text-sm"
+                            />
+                            <Button type="button" onClick={addIndustry} size="sm">
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* URL Slug and Open to Work - At the bottom */}
+                      <div className="border-t pt-4 mt-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="slug-wysiwyg" className="text-sm font-semibold">URL Slug</Label>
+                            <Input
+                              id="slug-wysiwyg"
+                              value={formData.slug}
+                              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                              placeholder="john-doe"
+                              className="mt-1"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Will appear in URL: /people/{formData.slug}</p>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="open_to_work-wysiwyg"
+                                checked={formData.open_to_work}
+                                onCheckedChange={(checked) => setFormData({ ...formData, open_to_work: checked })}
+                              />
+                              <Label htmlFor="open_to_work-wysiwyg" className="cursor-pointer">Open to Work</Label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center gap-2"
+                  style={{backgroundColor: '#4242ea'}}
+                >
+                  <Save className="w-4 h-4" />
+                  {saving ? 'Saving...' : 'Save Person'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/admin/people')}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </>
+          )}
         </form>
       </div>
     </AdminLayout>

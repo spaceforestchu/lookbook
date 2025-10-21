@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS lookbook_projects (
   -- Visual
   main_image_url TEXT,
   main_image_lqip TEXT,
+  icon_url TEXT, -- Project icon/logo (alternative to main_image for icons)
   demo_video_url TEXT,
   
   -- Tech & industry

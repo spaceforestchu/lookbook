@@ -30,7 +30,9 @@ const getAllProjects = async (filters = {}) => {
       p.sectors,
       p.main_image_url,
       p.main_image_lqip,
+      p.icon_url,
       p.demo_video_url,
+      p.background_color,
       p.github_url,
       p.live_url,
       p.cohort,
@@ -152,10 +154,13 @@ const createProject = async (projectData) => {
     slug,
     title,
     summary,
+    shortDescription,
     description,
     mainImageUrl,
     mainImageLqip,
+    iconUrl,
     demoVideoUrl,
+    backgroundColor = '#6366f1',
     skills = [],
     sectors = [],
     githubUrl,
@@ -166,15 +171,15 @@ const createProject = async (projectData) => {
   
   const query = `
     INSERT INTO lookbook_projects (
-      slug, title, summary, description, main_image_url, main_image_lqip,
-      demo_video_url, skills, sectors, github_url, live_url, cohort, status
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      slug, title, summary, short_description, description, main_image_url, main_image_lqip,
+      icon_url, demo_video_url, background_color, skills, sectors, github_url, live_url, cohort, status
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
     RETURNING *
   `;
   
   const params = [
-    slug, title, summary, description, mainImageUrl, mainImageLqip,
-    demoVideoUrl, skills, sectors, githubUrl, liveUrl, cohort, status
+    slug, title, summary, shortDescription, description, mainImageUrl, mainImageLqip,
+    iconUrl, demoVideoUrl, backgroundColor, skills, sectors, githubUrl, liveUrl, cohort, status
   ];
   
   const result = await pool.query(query, params);
@@ -187,8 +192,8 @@ const createProject = async (projectData) => {
 
 const updateProject = async (slug, updates) => {
   const allowedFields = [
-    'title', 'summary', 'description', 'main_image_url', 'main_image_lqip',
-    'demo_video_url', 'skills', 'sectors', 'github_url', 'live_url',
+    'slug', 'title', 'summary', 'short_description', 'description', 'main_image_url', 'main_image_lqip',
+    'icon_url', 'demo_video_url', 'background_color', 'skills', 'sectors', 'github_url', 'live_url',
     'cohort', 'status'
   ];
   

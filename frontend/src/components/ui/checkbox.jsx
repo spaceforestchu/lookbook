@@ -12,7 +12,7 @@ const Checkbox = React.forwardRef(({ className, ...props }, ref) => (
     )}
     style={{
       backgroundColor: props.checked || props['data-state'] === 'checked' ? '#4242ea' : 'white',
-      border: props.checked || props['data-state'] === 'checked' ? 'none' : 'none'
+      border: props.checked || props['data-state'] === 'checked' ? 'none' : '1px solid #d1d5db'
     }}
     {...props}>
     <CheckboxPrimitive.Indicator className={cn("grid place-content-center text-white")}>

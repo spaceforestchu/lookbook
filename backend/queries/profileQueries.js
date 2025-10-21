@@ -179,7 +179,7 @@ const createProfile = async (profileData) => {
 
 const updateProfile = async (slug, updates) => {
   const allowedFields = [
-    'title', 'bio', 'skills', 'industry_expertise', 'open_to_work',
+    'slug', 'title', 'bio', 'skills', 'industry_expertise', 'open_to_work',
     'highlights', 'photo_url', 'photo_lqip', 'linkedin_url',
     'github_url', 'website_url', 'x_url'
   ];

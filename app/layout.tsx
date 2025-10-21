@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import Image from "next/image";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -32,9 +33,16 @@ export default function RootLayout({
         <nav className="border-b border-gray-300 px-8 py-4 flex gap-8 items-center bg-white">
           <Link
             href="/"
-            className="font-bold text-xl text-gray-900 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            Lookbook
+            <Image
+              src="/pursuit-wordmark.png"
+              alt="Pursuit Logo"
+              width={120}
+              height={32}
+              priority
+            />
+            <span className="font-bold text-xl text-gray-900">Lookbook</span>
           </Link>
           <div className="flex gap-4">
             <Link

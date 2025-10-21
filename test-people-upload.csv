@@ -1,0 +1,4 @@
+name,title,slug,bio,photo_url,linkedin_url,x_url,website_url,skills,industry_expertise,highlights,open_to_work
+Test Person 1,Full Stack Developer,test-person-1,Experienced developer with 5 years in web development,https://via.placeholder.com/400,https://linkedin.com/in/testperson1,,https://testperson1.com,"JavaScript,React,Node.js,PostgreSQL","Technology,Finance","Led development of major features|Improved system performance by 50%|Mentored 3 junior developers",true
+Test Person 2,Product Designer,test-person-2,Creative designer focused on user experience,,https://linkedin.com/in/testperson2,,,Design Thinking,UI/UX,Figma,"Healthcare,Education","Redesigned entire product interface|Increased user satisfaction by 40%",false
+Test Person 3,Data Scientist,test-person-3,Machine learning expert with Python expertise,,,,,Python,Machine Learning,TensorFlow,Scikit-learn,"B2B,Technology","Built predictive models|Published 2 research papers",true

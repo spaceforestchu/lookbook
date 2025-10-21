@@ -130,12 +130,17 @@ function AdminProjectsPage() {
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
                         {project.skills?.slice(0, 3).map((skill, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
+                          <Badge 
+                            key={idx} 
+                            className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 border-0"
+                          >
                             {skill}
                           </Badge>
                         ))}
                         {project.skills?.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge 
+                            className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 border-0"
+                          >
                             +{project.skills.length - 3}
                           </Badge>
                         )}
