@@ -1,399 +1,436 @@
-# Lookbook
+# Lookbook - Talent & Project Showcase
 
-A minimal Next.js app for showcasing people and projects with filtering, detail pages, and cross-linking, powered by Sanity CMS.
+A full-stack application for showcasing people profiles and projects, built with Express + PostgreSQL backend and React + Vite frontend.
 
-## Setup
+**Built to match your existing tech stack** for easy future integration with pilot-agent project.
 
-### 1. Install Dependencies
+## 🎯 Overview
+
+Lookbook allows you to:
+- **Browse talented people** with filtering by skills, industries, and work availability
+- **Discover projects** with technology and sector filtering
+- **Search** across people and projects
+- **Generate PDF sharepacks** for recruiting and sharing
+- **Track analytics** on most viewed profiles and projects
+
+## 🏗️ Architecture
+
+### Tech Stack
+
+**Backend:**
+- Node.js + Express.js
+- PostgreSQL (with optional pgvector for semantic search)
+- OpenAI API (for AI resume extraction)
+- pdf-lib (for PDF generation)
+
+**Frontend:**
+- React 18
+- Vite (build tool)
+- React Router (navigation)
+- Axios (API calls)
+
+### Key Design Decisions
+
+1. **References existing users**: The `lookbook_profiles` table links to your existing `users` table via `user_id`, avoiding data duplication
+2. **Standalone but compatible**: Built as a separate app but follows your exact patterns for easy merging
+3. **Same conventions**: Matches test-pilot-server (backend) and pilot-client (frontend) structures
+
+## 📁 Project Structure
+
+```
+lookbook/
+├── backend/                 # Express API server
+│   ├── server.js           # Main server file
+│   ├── db/
+│   │   └── dbConfig.js     # PostgreSQL connection
+│   ├── queries/            # Database queries (your pattern)
+│   │   ├── profileQueries.js
+│   │   ├── projectQueries.js
+│   │   └── ...
+│   ├── routes/             # API routes
+│   │   ├── profiles.js
+│   │   ├── projects.js
+│   │   ├── search.js
+│   │   ├── sharepack.js
+│   │   └── ai.js
+│   └── package.json
+├── frontend/               # React + Vite app
+│   ├── src/
+│   │   ├── pages/         # Page components
+│   │   ├── components/    # Reusable components
+│   │   ├── utils/         # API utilities
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── index.html
+│   └── package.json
+├── database/
+│   └── schema.sql         # Database schema
+└── README.md
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v16+)
+- PostgreSQL (v12+)
+- npm or yarn
+- (Optional) OpenAI API key for AI features
+
+### Step 1: Database Setup
+
+1. **Create the database:**
+
+```bash
+createdb lookbook
+```
+
+2. **Run the schema:**
+
+```bash
+psql lookbook < database/schema.sql
+```
+
+**Important Note:** The schema assumes you have an existing `users` table. If you're testing standalone, uncomment the sample users table creation in `schema.sql`.
+
+### Step 2: Backend Setup
+
+1. **Navigate to backend:**
+
+```bash
+cd backend
+```
+
+2. **Install dependencies:**
+
 ```bash
 npm install
 ```
 
-### 2. Configure Sanity CMS
+3. **Create environment file:**
 
-1. Create a free account at [sanity.io](https://www.sanity.io)
-2. Create a new Sanity project
-3. Copy `.env.local.example` to `.env.local`:
-   ```bash
-   cp .env.local.example .env.local
-   ```
-4. Update `.env.local` with your Sanity project credentials:
-   - `NEXT_PUBLIC_SANITY_PROJECT_ID`: Your project ID from Sanity dashboard
-   - `NEXT_PUBLIC_SANITY_DATASET`: Your dataset name (usually "production")
-   - `NEXT_PUBLIC_SANITY_API_VERSION`: API version (default: 2025-01-01)
+```bash
+cp env.example .env
+```
 
-### 3. Configure AI Intake (Optional)
+4. **Edit `.env` with your database credentials:**
 
-To enable AI-powered profile extraction at `/admin/intake`:
+```env
+# Database (use your existing database)
+PG_HOST=localhost
+PG_PORT=5432
+PG_DATABASE=lookbook
+PG_USER=postgres
+PG_PASSWORD=your_password
 
-1. Get an API key from [Anthropic](https://console.anthropic.com/)
-2. Add to `.env.local`:
-   ```
-   ANTHROPIC_API_KEY=sk-ant-...
-   ```
+# Or use DATABASE_URL for hosted databases
+# DATABASE_URL=postgresql://user:pass@host:5432/db
 
-**Security Note:** The API key is only used server-side in the `/api/ai/extract` endpoint. It is never exposed to the client.
+# Server
+PORT=4002
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
 
-### 4. Run the Development Server
+# Optional: OpenAI for AI features
+# OPENAI_API_KEY=sk-...
+```
+
+5. **Start the backend:**
+
+```bash
+npm run dev
+# or: npm start
+```
+
+Backend will run on **http://localhost:4002**
+
+### Step 3: Frontend Setup
+
+1. **Navigate to frontend:**
+
+```bash
+cd ../frontend
+```
+
+2. **Install dependencies:**
+
+```bash
+npm install
+```
+
+3. **Start the frontend:**
+
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Frontend will run on **http://localhost:5173**
 
-### 5. Access Sanity Studio
+### Step 4: Test It Out
 
-Navigate to [http://localhost:3000/studio](http://localhost:3000/studio) to access the Sanity Studio and start creating content.
+1. Open **http://localhost:5173** in your browser
+2. You should see the Lookbook homepage
+3. Navigate to People and Projects pages
 
-**Content Types:**
-- **Person**: Create profiles with name, title, skills, photos, and "open to work" status
-- **Project**: Create projects with title, summary, skills, sectors, GitHub/live URLs, and participant references
+## 📊 Database Schema
 
-## Features
+### Key Tables
 
-- **People Listing** (`/people`): Browse people with text search, skills filter, and "open to work" toggle
-- **Person Detail Pages** (`/people/[slug]`): Individual profiles with SEO metadata and related projects
-- **Projects Listing** (`/projects`): Explore projects with text search, skills, and sectors filters
-- **Project Detail Pages** (`/projects/[slug]`): Project details with cross-links to contributors
-- **ISR (Incremental Static Regeneration)**: Content updates every 5 minutes (300s)
-- **Shareable URLs**: All filters sync with URL query parameters
-- **On-Demand Revalidation**: Webhook support for instant cache updates
-- **AI Intake** (`/admin/intake`): Extract Person profiles from resume/LinkedIn text using Claude AI
+**`lookbook_profiles`**: Extended profile info linking to your existing users
+- Links to `users(id)` via `user_id`
+- Stores skills, industries, bio, photos, etc.
 
-## Architecture
+**`lookbook_projects`**: Project information
+- Title, summary, skills, sectors
+- GitHub/live URLs, demo videos
 
-- **Framework**: Next.js 15 with App Router
-- **CMS**: Sanity with GROQ queries
-- **Styling**: Tailwind CSS v4
-- **TypeScript**: Strict mode enabled
-- **Caching**: ISR with 300-second revalidation
+**`lookbook_project_participants`**: Many-to-many relationship
+- Links projects to profiles
 
-## Webhook Setup (Optional)
+**`lookbook_experience`**: Work history and education
+- Links to profiles
 
-Enable on-demand revalidation to instantly update your site when content changes in Sanity.
+**`lookbook_sharepack_events`**: Analytics/tracking
+- Logs PDF generations and lead captures
 
-### 1. Add Revalidate Secret to Environment
+See `database/schema.sql` for complete details.
 
-Add to `.env.local`:
+## 🔌 API Endpoints
+
+### Profiles (People)
+
 ```
-REVALIDATE_SECRET=your-secret-token-here
-```
-
-### 2. Configure Sanity Webhook
-
-1. Go to your Sanity project dashboard → API → Webhooks
-2. Create a new webhook with:
-   - **URL**: `https://your-domain.com/api/revalidate`
-   - **Dataset**: `production`
-   - **Trigger on**: Create, Update, Delete
-   - **Filter**: `_type == "person" || _type == "project"`
-   - **Projection**:
-     ```groq
-     {
-       "type": _type,
-       "slug": select(defined(slug.current) => slug.current, null),
-       "personSlugs": select(_type == "project" => participants[]->slug.current, [])
-     }
-     ```
-   - **HTTP Headers**:
-     ```
-     x-revalidate-secret: your-secret-token-here
-     ```
-3. Save the webhook
-
-Now when you publish/update content in Sanity Studio, the relevant pages will refresh immediately instead of waiting 5 minutes.
-
-## Analytics & Performance
-
-### Analytics
-
-We use **Vercel Analytics** for page views and custom events, plus **Speed Insights** for Web Vitals monitoring.
-
-**Events Recorded:**
-
-| Event Name | Properties | Description |
-|------------|-----------|-------------|
-| `people_filter_search` | `{ isEmpty: boolean, length: number }` | Text search in People filter |
-| `people_filter_skills` | `{ count: number }` | Skills filter toggle in People |
-| `people_filter_open` | `{ value: boolean }` | "Open to work" toggle in People |
-| `people_filters_cleared` | `{}` | Clear all filters in People |
-| `projects_filter_search` | `{ isEmpty: boolean, length: number }` | Text search in Projects filter |
-| `projects_filter_skills` | `{ count: number }` | Skills filter toggle in Projects |
-| `projects_filter_sectors` | `{ count: number }` | Sectors filter toggle in Projects |
-| `projects_filters_cleared` | `{}` | Clear all filters in Projects |
-| `nav_person_card_click` | `{ slug: string }` | Person card clicked |
-| `nav_project_card_click` | `{ slug: string }` | Project card clicked |
-
-**Privacy:** We never send raw search terms—only their length and whether they're empty. This preserves user privacy while providing useful analytics.
-
-### Performance Baseline
-
-**Optimization Checklist:**
-
-- ✅ **LCP Images**: Person hero images ≤ 800×800, card images ≤ 320×320 (configured via Sanity image URL builder)
-- ✅ **CSS**: Minimal Tailwind bundle with no blocking CSS; custom globals kept lean
-- ✅ **Fonts**: Using Next.js `next/font/google` for optimized Geist Sans/Mono with automatic subsetting and `swap` strategy
-- ✅ **Images**: Next.js `<Image>` with `placeholder="blur"` using Sanity LQIP; fixed sizes prevent layout shift
-- ✅ **JavaScript**: Filter components are lean client components; consider debouncing search if CPU spikes appear
-- ✅ **Third-party**: No heavy libraries added to public pages; analytics scripts are minimal and async
-
-**Monitoring:**
-
-- View real-time Web Vitals (LCP, FID, CLS, FCP, TTFB) in Vercel Speed Insights dashboard
-- Track custom events and user flows in Vercel Analytics dashboard
-
-## AI Intake (Admin)
-
-### Overview
-
-The `/admin/intake` page provides AI-powered profile extraction for quickly creating Person records:
-
-1. **Paste Source Text**: Copy/paste resume, LinkedIn profile, or bio text
-2. **Extract Profile**: Click button to call Claude AI for structured extraction
-3. **Review JSON**: See extracted fields (name, title, skills, openToWork)
-4. **Compare (Optional)**: Select an existing person to view field-by-field diff
-5. **Copy to Clipboard**: Export proposed JSON for manual review/editing
-
-### Features
-
-- **Privacy-First**: Extraction runs server-side only; API key never exposed to client
-- **Structured Output**: Returns typed JSON matching Person schema
-- **Suggested Slug**: Auto-generates kebab-case slug from name
-- **Diff Visualization**: Compare proposed changes against existing records
-- **No Auto-Write**: Review-only workflow; no automatic CMS updates
-
-### Security
-
-- **No Authentication**: Currently open for internal use only (add auth before production)
-- **Server-Side Only**: API calls to Anthropic happen in `/api/ai/extract` route
-- **Environment Variable**: `ANTHROPIC_API_KEY` must be set in `.env.local`
-
-### Normalization & Moderation
-
-**Skill Normalization** (`lib/normalize.ts`):
-- Maps common synonyms (e.g., `js` → `JavaScript`, `react.js` → `React`)
-- Enforces max 12 skills with ≤ 30 characters each
-- De-duplicates and alphabetically sorts skills
-- Provides canonical skill names from curated list
-- Reports renamed and dropped skills for transparency
-
-**Content Moderation** (`lib/moderation.ts`):
-- Detects PII in source text (emails, phone numbers, URLs)
-- Flags profanity in name/title fields
-- Enforces length limits (name ≤ 80 chars, title ≤ 80 chars)
-- Returns structured report with errors, warnings, and PII counts
-
-**Admin Workflow**:
-1. Extract profile from raw text using Claude AI
-2. Click "Sanitize & Check" to normalize skills and run moderation
-3. Review sanitized JSON with rename/drop details
-4. Check moderation report for errors/warnings
-5. Copy sanitized JSON and manually publish in Sanity Studio
-
-**Configuration**:
-- Extend `CANONICAL_SKILLS` in `lib/normalize.ts` as taxonomy grows
-- Add synonyms to `SYNONYMS` map for better normalization
-- Expand `PROFANITY` list in `lib/moderation.ts` as needed
-
-### Future Enhancements
-
-- Consider adding authentication (e.g., NextAuth.js) for production use
-- Rate limiting on the API endpoint to prevent abuse
-- Automated CMS write functionality (with human approval)
-
-## Semantic Search (Step 14)
-Requires Postgres with pgvector.
-
-### Env
-- `DATABASE_URL`
-- `OPENAI_API_KEY`
-- `INDEX_SECRET`
-
-### Indexing
-
-curl -X POST http://localhost:3000/api/search/index?secret=YOUR_SECRET
-
-or:
-
-curl -X POST http://localhost:3000/api/search/index -H "X-Index-Secret: YOUR_SECRET"
-
-### Query example
-
-curl -X POST http://localhost:3000/api/search -H "Content-Type: application/json" -d '{"q":"fintech react typescript", "type":"all", "skills":["React","TypeScript"], "open":true, "limit":10}'
-
-### Notes
-- Uses OpenAI `text-embedding-3-small` (1536 dims) + cosine similarity.
-- Filters use **AND** semantics:
-  - People: `skills` must contain all selected; `open=true` matches `open_to_work`.
-  - Projects: `skills` and `sectors` must contain all selected.
-- Public pages (/people, /projects) unchanged; use `/search` to exercise NLQ.
-- If `CREATE EXTENSION vector` fails, enable pgvector on your DB or ask your provider.
-
-## Share Pack (Step 15)
-Generate a recruiter-ready PDF and capture light insights.
-
-### Env
-- Optional:
-  - `CRM_WEBHOOK_URL` — if set, `/api/crm/lead` forwards payloads to this URL
-  - `CRM_WEBHOOK_AUTH` — optional Authorization header value (e.g., `Bearer <token>`)
-
-### PDF Generation
-- Page: `/share` — select People/Projects and click **Generate PDF**.
-- API: `POST /api/sharepack`
-  ```json
-  {
-    "peopleSlugs": ["jane-doe","john-smith"],
-    "projectSlugs": ["alpha","beta"],
-    "requesterEmail": "recruiter@company.com"
-  }
-  ```
-  Returns application/pdf attachment `lookbook-sharepack.pdf`.
-
-### CRM Webhook (optional)
-- API: `POST /api/crm/lead`
-  ```json
-  { "email": "recruiter@company.com", "note": "Interested in fintech", "peopleSlugs": [], "projectSlugs": [] }
-  ```
-  If `CRM_WEBHOOK_URL` is set, payload is forwarded; otherwise it's just logged in `sharepack_events`.
-
-### Insights
-- Page: `/admin/insights` — shows total events, last 30 days, and most requested People/Projects (by slug).
-- Backed by Postgres table `sharepack_events` (created automatically in `ensureSchema()`).
-
-### Installation
-```bash
-npm i pdf-lib
+GET    /api/profiles              # List all profiles (with filters)
+GET    /api/profiles/:slug        # Get profile by slug
+POST   /api/profiles              # Create profile
+PUT    /api/profiles/:slug        # Update profile
+DELETE /api/profiles/:slug        # Delete profile
+GET    /api/profiles/filters      # Get available filter options
 ```
 
-### Acceptance Criteria
-- `/share` renders lists from Sanity and downloads a PDF with selected items.
-- `/api/sharepack` returns a valid PDF; also logs a `sharepack` row in `sharepack_events`.
-- `/api/crm/lead` logs a `lead` row; forwards to webhook when configured.
-- `/admin/insights` loads without errors and lists top slugs.
-- No auth added in this step; keep pages discoverable but add `robots.txt` disallow (done in earlier deploy step).
+**Query Parameters for GET /api/profiles:**
+- `search`: Text search
+- `skills`: Array of skills (must have ALL)
+- `industries`: Array of industries
+- `openToWork`: Boolean
+- `page`, `limit`: Pagination
 
-## Internal Staff Workflow (No Extra Auth)
+### Projects
 
-### Overview
-Staff create and edit content in **Sanity Studio** at `/studio` with no extra authentication required. The public site remains read-only. Search functionality automatically switches between semantic (vector) and keyword (GROQ) modes based on configuration.
-
-### Content Management
-- **Create/edit candidates**: Navigate to `/studio` and create `person` documents
-- **Create/edit projects**: Navigate to `/studio` and create `project` documents
-- **Admin hub**: Visit `/admin` for quick links to Studio and Search
-
-### Search Modes
-The `/search` page automatically switches between two modes:
-
-**Keyword Mode (Default)**:
-- Uses GROQ queries with first-token matching
-- AND semantics for skills/sectors/open filters
-- Works immediately with no additional setup
-- Set `NEXT_PUBLIC_FEATURE_SEMANTIC_SEARCH=0` (or leave unset)
-
-**Semantic Mode (Optional)**:
-- Uses pgvector + OpenAI embeddings for intelligent similarity search
-- Requires Postgres with pgvector and OpenAI API key
-- Set `NEXT_PUBLIC_FEATURE_SEMANTIC_SEARCH=1`
-- Automatically enabled when all dependencies are configured
-
-### Deploy Now (Minimum Requirements)
-Set these environment variables:
-- `NEXT_PUBLIC_SANITY_PROJECT_ID`
-- `NEXT_PUBLIC_SANITY_DATASET`
-- `NEXT_PUBLIC_SANITY_API_VERSION`
-- `REVALIDATE_SECRET`
-- `NEXT_PUBLIC_FEATURE_SEMANTIC_SEARCH=0` (keyword mode, works immediately)
-
-### Upgrade to Semantic Search Later
-When ready to enable vector search:
-1. Set up Postgres with pgvector extension
-2. Add `DATABASE_URL` and `OPENAI_API_KEY` to environment
-3. Change `NEXT_PUBLIC_FEATURE_SEMANTIC_SEARCH=1`
-4. Run initial indexing: `curl -X POST http://localhost:3000/api/search/index -H "x-index-secret: YOUR_SECRET"`
-
-### What This Gives You Right Away
-- `/studio` → Staff can create/edit candidates and projects (no extra auth)
-- `/search` → Works immediately via keyword search; auto-upgrades to vector search when DB/OpenAI are configured
-- `/admin` → Quick hub for accessing Studio and Search
-- No crashy environment dependencies; public pages remain read-only
-- Graceful degradation: semantic features are optional, not required
-
-## Browsing UI (Projects + People Polish)
-
-### Projects Browsing (`/projects`)
-The projects page features a comprehensive filtering and browsing experience:
-
-**Features**:
-- **Left sticky filter panel** with sections for:
-  - Text search (title/summary)
-  - Cohort selection (2024, 2023, 2022, 2021, Earlier)
-  - Industry Expertise (multi-select checkboxes)
-  - Attribute flags (Has Demo Video, Open to Relocate, Open to Work, Freelance, NYC Based, Remote Only)
-  - Reset filters button
-- **Grid/list view toggles** (grid active, list coming soon)
-- **Pagination controls** with prev/next buttons and "X of Y" counter
-- **Project cards** showing:
-  - Main project image (aspect-video)
-  - Title
-  - Team members (avatars + names)
-  - Skills and sectors as colored chips
-  - "View details" arrow link
-
-**API Endpoint**:
-```bash
-POST /api/browse/projects
-Content-Type: application/json
-
-{
-  "search": "fintech",
-  "cohort": "2024",
-  "industries": ["Finance", "Technology"],
-  "hasDemoVideo": true,
-  "openToWork": true,
-  "page": 1,
-  "perPage": 12
-}
+```
+GET    /api/projects              # List all projects (with filters)
+GET    /api/projects/:slug        # Get project by slug
+POST   /api/projects              # Create project
+PUT    /api/projects/:slug        # Update project
+DELETE /api/projects/:slug        # Delete project
+GET    /api/projects/filters      # Get available filter options
+POST   /api/projects/:slug/participants  # Add participant
 ```
 
-**Filter Semantics**:
-- All filters use **AND** logic
-- Text search matches title OR summary (case-insensitive)
-- Industry filters require ALL selected industries to be present
-- Attribute flags only filter when explicitly set to `true`
-- Pagination limits results to 12 per page (configurable, max 50)
+### Search
 
-### People Profile Polish (`/people/[slug]`)
-Enhanced profile pages with professional layout:
-
-**Features**:
-- **Hero layout** with:
-  - Large professional photo (1/3 width on desktop, full width on mobile)
-  - Name and title prominently displayed
-  - Industry expertise badges (purple)
-  - "Open to Work" badge (green) when applicable
-- **Skills display** with organized chips
-- **Highlights box** (fail-soft if field missing):
-  - Bulleted list of key achievements or points
-  - Styled in neutral background box
-- **Experience section** (fail-soft if field missing):
-  - Timeline-style display with blue accent border
-  - Position title, company, duration, and description
-- **Projects section**:
-  - Grid of project cards with hover effects
-  - Skills chips and "View project" CTA
-  - Empty state when no projects
-
-**Fail-Soft Design**:
-All optional fields (industries, highlights, experience) gracefully degrade if not present in Sanity schema. The page works with minimal data (just name and photo) and progressively enhances with additional fields.
-
-**Example Usage**:
-```bash
-# View a polished profile
-curl http://localhost:3000/people/jane-doe
-
-# Profile works with minimal schema, adding optional fields enhances display:
-# - industries: string[] → Shows as purple badges
-# - highlights: string[] → Shows in sidebar box
-# - experience: array of { title, company, duration, description }
 ```
+POST   /api/search                # Unified search
+GET    /api/search/suggestions    # Get search suggestions
+```
+
+### Sharepack (PDF)
+
+```
+POST   /api/sharepack             # Generate PDF
+POST   /api/sharepack/lead        # Log CRM lead
+GET    /api/sharepack/insights    # Get analytics
+```
+
+### AI (Optional)
+
+```
+POST   /api/ai/extract            # Extract profile from resume text
+POST   /api/ai/sanitize           # Normalize/validate profile data
+```
+
+## 🎨 Frontend Pages
+
+- **`/`**: Homepage with overview
+- **`/people`**: Browse people with filtering
+- **`/people/:slug`**: Person detail page
+- **`/projects`**: Browse projects
+- **`/projects/:slug`**: Project detail page
+- **`/search`**: Search page
+- **`/share`**: Generate PDF sharepack
+
+## 🔧 Configuration
+
+### Environment Variables
+
+**Backend (`.env`):**
+```env
+# Required
+PG_DATABASE=lookbook
+PG_USER=postgres
+PG_PASSWORD=password
+PORT=4002
+
+# Optional
+OPENAI_API_KEY=sk-...
+CRM_WEBHOOK_URL=https://crm.com/api
+```
+
+**Frontend:**
+The frontend uses Vite's proxy to connect to the backend automatically. No additional config needed for development.
+
+For production, set `VITE_API_URL` environment variable:
+```env
+VITE_API_URL=https://api.yourdomain.com/api
+```
+
+## 🔀 Merging Into Existing Project
+
+### When you're ready to integrate with test-pilot-server and pilot-client:
+
+### Backend Integration
+
+1. **Copy database tables:**
+   - Run `database/schema.sql` on your production database
+   - Tables will coexist with your existing tables
+
+2. **Copy backend files:**
+   ```bash
+   # From lookbook/backend to test-pilot-server/
+   cp -r queries/profileQueries.js ../test-pilot-server/queries/
+   cp -r queries/projectQueries.js ../test-pilot-server/queries/
+   cp -r routes/profiles.js ../test-pilot-server/routes/
+   cp -r routes/projects.js ../test-pilot-server/routes/
+   # etc.
+   ```
+
+3. **Register routes in server.js:**
+   ```javascript
+   // In test-pilot-server/server.js
+   const profilesRouter = require('./routes/profiles');
+   const projectsRouter = require('./routes/projects');
+   
+   app.use('/api/profiles', profilesRouter);
+   app.use('/api/projects', projectsRouter);
+   ```
+
+4. **Update dbConfig.js:**
+   - Routes already use your `dbConfig.js` pattern
+   - No changes needed if following same structure
+
+### Frontend Integration
+
+1. **Copy frontend files:**
+   ```bash
+   # From lookbook/frontend/src to pilot-client/src/
+   cp -r pages/PeoplePage.jsx ../pilot-client/src/pages/
+   cp -r pages/PersonDetailPage.jsx ../pilot-client/src/pages/
+   cp -r pages/ProjectsPage.jsx ../pilot-client/src/pages/
+   # etc.
+   
+   cp -r components/PersonCard.jsx ../pilot-client/src/components/
+   cp -r components/ProjectCard.jsx ../pilot-client/src/components/
+   # etc.
+   ```
+
+2. **Update routing:**
+   ```jsx
+   // In pilot-client/src/App.jsx or your router file
+   import PeoplePage from './pages/PeoplePage';
+   import PersonDetailPage from './pages/PersonDetailPage';
+   // ...
+   
+   <Route path="/people" element={<PeoplePage />} />
+   <Route path="/people/:slug" element={<PersonDetailPage />} />
+   ```
+
+3. **Update API base URL:**
+   - If using same backend, API calls will work automatically
+   - Update `frontend/src/utils/api.js` if needed
+
+### Authentication Integration
+
+To protect admin routes (create/update/delete):
+
+1. **Add your auth middleware:**
+   ```javascript
+   // In routes/profiles.js
+   const { authenticateToken } = require('../middleware/auth');
+   
+   router.post('/', authenticateToken, async (req, res) => {
+     // Only authenticated users can create profiles
+   });
+   ```
+
+2. **Check user roles:**
+   ```javascript
+   if (req.user.role !== 'admin') {
+     return res.status(403).json({ error: 'Forbidden' });
+   }
+   ```
+
+## 🧪 Sample Data
+
+To populate with sample data for testing:
+
+```sql
+-- Insert sample users (if not using existing)
+INSERT INTO users (name, email) VALUES 
+  ('Jane Doe', 'jane@example.com'),
+  ('John Smith', 'john@example.com');
+
+-- Create profiles
+INSERT INTO lookbook_profiles (user_id, slug, title, skills, open_to_work)
+SELECT 
+  id,
+  lower(replace(name, ' ', '-')),
+  'Software Engineer',
+  ARRAY['JavaScript', 'React', 'Node.js'],
+  true
+FROM users
+WHERE email IN ('jane@example.com', 'john@example.com');
+
+-- Create project
+INSERT INTO lookbook_projects (slug, title, summary, skills, cohort)
+VALUES ('sample-project', 'Sample Project', 'An amazing application', ARRAY['React', 'PostgreSQL'], '2024');
+```
+
+## 🐛 Troubleshooting
+
+### "Cannot connect to database"
+- Check your `.env` file has correct database credentials
+- Ensure PostgreSQL is running: `pg_isready`
+- Try connecting manually: `psql -h localhost -U postgres lookbook`
+
+### "Profile not found" errors
+- Make sure you have data in `users` and `lookbook_profiles` tables
+- Check that `user_id` foreign keys are valid
+
+### Frontend can't reach backend
+- Ensure backend is running on port 4002
+- Check Vite proxy configuration in `vite.config.js`
+- Look for CORS errors in browser console
+
+### Port conflicts
+- Backend: Change `PORT` in `.env`
+- Frontend: Vite will automatically find available port
+
+## 📝 Next Steps
+
+1. **Add authentication** using your existing JWT system
+2. **Implement semantic search** (requires OpenAI + pgvector)
+3. **Add image uploads** (use Cloudinary, S3, or your existing solution)
+4. **Customize styling** to match your brand
+5. **Add more filters** as needed for your use case
+
+## 🤝 Contributing
+
+This project follows the patterns established in test-pilot-server and pilot-client for consistency and easy integration.
+
+## 📄 License
+
+Same as your existing project.
+
+---
+
+**Questions?** Refer to `INTEGRATION_PLAN.md` for detailed merge instructions.
