@@ -25,6 +25,7 @@ const getAllProjects = async (filters = {}) => {
       p.slug,
       p.title,
       p.summary,
+      p.short_description,
       p.skills,
       p.sectors,
       p.main_image_url,

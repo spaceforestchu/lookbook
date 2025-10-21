@@ -23,6 +23,8 @@ function PersonDetailPage() {
   const [allProjects, setAllProjects] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [viewMode, setViewMode] = useState('people'); // 'people' or 'projects'
+  const [layoutView, setLayoutView] = useState('detail'); // 'detail' or 'grid'
+  const [gridPage, setGridPage] = useState(0); // For grid pagination
   
   // Detect viewMode from URL
   useEffect(() => {
@@ -185,6 +187,38 @@ function PersonDetailPage() {
     }
   };
 
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') {
+        // In grid view, navigate between pages
+        if (layoutView === 'grid' && viewMode === 'projects') {
+          if (gridPage > 0) {
+            setGridPage(gridPage - 1);
+          }
+        } else {
+          // In detail view, navigate between items
+          handlePrevious();
+        }
+      } else if (e.key === 'ArrowRight') {
+        // In grid view, navigate between pages
+        if (layoutView === 'grid' && viewMode === 'projects') {
+          if (gridPage < Math.ceil(allProjects.length / 8) - 1) {
+            setGridPage(gridPage + 1);
+          }
+        } else {
+          // In detail view, navigate between items
+          handleNext();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentIndex, viewMode, allProfiles, allProjects, layoutView, gridPage]);
+
   const canGoPrevious = currentIndex > 0;
   const currentLength = viewMode === 'people' ? allProfiles.length : allProjects.length;
   const canGoNext = currentIndex >= 0 && currentIndex < currentLength - 1;
@@ -211,8 +245,13 @@ function PersonDetailPage() {
       <div className="absolute top-4 z-40" style={{left: '272px', right: '1rem'}}>
         <div className="max-w-7xl mx-auto flex justify-between items-end gap-3">
           {/* Page indicator */}
-          {currentLength > 0 && currentIndex >= 0 && (
-            <div className="text-sm font-semibold text-gray-700">
+          {layoutView === 'grid' && viewMode === 'projects' && allProjects.length > 0 && (
+            <div className="text-base font-semibold text-gray-700">
+              Page {gridPage + 1} of {Math.ceil(allProjects.length / 8)}
+            </div>
+          )}
+          {layoutView === 'detail' && currentLength > 0 && currentIndex >= 0 && (
+            <div className="text-base font-semibold text-gray-700">
               {currentIndex + 1} of {currentLength}
             </div>
           )}
@@ -226,10 +265,18 @@ function PersonDetailPage() {
           />
           {/* View Toggle Icons */}
           <div className="flex items-center gap-2 bg-white rounded-md border p-1">
-            <button className="p-2 rounded text-white" style={{backgroundColor: '#4242ea'}}>
+            <button 
+              className="p-2 rounded" 
+              style={{backgroundColor: layoutView === 'detail' ? '#4242ea' : 'transparent', color: layoutView === 'detail' ? 'white' : 'black'}}
+              onClick={() => setLayoutView('detail')}
+            >
               <Square className="w-4 h-4" />
             </button>
-            <button className="p-2 hover:bg-gray-100 rounded">
+            <button 
+              className="p-2 rounded hover:bg-gray-100"
+              style={{backgroundColor: layoutView === 'grid' ? '#4242ea' : 'transparent', color: layoutView === 'grid' ? 'white' : 'black'}}
+              onClick={() => setLayoutView('grid')}
+            >
               <Grid3x3 className="w-4 h-4" />
             </button>
             <button className="p-2 hover:bg-gray-100 rounded">
@@ -250,26 +297,26 @@ function PersonDetailPage() {
               {/* Tabs */}
               <div className="flex gap-1 border-b">
                 <button
-                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                  className={`flex-1 py-2 text-sm transition-colors ${
                     filterView === 'people' 
-                      ? 'border-b-2' 
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'border-b-2 font-semibold' 
+                      : 'text-gray-500 hover:text-gray-700 font-medium'
                   }`}
                   style={filterView === 'people' ? {color: '#4242ea', borderColor: '#4242ea'} : {}}
                   onClick={() => handleTabSwitch('people')}
                 >
-                  People
+                  PEOPLE
                 </button>
                 <button
-                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                  className={`flex-1 py-2 text-sm transition-colors ${
                     filterView === 'projects' 
-                      ? 'border-b-2' 
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'border-b-2 font-semibold' 
+                      : 'text-gray-500 hover:text-gray-700 font-medium'
                   }`}
                   style={filterView === 'projects' ? {color: '#4242ea', borderColor: '#4242ea'} : {}}
                   onClick={() => handleTabSwitch('projects')}
                 >
-                  Projects
+                  PROJECTS
                 </button>
               </div>
 
@@ -374,20 +421,50 @@ function PersonDetailPage() {
               {/* Project Filters */}
               {filterView === 'projects' && (
                 <div className="space-y-4">
-                  <Input
-                    placeholder="Search projects..."
-                    value={projectFilters.search}
-                    onChange={(e) => setProjectFilters({ ...projectFilters, search: e.target.value })}
-                  />
-
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Skills</h4>
+                    <h4 className="font-semibold text-sm">Technologies</h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {availableProjectFilters.skills.map(skill => (
                         <div key={skill} className="flex items-center space-x-2">
-                          <Checkbox id={`proj-skill-${skill}`} />
+                          <Checkbox 
+                            id={`proj-skill-${skill}`}
+                            checked={projectFilters.skills.includes(skill)}
+                            onCheckedChange={(checked) => {
+                              setProjectFilters({
+                                ...projectFilters,
+                                skills: checked
+                                  ? [...projectFilters.skills, skill]
+                                  : projectFilters.skills.filter(s => s !== skill)
+                              });
+                            }}
+                          />
                           <Label htmlFor={`proj-skill-${skill}`} className="text-sm cursor-pointer">
                             {skill}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">Industries</h4>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {availableProjectFilters.sectors.map(sector => (
+                        <div key={sector} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`proj-sector-${sector}`}
+                            checked={projectFilters.sectors.includes(sector)}
+                            onCheckedChange={(checked) => {
+                              setProjectFilters({
+                                ...projectFilters,
+                                sectors: checked
+                                  ? [...projectFilters.sectors, sector]
+                                  : projectFilters.sectors.filter(s => s !== sector)
+                              });
+                            }}
+                          />
+                          <Label htmlFor={`proj-sector-${sector}`} className="text-sm cursor-pointer">
+                            {sector}
                           </Label>
                         </div>
                       ))}
@@ -408,6 +485,144 @@ function PersonDetailPage() {
       {/* Main Content */}
       <div className="flex-1 mt-20" style={{marginLeft: '264px', marginRight: '48px'}}>
         <div className="max-w-7xl mx-auto relative">
+          
+          {/* Grid View */}
+          {layoutView === 'grid' && viewMode === 'projects' && (
+            <>
+              {/* Grid Navigation Arrows */}
+              <div className="sticky top-1/2 -translate-y-1/2 left-0 right-0 h-0 pointer-events-none z-50">
+                <button
+                  onClick={() => setGridPage(Math.max(0, gridPage - 1))}
+                  disabled={gridPage === 0}
+                  className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
+                  style={{left: '-80px'}}
+                  aria-label="Previous page"
+                >
+                  <div className="rounded-full p-3 shadow-lg transition-all hover:scale-110 disabled:hover:scale-100" style={{backgroundColor: '#4242ea'}}>
+                    <ChevronLeft className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xs text-gray-500">Previous</span>
+                </button>
+
+                <button
+                  onClick={() => setGridPage(Math.min(Math.ceil(allProjects.length / 8) - 1, gridPage + 1))}
+                  disabled={gridPage >= Math.ceil(allProjects.length / 8) - 1}
+                  className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
+                  style={{right: '-80px'}}
+                  aria-label="Next page"
+                >
+                  <div className="rounded-full p-3 shadow-lg transition-all hover:scale-110 disabled:hover:scale-100" style={{backgroundColor: '#4242ea'}}>
+                    <ChevronRight className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xs text-gray-500">Next</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-4 grid-rows-2 gap-6" style={{
+                animation: 'fadeIn 0.3s ease-in-out',
+              }}>
+              <style>{`
+                @keyframes fadeIn {
+                  from {
+                    opacity: 0;
+                    transform: scale(0.95);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: scale(1);
+                  }
+                }
+              `}</style>
+              {allProjects.slice(gridPage * 8, (gridPage + 1) * 8).map((proj, idx) => (
+                <Card 
+                  key={proj.slug} 
+                  className="rounded-xl border-0 shadow-none cursor-pointer hover:shadow-lg transition-all overflow-hidden relative"
+                  style={{backgroundColor: 'white', height: '380px'}}
+                  onClick={() => {
+                    setLayoutView('detail');
+                    navigate(`/projects/${proj.slug}`);
+                  }}
+                >
+                  {/* Background Image */}
+                  {proj.main_image_url && (
+                    <div className="absolute inset-0 z-0">
+                      <img 
+                        src={(() => {
+                          try {
+                            const images = JSON.parse(proj.main_image_url);
+                            if (Array.isArray(images)) {
+                              return typeof images[0] === 'string' ? images[0] : images[0].url;
+                            }
+                          } catch {}
+                          return proj.main_image_url;
+                        })()}
+                        alt={proj.title}
+                        className="w-full h-full object-cover opacity-90"
+                      />
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
+                    </div>
+                  )}
+                  
+                  <CardContent className="relative z-10 p-6 h-full flex flex-col justify-between">
+                    {/* Top Section - Title and Description */}
+                    <div>
+                      <h3 className="font-bold text-white uppercase mb-3" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '1.5rem'}}>{proj.title}</h3>
+                      {proj.short_description && (
+                        <p className="text-white leading-snug mb-2" style={{fontSize: '14px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{proj.short_description}</p>
+                      )}
+                    </div>
+                    
+                    {/* Bottom Section - Team and Category */}
+                    <div>
+                      {/* Project Team */}
+                      <div className="mb-4">
+                        <h4 className="text-white font-semibold mb-2" style={{fontSize: '14px'}}>Project Team</h4>
+                        <div className="space-y-1">
+                          {proj.participants && proj.participants.slice(0, 4).map((participant, i) => (
+                            <div key={i} className="text-white" style={{fontSize: '14px'}}>
+                              • {participant.name || participant}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Category Badge and Arrow */}
+                      <div className="flex items-center justify-between">
+                        {proj.sectors && proj.sectors.length > 0 ? (
+                          <div className="bg-white/90 rounded-full px-4 py-1.5">
+                            <span className="text-xs font-semibold uppercase tracking-wide" style={{color: '#4242ea'}}>
+                              {proj.sectors[0]}
+                            </span>
+                          </div>
+                        ) : proj.skills && proj.skills.length > 0 ? (
+                          <div className="bg-white/90 rounded-full px-4 py-1.5">
+                            <span className="text-xs font-semibold uppercase tracking-wide" style={{color: '#4242ea'}}>
+                              {proj.skills[0]}
+                            </span>
+                          </div>
+                        ) : (
+                          <div></div>
+                        )}
+                        
+                        {/* Arrow Button */}
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+                          <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            </>
+          )}
+
+          {/* Detail View */}
+          {layoutView === 'detail' && (
+            <>
           {/* Navigation Arrows - fixed vertically, positioned relative to card horizontally */}
           <div className="sticky top-1/2 -translate-y-1/2 left-0 right-0 h-0 pointer-events-none z-50">
             <button
@@ -437,7 +652,11 @@ function PersonDetailPage() {
             </button>
           </div>
 
-          <Card className="rounded-xl border-2 border-white shadow-none" style={{backgroundColor: 'white', minHeight: '800px'}}>
+          <Card className="rounded-xl border-2 border-white shadow-none" style={{
+            backgroundColor: 'white', 
+            minHeight: '800px',
+            animation: 'fadeIn 0.3s ease-in-out',
+          }}>
             <CardContent className="p-6">
               {/* Render Person or Project based on viewMode */}
               {viewMode === 'people' && person && (
@@ -632,7 +851,9 @@ function PersonDetailPage() {
                       {project.github_url && (
                         <a href={project.github_url} target="_blank" rel="noopener noreferrer">
                           <Button variant="outline" size="icon">
-                            <Code className="h-4 w-4" />
+                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
                           </Button>
                         </a>
                       )}
@@ -648,9 +869,15 @@ function PersonDetailPage() {
                   
                   {/* Project Summary */}
                   {project.summary && (
-                    <div className="mb-4 pb-4 border-b">
+                    <div className="mb-6 pb-6 border-b">
                       <h2 className="text-lg font-bold mb-2">About</h2>
-                      <p className="text-gray-700 leading-snug" style={{fontSize: '16px'}}>{project.summary}</p>
+                      <div style={{maxWidth: '75%'}}>
+                        {project.summary.split('\n').filter(para => para.trim()).map((paragraph, idx) => (
+                          <p key={idx} className="text-gray-700 leading-snug mb-4" style={{fontSize: '16px'}}>
+                            {paragraph}
+                          </p>
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -720,13 +947,49 @@ function PersonDetailPage() {
                 {/* Screenshot Section */}
                 {project.main_image_url && (
                   <div className="mb-6">
-                    <h3 className="text-base font-bold mb-3">Screenshots</h3>
-                    <div className="rounded-lg overflow-hidden border-2 border-gray-200">
-                      <img 
-                        src={project.main_image_url} 
-                        alt={`${project.title} screenshot`}
-                        className="w-full h-auto"
-                      />
+                    <h3 className="text-base font-bold mb-3">Screenshot{(() => {
+                      try {
+                        const images = JSON.parse(project.main_image_url);
+                        return Array.isArray(images) && images.length > 1 ? 's' : '';
+                      } catch {
+                        return '';
+                      }
+                    })()}</h3>
+                    <div className="space-y-6">
+                      {(() => {
+                        try {
+                          // Try to parse as JSON array
+                          const images = JSON.parse(project.main_image_url);
+                          if (Array.isArray(images)) {
+                            return images.map((image, idx) => (
+                              <div key={idx}>
+                                <div className="rounded-lg overflow-hidden border-2 border-gray-200">
+                                  <img 
+                                    src={typeof image === 'string' ? image : image.url}
+                                    alt={`${project.title} screenshot ${idx + 1}`}
+                                    className="w-full h-auto"
+                                  />
+                                </div>
+                                {typeof image === 'object' && image.description && (
+                                  <p className="mt-12 mb-12 text-gray-700 leading-relaxed" style={{fontSize: '16px', maxWidth: '75%'}}>{image.description}</p>
+                                )}
+                              </div>
+                            ));
+                          }
+                        } catch {
+                          // If not JSON, treat as single URL
+                        }
+                        // Single image
+                        return (
+                          <div className="rounded-lg overflow-hidden border-2 border-gray-200">
+                            <img 
+                              src={project.main_image_url} 
+                              alt={`${project.title} screenshot`}
+                              className="w-full h-auto"
+                            />
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
@@ -761,7 +1024,16 @@ function PersonDetailPage() {
                                   />
                                 </div>
                                 {typeof video === 'object' && video.description && (
-                                  <p className="mt-12 mb-12 text-gray-700 leading-relaxed" style={{fontSize: '16px'}}>{video.description}</p>
+                                  <p className="mt-12 mb-12 text-gray-700 leading-snug" style={{fontSize: '16px', maxWidth: '75%'}}>{video.description}</p>
+                                )}
+                                {typeof video === 'object' && video.screenshot_after && (
+                                  <div className="mt-6 rounded-lg overflow-hidden border-2 border-gray-200">
+                                    <img 
+                                      src={video.screenshot_after}
+                                      alt={`${project.title} screenshot`}
+                                      className="w-full h-auto"
+                                    />
+                                  </div>
                                 )}
                               </div>
                             ));
@@ -791,6 +1063,8 @@ function PersonDetailPage() {
               )}
             </CardContent>
           </Card>
+            </>
+          )}
         </div>
       </div>
     </div>
