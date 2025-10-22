@@ -102,7 +102,7 @@ app.use((err, req, res, next) => {
 // SERVER START
 // =====================================================
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════╗
 ║   🚀 Lookbook API Server Running        ║
