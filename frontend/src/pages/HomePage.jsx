@@ -205,7 +205,7 @@ function HomePage() {
             >
               WELCOME TO THE LOOKBOOK
             </h1>
-            <p className="text-sm sm:text-base md:text-xl mb-8 text-white" style={{fontSize: 'clamp(0.875rem, 2.5vw, 1.5rem)', textShadow: '0 2px 10px rgba(0,0,0,0.5)'}}>
+            <p className="text-base sm:text-lg md:text-xl mb-8 text-white" style={{fontSize: 'clamp(1.125rem, 3vw, 1.5rem)', textShadow: '0 2px 10px rgba(0,0,0,0.5)'}}>
               Discover talented individuals and innovative projects
             </p>
           </div>
