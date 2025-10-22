@@ -1558,7 +1558,7 @@ function PersonDetailPage() {
                   {project.summary && (
                     <div className="mb-6 pb-6 border-b">
                       <h2 className="text-lg font-bold mb-2">About</h2>
-                      <div style={{maxWidth: '75%'}}>
+                      <div className="md:max-w-[75%]">
                         {project.summary.split('\n').filter(para => para.trim()).map((paragraph, idx) => (
                           <p key={idx} className="text-gray-700 leading-snug mb-4" style={{fontSize: '16px'}}>
                             {paragraph}
