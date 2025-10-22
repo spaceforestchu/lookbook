@@ -1,7 +1,5 @@
-import { getAllPeople } from '@/sanity/lib/queries';
 import Link from 'next/link';
 import Image from 'next/image';
-import { urlForImage } from '@/sanity/lib/image';
 
 // ISR: Revalidate every 300 seconds (5 minutes)
 export const revalidate = 300;
@@ -10,9 +8,45 @@ interface PeoplePageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+// Fetch people from backend API
+async function getAllPeople() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002/api';
+  const res = await fetch(`${API_URL}/profiles?limit=100`, {
+    next: { revalidate: 300 }
+  });
+  
+  if (!res.ok) {
+    console.error('Failed to fetch profiles:', await res.text());
+    return [];
+  }
+  
+  const json = await res.json();
+  return json.data || [];
+}
+
+// Fetch skills from taxonomy API
+async function getAllSkills() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002/api';
+  const res = await fetch(`${API_URL}/taxonomy/skills`, {
+    next: { revalidate: 300 }
+  });
+  
+  if (!res.ok) {
+    console.error('Failed to fetch skills:', await res.text());
+    return [];
+  }
+  
+  const json = await res.json();
+  // Return only skill names, sorted by display_order
+  return (json.data || []).map((skill: any) => skill.name);
+}
+
 export default async function PeoplePage({ searchParams }: PeoplePageProps) {
-  // Fetch people from Sanity
-  const people = await getAllPeople();
+  // Fetch people and skills from backend API
+  const [people, allSkills] = await Promise.all([
+    getAllPeople(),
+    getAllSkills()
+  ]);
 
   // Await searchParams (Next.js 15 requirement)
   const params = await searchParams;
@@ -26,10 +60,10 @@ export default async function PeoplePage({ searchParams }: PeoplePageProps) {
   const openToWorkOnly = params.open === 'true';
 
   // Filter people based on query params
-  const filteredPeople = people.filter((person) => {
+  const filteredPeople = people.filter((person: any) => {
     // Text search: match name OR title (case-insensitive)
     if (query) {
-      const nameMatch = person.name.toLowerCase().includes(query);
+      const nameMatch = person.name?.toLowerCase().includes(query);
       const titleMatch = person.title?.toLowerCase().includes(query);
       if (!nameMatch && !titleMatch) return false;
     }
@@ -37,23 +71,18 @@ export default async function PeoplePage({ searchParams }: PeoplePageProps) {
     // Skills filter: person must have ALL selected skills (AND semantics)
     if (selectedSkills.length > 0) {
       const hasAllSkills = selectedSkills.every((skill) =>
-        person.skills.includes(skill)
+        person.skills?.includes(skill)
       );
       if (!hasAllSkills) return false;
     }
 
     // Open to work filter
-    if (openToWorkOnly && !person.openToWork) {
+    if (openToWorkOnly && !person.open_to_work) {
       return false;
     }
 
     return true;
   });
-
-  // Derive unique skills from fetched data (sorted)
-  const allSkills = [...new Set(people.flatMap((p) => p.skills))]
-    .sort((a, b) => a.localeCompare(b))
-    .slice(0, 8); // Top 8 skills
 
   return (
     <div className="flex min-h-screen bg-neutral-50">
@@ -182,8 +211,8 @@ export default async function PeoplePage({ searchParams }: PeoplePageProps) {
         {/* People Grid */}
         {filteredPeople.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredPeople.map((person) => {
-              const imageUrl = urlForImage(person.photo)?.width(400).height(400).fit('crop').url();
+            {filteredPeople.map((person: any) => {
+              const imageUrl = person.photo_url;
 
               return (
                 <Link
@@ -203,7 +232,7 @@ export default async function PeoplePage({ searchParams }: PeoplePageProps) {
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center bg-neutral-300 text-4xl font-bold text-neutral-500">
-                        {person.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        {person.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                       </div>
                     )}
                   </div>
@@ -215,19 +244,19 @@ export default async function PeoplePage({ searchParams }: PeoplePageProps) {
                       <p className="mb-3 text-sm text-neutral-600">{person.title}</p>
                     )}
 
-                    {person.openToWork && (
+                    {person.open_to_work && (
                       <span className="inline-block rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-800">
                         Open to Work
                       </span>
                     )}
 
                     <div className="mt-3 flex flex-wrap gap-1">
-                      {person.skills.slice(0, 3).map((skill) => (
+                      {person.skills?.slice(0, 3).map((skill: string) => (
                         <span key={skill} className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700">
                           {skill}
                         </span>
                       ))}
-                      {person.skills.length > 3 && (
+                      {person.skills?.length > 3 && (
                         <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700">
                           +{person.skills.length - 3}
                         </span>

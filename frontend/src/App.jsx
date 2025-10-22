@@ -14,6 +14,7 @@ import AdminProjectsPage from './pages/AdminProjectsPage';
 import AdminPersonEditPage from './pages/AdminPersonEditPage';
 import AdminProjectEditPage from './pages/AdminProjectEditPage';
 import AdminBulkUploadPage from './pages/AdminBulkUploadPage';
+import AdminTaxonomyPage from './pages/AdminTaxonomyPage';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -41,6 +42,7 @@ function App() {
           <Route path="/admin/projects" element={<ProtectedRoute><AdminProjectsPage /></ProtectedRoute>} />
           <Route path="/admin/projects/:slug/edit" element={<ProtectedRoute><AdminProjectEditPage /></ProtectedRoute>} />
           <Route path="/admin/bulk-upload" element={<ProtectedRoute><AdminBulkUploadPage /></ProtectedRoute>} />
+          <Route path="/admin/taxonomy" element={<ProtectedRoute><AdminTaxonomyPage /></ProtectedRoute>} />
         </Routes>
       </div>
     </AuthProvider>

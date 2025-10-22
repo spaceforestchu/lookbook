@@ -1,436 +1,375 @@
 # Lookbook - Talent & Project Showcase
 
-A full-stack application for showcasing people profiles and projects, built with Express + PostgreSQL backend and React + Vite frontend.
+A full-stack application for showcasing team member profiles and projects, built with React, Express, and PostgreSQL.
 
-**Built to match your existing tech stack** for easy future integration with pilot-agent project.
+## Architecture
 
-## 🎯 Overview
+```
+┌─────────────────────────────────────────┐
+│  Frontend (Vite + React)                │
+│  Port: 5175                             │
+│  Location: /frontend                    │
+└──────────────┬──────────────────────────┘
+               │ REST API
+               ▼
+┌─────────────────────────────────────────┐
+│  Backend (Express + Node.js)            │
+│  Port: 4002                             │
+│  Location: /backend                     │
+└──────────────┬──────────────────────────┘
+               │ PostgreSQL
+               ▼
+┌─────────────────────────────────────────┐
+│  Database (PostgreSQL)                  │
+│  segundo-db                             │
+└─────────────────────────────────────────┘
+```
 
-Lookbook allows you to:
-- **Browse talented people** with filtering by skills, industries, and work availability
-- **Discover projects** with technology and sector filtering
-- **Search** across people and projects
-- **Generate PDF sharepacks** for recruiting and sharing
-- **Track analytics** on most viewed profiles and projects
+## Tech Stack
 
-## 🏗️ Architecture
+### Frontend (`/frontend`)
+- **Framework**: React 18 with Vite
+- **Routing**: React Router v6
+- **UI Components**: shadcn/ui
+- **Styling**: Tailwind CSS
+- **Forms**: React Hook Form
+- **Notifications**: Sonner (toast notifications)
+- **Image Compression**: browser-image-compression
 
-### Tech Stack
+### Backend (`/backend`)
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: PostgreSQL (via `pg` library)
+- **Authentication**: bcrypt (password hashing)
+- **Dev Server**: Nodemon (auto-reload)
+- **CORS**: Configured for local development
 
-**Backend:**
-- Node.js + Express.js
-- PostgreSQL (with optional pgvector for semantic search)
-- OpenAI API (for AI resume extraction)
-- pdf-lib (for PDF generation)
+### Database
+- **PostgreSQL**: Cloud-hosted segundo-db
+- **ORM**: Raw SQL queries (no ORM)
+- **Schema**: Custom Lookbook tables + existing users table
 
-**Frontend:**
-- React 18
-- Vite (build tool)
-- React Router (navigation)
-- Axios (API calls)
+## Quick Start
 
-### Key Design Decisions
+### Prerequisites
+- Node.js 18+ installed
+- Access to segundo-db database (connection string provided)
 
-1. **References existing users**: The `lookbook_profiles` table links to your existing `users` table via `user_id`, avoiding data duplication
-2. **Standalone but compatible**: Built as a separate app but follows your exact patterns for easy merging
-3. **Same conventions**: Matches test-pilot-server (backend) and pilot-client (frontend) structures
+### 1. Install Dependencies
+```bash
+npm run install:all
+```
 
-## 📁 Project Structure
+This installs dependencies for both frontend and backend.
+
+### 2. Configure Environment Variables
+
+#### Backend (`backend/.env`)
+```env
+# Database Connection
+DATABASE_URL=postgresql://lookbook_user:Lookbook123!@34.57.101.141:5432/segundo-db
+
+# Server Configuration
+PORT=4002
+FRONTEND_URL=http://localhost:5175
+
+# Admin Authentication
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH=$2b$10$X8qZ9Y4vN3J2K5L6M7N8O.P0Q1R2S3T4U5V6W7X8Y9Z0A1B2C3D4E
+```
+
+#### Frontend (`frontend/.env`)
+```env
+VITE_API_URL=http://localhost:4002/api
+```
+
+### 3. Verify Database Connection
+```bash
+cd backend
+node check-db.js
+```
+
+Should show:
+```
+✅ Connection successful!
+🗄️  Database: segundo-db
+👤 User: lookbook_user
+📊 Lookbook Tables Found: 7
+```
+
+### 4. Start Development Servers
+
+#### Option A: Start Both Together
+```bash
+npm run dev
+```
+
+#### Option B: Start Separately (recommended)
+Terminal 1 - Backend:
+```bash
+cd backend
+npm run dev
+```
+
+Terminal 2 - Frontend:
+```bash
+cd frontend
+npm run dev
+```
+
+### 5. Access the Application
+
+- **Frontend (Public)**: http://localhost:5175
+- **Frontend (Admin)**: http://localhost:5175/admin
+- **Backend API**: http://localhost:4002/api
+- **API Health Check**: http://localhost:4002/api/health
+
+#### Admin Login
+- Username: `admin`
+- Password: `admin123`
+
+## Project Structure
 
 ```
 lookbook/
-├── backend/                 # Express API server
-│   ├── server.js           # Main server file
+├── frontend/              # Vite React application
+│   ├── src/
+│   │   ├── components/    # UI components
+│   │   ├── contexts/      # React contexts (Auth, etc.)
+│   │   ├── pages/         # Page components
+│   │   │   ├── Admin*.jsx # Admin portal pages
+│   │   │   ├── Person*.jsx# Person pages
+│   │   │   └── Project*.jsx# Project pages
+│   │   ├── utils/         # API client, helpers
+│   │   └── main.jsx       # Entry point
+│   ├── public/            # Static assets
+│   └── package.json
+│
+├── backend/               # Express API server
 │   ├── db/
-│   │   └── dbConfig.js     # PostgreSQL connection
-│   ├── queries/            # Database queries (your pattern)
+│   │   └── dbConfig.js    # PostgreSQL connection
+│   ├── routes/            # API route handlers
+│   │   ├── auth.js        # Authentication
+│   │   ├── profiles.js    # People/profiles
+│   │   ├── projects.js    # Projects
+│   │   ├── taxonomy.js    # Skills & Industries
+│   │   ├── search.js      # Search functionality
+│   │   ├── sharepack.js   # PDF generation
+│   │   └── ai.js          # AI features
+│   ├── queries/           # Database queries
 │   │   ├── profileQueries.js
 │   │   ├── projectQueries.js
-│   │   └── ...
-│   ├── routes/             # API routes
-│   │   ├── profiles.js
-│   │   ├── projects.js
-│   │   ├── search.js
-│   │   ├── sharepack.js
-│   │   └── ai.js
+│   │   └── taxonomyQueries.js
+│   ├── server.js          # Express app
+│   ├── check-db.js        # DB connection tester
 │   └── package.json
-├── frontend/               # React + Vite app
-│   ├── src/
-│   │   ├── pages/         # Page components
-│   │   ├── components/    # Reusable components
-│   │   ├── utils/         # API utilities
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── index.html
-│   └── package.json
-├── database/
-│   └── schema.sql         # Database schema
-└── README.md
+│
+├── database/              # SQL files
+│   ├── schema-segundo.sql         # Main schema
+│   ├── add-taxonomy-tables.sql    # Taxonomy system
+│   └── setup-march-2025-cohort.sql# Sample data
+│
+├── DATABASE_CONFIG.md     # ⭐ Database setup guide
+└── package.json           # Root package (scripts)
 ```
 
-## 🚀 Getting Started
+## Key Features
 
-### Prerequisites
+### Public Site
+- **People Directory**: Browse team member profiles with filtering
+- **Project Showcase**: View project portfolios with details
+- **Search**: Find people and projects
+- **Responsive Design**: Mobile-friendly interface
 
-- Node.js (v16+)
-- PostgreSQL (v12+)
-- npm or yarn
-- (Optional) OpenAI API key for AI features
+### Admin Portal (`/admin`)
+- **People Management**: CRUD operations for profiles
+- **Project Management**: CRUD operations for projects
+- **Taxonomy Management**: Manage standardized skills and industries
+- **Bulk Upload**: CSV import for people and projects
+- **Image Upload**: Compress and upload profile photos
+- **Experience Tracking**: Add work experience entries
 
-### Step 1: Database Setup
+### API Features
+- RESTful API design
+- Pagination support
+- Advanced filtering
+- PDF generation for sharepacks
+- Authentication middleware
 
-1. **Create the database:**
+## Database Schema
 
-```bash
-createdb lookbook
-```
+### Core Tables
 
-2. **Run the schema:**
+#### `users` (existing table from segundo-db)
+- `user_id` (PK)
+- `first_name`, `last_name`, `email`
 
-```bash
-psql lookbook < database/schema.sql
-```
+#### `lookbook_profiles`
+- `id` (PK)
+- `user_id` (FK → users)
+- `slug` (unique URL identifier)
+- `title`, `bio`
+- `skills` (text[])
+- `industry_expertise` (text[])
+- `highlights` (text[])
+- `photo_url`, `photo_lqip`
+- `open_to_work` (boolean)
+- Social links (LinkedIn, GitHub, website, X)
 
-**Important Note:** The schema assumes you have an existing `users` table. If you're testing standalone, uncomment the sample users table creation in `schema.sql`.
+#### `lookbook_experience`
+- `id` (PK)
+- `profile_id` (FK → lookbook_profiles)
+- `org`, `role`
+- `date_from`, `date_to`
+- `summary`
+- `display_order`
 
-### Step 2: Backend Setup
+#### `lookbook_projects`
+- `id` (PK)
+- `slug` (unique)
+- `title`, `summary`
+- `skills` (text[])
+- `sectors` (text[])
+- `main_image_url`, `icon_url`
+- `demo_video_url`, `github_url`, `live_url`
+- `cohort`, `status`
 
-1. **Navigate to backend:**
+#### `lookbook_project_participants`
+- Links profiles to projects
+- Tracks role and display order
 
-```bash
-cd backend
-```
+#### `lookbook_skills` (taxonomy)
+- Standardized skills with categories
+- 42 pre-loaded skills
 
-2. **Install dependencies:**
+#### `lookbook_industries` (taxonomy)
+- Standardized industries
+- 20 pre-loaded industries
 
-```bash
-npm install
-```
+## API Endpoints
 
-3. **Create environment file:**
-
-```bash
-cp env.example .env
-```
-
-4. **Edit `.env` with your database credentials:**
-
-```env
-# Database (use your existing database)
-PG_HOST=localhost
-PG_PORT=5432
-PG_DATABASE=lookbook
-PG_USER=postgres
-PG_PASSWORD=your_password
-
-# Or use DATABASE_URL for hosted databases
-# DATABASE_URL=postgresql://user:pass@host:5432/db
-
-# Server
-PORT=4002
-NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
-
-# Optional: OpenAI for AI features
-# OPENAI_API_KEY=sk-...
-```
-
-5. **Start the backend:**
-
-```bash
-npm run dev
-# or: npm start
-```
-
-Backend will run on **http://localhost:4002**
-
-### Step 3: Frontend Setup
-
-1. **Navigate to frontend:**
-
-```bash
-cd ../frontend
-```
-
-2. **Install dependencies:**
-
-```bash
-npm install
-```
-
-3. **Start the frontend:**
-
-```bash
-npm run dev
-```
-
-Frontend will run on **http://localhost:5173**
-
-### Step 4: Test It Out
-
-1. Open **http://localhost:5173** in your browser
-2. You should see the Lookbook homepage
-3. Navigate to People and Projects pages
-
-## 📊 Database Schema
-
-### Key Tables
-
-**`lookbook_profiles`**: Extended profile info linking to your existing users
-- Links to `users(id)` via `user_id`
-- Stores skills, industries, bio, photos, etc.
-
-**`lookbook_projects`**: Project information
-- Title, summary, skills, sectors
-- GitHub/live URLs, demo videos
-
-**`lookbook_project_participants`**: Many-to-many relationship
-- Links projects to profiles
-
-**`lookbook_experience`**: Work history and education
-- Links to profiles
-
-**`lookbook_sharepack_events`**: Analytics/tracking
-- Logs PDF generations and lead captures
-
-See `database/schema.sql` for complete details.
-
-## 🔌 API Endpoints
-
-### Profiles (People)
-
-```
-GET    /api/profiles              # List all profiles (with filters)
-GET    /api/profiles/:slug        # Get profile by slug
-POST   /api/profiles              # Create profile
-PUT    /api/profiles/:slug        # Update profile
-DELETE /api/profiles/:slug        # Delete profile
-GET    /api/profiles/filters      # Get available filter options
-```
-
-**Query Parameters for GET /api/profiles:**
-- `search`: Text search
-- `skills`: Array of skills (must have ALL)
-- `industries`: Array of industries
-- `openToWork`: Boolean
-- `page`, `limit`: Pagination
+### Profiles
+- `GET /api/profiles` - List all profiles (with filters)
+- `GET /api/profiles/:slug` - Get single profile
+- `POST /api/profiles` - Create profile
+- `PUT /api/profiles/:slug` - Update profile
+- `DELETE /api/profiles/:slug` - Delete profile
 
 ### Projects
+- `GET /api/projects` - List all projects (with filters)
+- `GET /api/projects/:slug` - Get single project
+- `POST /api/projects` - Create project
+- `PUT /api/projects/:slug` - Update project
+- `DELETE /api/projects/:slug` - Delete project
 
-```
-GET    /api/projects              # List all projects (with filters)
-GET    /api/projects/:slug        # Get project by slug
-POST   /api/projects              # Create project
-PUT    /api/projects/:slug        # Update project
-DELETE /api/projects/:slug        # Delete project
-GET    /api/projects/filters      # Get available filter options
-POST   /api/projects/:slug/participants  # Add participant
-```
+### Taxonomy
+- `GET /api/taxonomy/skills` - Get all skills
+- `POST /api/taxonomy/skills` - Create skill
+- `PUT /api/taxonomy/skills/:id` - Update skill
+- `DELETE /api/taxonomy/skills/:id` - Delete skill
+- (Same endpoints for industries)
 
 ### Search
+- `POST /api/search` - Semantic search across people and projects
 
-```
-POST   /api/search                # Unified search
-GET    /api/search/suggestions    # Get search suggestions
-```
+### Auth
+- `POST /api/auth/login` - Admin login
+- `POST /api/auth/verify` - Verify auth token
 
-### Sharepack (PDF)
+## Development Workflow
 
-```
-POST   /api/sharepack             # Generate PDF
-POST   /api/sharepack/lead        # Log CRM lead
-GET    /api/sharepack/insights    # Get analytics
-```
+### Adding a New Feature
+1. Create backend API endpoint in `backend/routes/`
+2. Add database queries in `backend/queries/`
+3. Update frontend API client in `frontend/src/utils/api.js`
+4. Create frontend components/pages
+5. Test locally
+6. Commit and deploy
 
-### AI (Optional)
-
-```
-POST   /api/ai/extract            # Extract profile from resume text
-POST   /api/ai/sanitize           # Normalize/validate profile data
-```
-
-## 🎨 Frontend Pages
-
-- **`/`**: Homepage with overview
-- **`/people`**: Browse people with filtering
-- **`/people/:slug`**: Person detail page
-- **`/projects`**: Browse projects
-- **`/projects/:slug`**: Project detail page
-- **`/search`**: Search page
-- **`/share`**: Generate PDF sharepack
-
-## 🔧 Configuration
-
-### Environment Variables
-
-**Backend (`.env`):**
-```env
-# Required
-PG_DATABASE=lookbook
-PG_USER=postgres
-PG_PASSWORD=password
-PORT=4002
-
-# Optional
-OPENAI_API_KEY=sk-...
-CRM_WEBHOOK_URL=https://crm.com/api
+### Database Migrations
+SQL migration files in `database/` folder:
+```bash
+# Run migration
+PGPASSWORD='Lookbook123!' psql -h 34.57.101.141 -U lookbook_user \
+  -d segundo-db -f database/your-migration.sql
 ```
 
-**Frontend:**
-The frontend uses Vite's proxy to connect to the backend automatically. No additional config needed for development.
+### Common Tasks
 
-For production, set `VITE_API_URL` environment variable:
-```env
-VITE_API_URL=https://api.yourdomain.com/api
+#### Add New Admin User
+```bash
+cd backend
+node generate-password.js your-password
+# Copy hash to .env ADMIN_PASSWORD_HASH
 ```
 
-## 🔀 Merging Into Existing Project
-
-### When you're ready to integrate with test-pilot-server and pilot-client:
-
-### Backend Integration
-
-1. **Copy database tables:**
-   - Run `database/schema.sql` on your production database
-   - Tables will coexist with your existing tables
-
-2. **Copy backend files:**
-   ```bash
-   # From lookbook/backend to test-pilot-server/
-   cp -r queries/profileQueries.js ../test-pilot-server/queries/
-   cp -r queries/projectQueries.js ../test-pilot-server/queries/
-   cp -r routes/profiles.js ../test-pilot-server/routes/
-   cp -r routes/projects.js ../test-pilot-server/routes/
-   # etc.
-   ```
-
-3. **Register routes in server.js:**
-   ```javascript
-   // In test-pilot-server/server.js
-   const profilesRouter = require('./routes/profiles');
-   const projectsRouter = require('./routes/projects');
-   
-   app.use('/api/profiles', profilesRouter);
-   app.use('/api/projects', projectsRouter);
-   ```
-
-4. **Update dbConfig.js:**
-   - Routes already use your `dbConfig.js` pattern
-   - No changes needed if following same structure
-
-### Frontend Integration
-
-1. **Copy frontend files:**
-   ```bash
-   # From lookbook/frontend/src to pilot-client/src/
-   cp -r pages/PeoplePage.jsx ../pilot-client/src/pages/
-   cp -r pages/PersonDetailPage.jsx ../pilot-client/src/pages/
-   cp -r pages/ProjectsPage.jsx ../pilot-client/src/pages/
-   # etc.
-   
-   cp -r components/PersonCard.jsx ../pilot-client/src/components/
-   cp -r components/ProjectCard.jsx ../pilot-client/src/components/
-   # etc.
-   ```
-
-2. **Update routing:**
-   ```jsx
-   // In pilot-client/src/App.jsx or your router file
-   import PeoplePage from './pages/PeoplePage';
-   import PersonDetailPage from './pages/PersonDetailPage';
-   // ...
-   
-   <Route path="/people" element={<PeoplePage />} />
-   <Route path="/people/:slug" element={<PersonDetailPage />} />
-   ```
-
-3. **Update API base URL:**
-   - If using same backend, API calls will work automatically
-   - Update `frontend/src/utils/api.js` if needed
-
-### Authentication Integration
-
-To protect admin routes (create/update/delete):
-
-1. **Add your auth middleware:**
-   ```javascript
-   // In routes/profiles.js
-   const { authenticateToken } = require('../middleware/auth');
-   
-   router.post('/', authenticateToken, async (req, res) => {
-     // Only authenticated users can create profiles
-   });
-   ```
-
-2. **Check user roles:**
-   ```javascript
-   if (req.user.role !== 'admin') {
-     return res.status(403).json({ error: 'Forbidden' });
-   }
-   ```
-
-## 🧪 Sample Data
-
-To populate with sample data for testing:
-
-```sql
--- Insert sample users (if not using existing)
-INSERT INTO users (name, email) VALUES 
-  ('Jane Doe', 'jane@example.com'),
-  ('John Smith', 'john@example.com');
-
--- Create profiles
-INSERT INTO lookbook_profiles (user_id, slug, title, skills, open_to_work)
-SELECT 
-  id,
-  lower(replace(name, ' ', '-')),
-  'Software Engineer',
-  ARRAY['JavaScript', 'React', 'Node.js'],
-  true
-FROM users
-WHERE email IN ('jane@example.com', 'john@example.com');
-
--- Create project
-INSERT INTO lookbook_projects (slug, title, summary, skills, cohort)
-VALUES ('sample-project', 'Sample Project', 'An amazing application', ARRAY['React', 'PostgreSQL'], '2024');
+#### Check Database Status
+```bash
+cd backend
+node check-db.js
 ```
 
-## 🐛 Troubleshooting
+#### Clear Node Modules (if issues)
+```bash
+rm -rf node_modules frontend/node_modules backend/node_modules
+npm run install:all
+```
 
-### "Cannot connect to database"
-- Check your `.env` file has correct database credentials
-- Ensure PostgreSQL is running: `pg_isready`
-- Try connecting manually: `psql -h localhost -U postgres lookbook`
+## Troubleshooting
 
-### "Profile not found" errors
-- Make sure you have data in `users` and `lookbook_profiles` tables
-- Check that `user_id` foreign keys are valid
+### Database Connection Issues
+See `DATABASE_CONFIG.md` for detailed troubleshooting.
 
-### Frontend can't reach backend
-- Ensure backend is running on port 4002
-- Check Vite proxy configuration in `vite.config.js`
-- Look for CORS errors in browser console
+Quick check:
+```bash
+cd backend
+node check-db.js
+```
 
-### Port conflicts
-- Backend: Change `PORT` in `.env`
-- Frontend: Vite will automatically find available port
+### Frontend Can't Reach Backend
+1. Verify backend is running on port 4002
+2. Check `frontend/.env` has correct `VITE_API_URL`
+3. Restart frontend after changing .env
 
-## 📝 Next Steps
+### Port Already in Use
+```bash
+# Kill process on port 4002 (backend)
+lsof -ti:4002 | xargs kill
 
-1. **Add authentication** using your existing JWT system
-2. **Implement semantic search** (requires OpenAI + pgvector)
-3. **Add image uploads** (use Cloudinary, S3, or your existing solution)
-4. **Customize styling** to match your brand
-5. **Add more filters** as needed for your use case
+# Kill process on port 5175 (frontend)
+lsof -ti:5175 | xargs kill
+```
 
-## 🤝 Contributing
+## Deployment
 
-This project follows the patterns established in test-pilot-server and pilot-client for consistency and easy integration.
+### Backend (Render/Railway)
+1. Set environment variable: `DATABASE_URL`
+2. Set `NODE_ENV=production`
+3. Deploy from `backend/` folder
 
-## 📄 License
+### Frontend (Render/Vercel)
+1. Set environment variable: `VITE_API_URL` (your backend URL)
+2. Build command: `npm run build`
+3. Deploy from `frontend/` folder
 
-Same as your existing project.
+## Documentation
 
----
+- `DATABASE_CONFIG.md` - Comprehensive database setup guide
+- `TAXONOMY_SYSTEM_COMPLETE.md` - Skills & Industries feature
+- `MARCH_2025_SETUP_COMPLETE.md` - Initial data setup
+- `RENDER_DEPLOYMENT.md` - Deployment guide
 
-**Questions?** Refer to `INTEGRATION_PLAN.md` for detailed merge instructions.
+## Contributing
+
+This is a private project for Pursuit's Lookbook application.
+
+## License
+
+MIT
+
+## Support
+
+For issues or questions:
+1. Check `DATABASE_CONFIG.md` for database issues
+2. Run `backend/check-db.js` to verify connection
+3. Check server logs for error messages

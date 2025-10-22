@@ -77,7 +77,7 @@ function AdminPeoplePage() {
             <CardContent className="p-4">
               <div className="text-sm text-gray-500">Open to Work</div>
               <div className="text-2xl font-bold mt-1">
-                {people.filter(p => p.openToWork).length}
+                {people.filter(p => p.open_to_work).length}
               </div>
             </CardContent>
           </Card>
@@ -162,7 +162,7 @@ function AdminPeoplePage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {person.openToWork ? (
+                      {person.open_to_work ? (
                         <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-0">
                           Open to Work
                         </Badge>

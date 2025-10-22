@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import imageCompression from 'browser-image-compression';
-import { profilesAPI } from '../utils/api';
+import { profilesAPI, taxonomyAPI } from '../utils/api';
 import AdminLayout from '../components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,11 @@ function AdminPersonEditPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState('form'); // 'form' or 'wysiwyg'
+  
+  // Taxonomy data
+  const [availableSkills, setAvailableSkills] = useState([]);
+  const [availableIndustries, setAvailableIndustries] = useState([]);
+  
   const [formData, setFormData] = useState({
     name: '',
     title: '',
@@ -44,10 +49,24 @@ function AdminPersonEditPage() {
   const [highlightInput, setHighlightInput] = useState('');
 
   useEffect(() => {
+    fetchTaxonomy();
     if (!isNew) {
       fetchPerson();
     }
   }, [slug, isNew]);
+
+  const fetchTaxonomy = async () => {
+    try {
+      const [skillsRes, industriesRes] = await Promise.all([
+        taxonomyAPI.getAllSkills(),
+        taxonomyAPI.getAllIndustries()
+      ]);
+      setAvailableSkills(skillsRes.data || []);
+      setAvailableIndustries(industriesRes.data || []);
+    } catch (error) {
+      console.error('Error fetching taxonomy:', error);
+    }
+  };
 
   const fetchPerson = async () => {
     try {
@@ -387,30 +406,75 @@ function AdminPersonEditPage() {
               <CardTitle>Skills</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  value={skillInput}
-                  onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                  placeholder="Add a skill..."
-                />
-                <Button type="button" onClick={addSkill}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {formData.skills.map((skill, idx) => (
-                  <div key={idx} className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full">
-                    <span className="text-sm">{skill}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeSkill(skill)}
-                      className="text-gray-500 hover:text-gray-700"
+              {/* Selected skills */}
+              <div className="flex flex-wrap gap-2 min-h-[40px] p-3 bg-gray-50 rounded-md">
+                {formData.skills.length === 0 ? (
+                  <span className="text-sm text-gray-400">No skills selected</span>
+                ) : (
+                  formData.skills.map((skill, idx) => (
+                    <Badge 
+                      key={idx} 
+                      className="text-sm bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1 px-3 py-1"
                     >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
+                      <span>{skill}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeSkill(skill)}
+                        className="hover:text-gray-200"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))
+                )}
+              </div>
+
+              {/* Available skills grid */}
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Available Skills (click to add)</Label>
+                <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-3 bg-white">
+                  {/* Group by category */}
+                  {Object.entries(
+                    availableSkills.reduce((acc, skill) => {
+                      const category = skill.category || 'Other';
+                      if (!acc[category]) acc[category] = [];
+                      acc[category].push(skill);
+                      return acc;
+                    }, {})
+                  ).map(([category, skills]) => (
+                    <div key={category} className="mb-4 last:mb-0">
+                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        {category}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {skills.map((skill) => {
+                          const isSelected = formData.skills.includes(skill.name);
+                          return (
+                            <Badge
+                              key={skill.id}
+                              onClick={() => {
+                                if (!isSelected) {
+                                  setFormData({
+                                    ...formData,
+                                    skills: [...formData.skills, skill.name]
+                                  });
+                                }
+                              }}
+                              className={`cursor-pointer transition-colors ${
+                                isSelected
+                                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              } border-0`}
+                              style={isSelected ? { pointerEvents: 'none' } : {}}
+                            >
+                              {skill.name}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -421,30 +485,60 @@ function AdminPersonEditPage() {
               <CardTitle>Industry Expertise</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  value={industryInput}
-                  onChange={(e) => setIndustryInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addIndustry())}
-                  placeholder="Add an industry..."
-                />
-                <Button type="button" onClick={addIndustry}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {formData.industry_expertise.map((industry, idx) => (
-                  <div key={idx} className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full">
-                    <span className="text-sm">{industry}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeIndustry(industry)}
-                      className="text-gray-500 hover:text-gray-700"
+              {/* Selected industries */}
+              <div className="flex flex-wrap gap-2 min-h-[40px] p-3 bg-gray-50 rounded-md">
+                {formData.industry_expertise.length === 0 ? (
+                  <span className="text-sm text-gray-400">No industries selected</span>
+                ) : (
+                  formData.industry_expertise.map((industry, idx) => (
+                    <Badge 
+                      key={idx} 
+                      className="text-sm bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-1 px-3 py-1"
                     >
-                      <X className="w-3 h-3" />
-                    </button>
+                      <span>{industry}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeIndustry(industry)}
+                        className="hover:text-gray-200"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))
+                )}
+              </div>
+
+              {/* Available industries */}
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Available Industries (click to add)</Label>
+                <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-3 bg-white">
+                  <div className="flex flex-wrap gap-2">
+                    {availableIndustries.map((industry) => {
+                      const isSelected = formData.industry_expertise.includes(industry.name);
+                      return (
+                        <Badge
+                          key={industry.id}
+                          onClick={() => {
+                            if (!isSelected) {
+                              setFormData({
+                                ...formData,
+                                industry_expertise: [...formData.industry_expertise, industry.name]
+                              });
+                            }
+                          }}
+                          className={`cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          } border-0`}
+                          style={isSelected ? { pointerEvents: 'none' } : {}}
+                        >
+                          {industry.name}
+                        </Badge>
+                      );
+                    })}
                   </div>
-                ))}
+                </div>
               </div>
             </CardContent>
           </Card>

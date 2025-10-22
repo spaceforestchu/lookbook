@@ -92,6 +92,24 @@ export const aiAPI = {
   sanitize: (profileData) => api.post('/ai/sanitize', { profileData }),
 };
 
+// =====================================================
+// TAXONOMY ENDPOINTS (Skills & Industries)
+// =====================================================
+
+export const taxonomyAPI = {
+  // Skills
+  getAllSkills: () => api.get('/taxonomy/skills'),
+  createSkill: (data) => api.post('/taxonomy/skills', data),
+  updateSkill: (id, data) => api.put(`/taxonomy/skills/${id}`, data),
+  deleteSkill: (id) => api.delete(`/taxonomy/skills/${id}`),
+  
+  // Industries
+  getAllIndustries: () => api.get('/taxonomy/industries'),
+  createIndustry: (data) => api.post('/taxonomy/industries', data),
+  updateIndustry: (id, data) => api.put(`/taxonomy/industries/${id}`, data),
+  deleteIndustry: (id) => api.delete(`/taxonomy/industries/${id}`),
+};
+
 export default api;
 
 

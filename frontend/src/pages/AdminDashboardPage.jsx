@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { profilesAPI, projectsAPI } from '../utils/api';
 import AdminLayout from '../components/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Briefcase, TrendingUp, Clock } from 'lucide-react';
+import { Users, Briefcase, TrendingUp, Clock, Tags } from 'lucide-react';
 
 function AdminDashboardPage() {
   const [stats, setStats] = useState({
@@ -22,8 +22,8 @@ function AdminDashboardPage() {
     try {
       setLoading(true);
       const [peopleRes, projectsRes] = await Promise.all([
-        profilesAPI.getAll(),
-        projectsAPI.getAll()
+        profilesAPI.getAll({ limit: 100 }),
+        projectsAPI.getAll({ limit: 100 })
       ]);
 
       const people = peopleRes.data || [];
@@ -32,7 +32,7 @@ function AdminDashboardPage() {
       setStats({
         totalPeople: people.length,
         totalProjects: projects.length,
-        openToWork: people.filter(p => p.openToWork).length,
+        openToWork: people.filter(p => p.open_to_work).length,
         recentlyUpdated: [...people.slice(0, 5)]
       });
     } catch (error) {
@@ -107,7 +107,7 @@ function AdminDashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -161,6 +161,29 @@ function AdminDashboardPage() {
                   style={{backgroundColor: '#4242ea'}}
                 >
                   Add New Project
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Tags className="w-5 h-5" />
+                Skills & Industries
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Manage the standardized taxonomy of skills and industries used throughout the platform.
+              </p>
+              <div className="space-y-2">
+                <Link
+                  to="/admin/taxonomy"
+                  className="block px-4 py-2 text-center rounded-md text-white hover:opacity-90 transition-opacity"
+                  style={{backgroundColor: '#4242ea'}}
+                >
+                  Manage Taxonomy
                 </Link>
               </div>
             </CardContent>
