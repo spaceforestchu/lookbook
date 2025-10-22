@@ -97,13 +97,13 @@ export default function ProjectsModalDemo() {
         <FilterSidebar currentPage="projects" filters={filters} onFilterChange={setFilters} />
 
         {/* Main Content */}
-        <main className="flex-1 p-8 bg-[#E8E8E8]">
+        <main className="flex-1 p-4 md:p-8 bg-[#E8E8E8] pb-24 md:pb-8">
           {/* Top Bar */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold">PROJECTS</h1>
+              <h1 className="text-xl md:text-2xl font-bold">PROJECTS</h1>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto justify-between sm:justify-end">
               <span className="text-sm text-neutral-600">{filteredProjects.length} of {projects.length}</span>
               <div className="flex gap-1 border border-neutral-300 rounded bg-white">
                 <button
@@ -145,7 +145,7 @@ export default function ProjectsModalDemo() {
             <div className={
               viewMode === 'list'
                 ? 'space-y-4'
-                : 'grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                : 'grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
             }>
               {filteredProjects.map((project, index) => {
                 const imageUrl = project.mainImage ? urlForImage(project.mainImage)?.width(800).height(600).url() : null;
@@ -168,24 +168,24 @@ export default function ProjectsModalDemo() {
                   <button
                     key={project.slug}
                     onClick={() => openProjectModal(index)}
-                    className="group relative overflow-hidden rounded-2xl shadow-sm transition hover:shadow-xl text-left flex h-40 w-full"
+                    className="group relative overflow-hidden rounded-2xl shadow-sm transition hover:shadow-xl text-left flex flex-col sm:flex-row h-auto sm:h-40 w-full"
                   >
                     {/* Left side - Image/Gradient */}
-                    <div className={`w-64 flex-shrink-0 bg-gradient-to-br ${colorClass} relative`}>
+                    <div className={`w-full sm:w-64 h-48 sm:h-full flex-shrink-0 bg-gradient-to-br ${colorClass} relative`}>
                       {imageUrl && (
                         <Image
                           src={imageUrl}
                           alt={project.title}
                           fill
                           className="object-cover opacity-40 mix-blend-overlay"
-                          sizes="256px"
+                          sizes="(max-width: 640px) 100vw, 256px"
                         />
                       )}
                     </div>
                     {/* Right side - Content */}
-                    <div className="flex-1 p-6 bg-white flex items-center justify-between min-w-0">
+                    <div className="flex-1 p-4 sm:p-6 bg-white flex items-center justify-between min-w-0">
                       <div className="flex-1 min-w-0 pr-4">
-                        <h3 className="text-xl font-bold mb-2 truncate">{project.title}</h3>
+                        <h3 className="text-lg sm:text-xl font-bold mb-2 truncate">{project.title}</h3>
                         <p className="text-sm text-neutral-600 line-clamp-3">{project.summary || 'No description available'}</p>
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0">
@@ -270,7 +270,7 @@ export default function ProjectsModalDemo() {
       {/* Project Modal */}
       {selectedProject && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4"
           onClick={closeProjectModal}
         >
           {/* Navigation Arrows */}
@@ -280,9 +280,9 @@ export default function ProjectsModalDemo() {
                 e.stopPropagation();
                 goToPrevious();
               }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-lg hover:bg-neutral-50 transition z-10"
+              className="hidden sm:flex absolute left-2 md:left-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-2 md:p-3 shadow-lg hover:bg-neutral-50 transition z-10"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
@@ -294,9 +294,9 @@ export default function ProjectsModalDemo() {
                 e.stopPropagation();
                 goToNext();
               }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-lg hover:bg-neutral-50 transition z-10"
+              className="hidden sm:flex absolute right-2 md:right-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-2 md:p-3 shadow-lg hover:bg-neutral-50 transition z-10"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -304,40 +304,40 @@ export default function ProjectsModalDemo() {
 
           {/* Modal Content */}
           <div
-            className="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl"
+            className="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-white rounded-xl sm:rounded-2xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
             <button
               onClick={closeProjectModal}
-              className="absolute right-4 top-4 z-10 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200 transition"
+              className="absolute right-2 sm:right-4 top-2 sm:top-4 z-10 rounded-full bg-neutral-100 p-1.5 sm:p-2 hover:bg-neutral-200 transition"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
             {/* Project Content */}
-            <div className="p-8">
+            <div className="p-4 sm:p-6 md:p-8">
               {/* Hero Section */}
-              <div className="relative rounded-xl overflow-hidden mb-8 h-64 bg-gradient-to-br from-neutral-800 to-neutral-900">
+              <div className="relative rounded-xl overflow-hidden mb-6 md:mb-8 h-48 sm:h-64 bg-gradient-to-br from-neutral-800 to-neutral-900">
                 {selectedProject.mainImage && urlForImage(selectedProject.mainImage)?.url() && (
                   <Image
                     src={urlForImage(selectedProject.mainImage)!.url()!}
                     alt={selectedProject.title}
                     fill
                     className="object-cover opacity-40 mix-blend-overlay"
-                    sizes="800px"
+                    sizes="(max-width: 768px) 100vw, 800px"
                   />
                 )}
-                <div className="relative h-full flex flex-col justify-center p-8 text-white">
-                  <h2 className="text-4xl font-bold mb-2">{selectedProject.title}</h2>
-                  <p className="text-lg opacity-90">{selectedProject.summary || 'No description available'}</p>
+                <div className="relative h-full flex flex-col justify-center p-4 sm:p-6 md:p-8 text-white">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{selectedProject.title}</h2>
+                  <p className="text-sm sm:text-base md:text-lg opacity-90">{selectedProject.summary || 'No description available'}</p>
                 </div>
               </div>
 
               {/* Project Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-6 md:mb-8">
                 {/* Team */}
                 {selectedProject.participants && selectedProject.participants.length > 0 && (
                   <div>
@@ -391,14 +391,14 @@ export default function ProjectsModalDemo() {
 
               {/* Links Section */}
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4">Links</h3>
-                <div className="flex gap-3">
+                <h3 className="text-base sm:text-lg font-semibold mb-4">Links</h3>
+                <div className="flex flex-col sm:flex-row gap-3">
                   {selectedProject.githubUrl && (
                     <a
                       href={selectedProject.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-4 py-2 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 transition"
+                      className="inline-flex items-center justify-center px-4 py-2 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 transition"
                     >
                       <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                         <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
@@ -411,7 +411,7 @@ export default function ProjectsModalDemo() {
                       href={selectedProject.liveUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                      className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
                     >
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -424,7 +424,7 @@ export default function ProjectsModalDemo() {
             </div>
 
             {/* Position Counter */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-neutral-500">
+            <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 text-xs text-neutral-500">
               {selectedProjectIndex !== null && `${selectedProjectIndex + 1} of ${filteredProjects.length}`}
             </div>
           </div>
@@ -434,28 +434,28 @@ export default function ProjectsModalDemo() {
       {/* Person Modal */}
       {selectedPerson && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4"
           onClick={closePersonModal}
         >
           {/* Modal Content */}
           <div
-            className="relative max-w-5xl w-full max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl"
+            className="relative max-w-5xl w-full max-h-[90vh] overflow-y-auto bg-white rounded-xl sm:rounded-2xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
             <button
               onClick={closePersonModal}
-              className="absolute right-4 top-4 z-10 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200 transition"
+              className="absolute right-2 sm:right-4 top-2 sm:top-4 z-10 rounded-full bg-neutral-100 p-1.5 sm:p-2 hover:bg-neutral-200 transition"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
             {/* Profile Content */}
-            <div className="p-8">
+            <div className="p-4 sm:p-6 md:p-8">
               {/* Header Section */}
-              <div className="flex flex-col md:flex-row gap-8 mb-8">
+              <div className="flex flex-col md:flex-row gap-6 md:gap-8 mb-6 md:mb-8">
                 {/* Photo */}
                 <div className="relative w-full md:w-64 h-64 flex-shrink-0">
                   {selectedPerson.photo && urlForImage(selectedPerson.photo)?.width(256).height(256).fit('crop').url() ? (
@@ -464,10 +464,10 @@ export default function ProjectsModalDemo() {
                       alt={selectedPerson.name}
                       fill
                       className="object-cover rounded-lg"
-                      sizes="256px"
+                      sizes="(max-width: 768px) 100vw, 256px"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center bg-neutral-300 text-6xl font-bold text-neutral-500 rounded-lg">
+                    <div className="flex h-full items-center justify-center bg-neutral-300 text-4xl sm:text-6xl font-bold text-neutral-500 rounded-lg">
                       {selectedPerson.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                     </div>
                   )}
@@ -476,7 +476,7 @@ export default function ProjectsModalDemo() {
                 {/* Bio */}
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-2">
-                    <h2 className="text-3xl font-bold">{selectedPerson.name}</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold pr-10">{selectedPerson.name}</h2>
                     <div className="flex gap-2">
                       {selectedPerson.links?.x && (
                         <a href={selectedPerson.links.x} target="_blank" rel="noopener noreferrer" className="text-neutral-600 hover:text-black">
@@ -512,7 +512,7 @@ export default function ProjectsModalDemo() {
               </div>
 
               {/* Four Column Section */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
                 {/* Highlights */}
                 {selectedPerson.highlights && selectedPerson.highlights.length > 0 && (
                   <div className="bg-black text-white rounded-xl p-6">
@@ -587,9 +587,9 @@ export default function ProjectsModalDemo() {
               {selectedPerson.projects && selectedPerson.projects.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-lg">Select Projects</h3>
+                    <h3 className="font-semibold text-base sm:text-lg">Select Projects</h3>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {selectedPerson.projects.map((project, i) => (
                       <button
                         key={i}

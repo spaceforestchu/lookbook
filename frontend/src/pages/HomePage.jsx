@@ -190,36 +190,36 @@ function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen px-8">
+      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-8 py-8">
         <div className="max-w-6xl w-full">
           {/* Hero Section */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
             <h1 
-              className="font-bold uppercase tracking-tight mb-4 text-white" 
+              className="font-bold uppercase tracking-tight mb-3 sm:mb-4 text-white" 
               style={{
                 fontFamily: "'Galano Grotesque', sans-serif", 
-                fontSize: '4rem',
+                fontSize: 'clamp(2rem, 8vw, 4rem)',
                 lineHeight: '1.1',
                 textShadow: '0 2px 10px rgba(0,0,0,0.5)'
               }}
             >
               WELCOME TO THE LOOKBOOK
             </h1>
-            <p className="text-xl mb-8 text-white" style={{fontSize: '1.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)'}}>
+            <p className="text-base sm:text-xl mb-8 text-white" style={{fontSize: 'clamp(1rem, 3vw, 1.5rem)', textShadow: '0 2px 10px rgba(0,0,0,0.5)'}}>
               Discover talented individuals and innovative projects
             </p>
           </div>
 
           {/* Feature Cards */}
-          <div className="flex gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center sm:items-stretch">
             {/* People Card */}
             <Card 
-              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden"
+              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden w-full sm:w-auto"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                 backdropFilter: 'blur(10px)',
-                width: '300px',
-                height: '380px',
+                maxWidth: '300px',
+                minHeight: '380px',
                 animation: 'slideUpFadeIn 0.8s ease-out',
                 animationDelay: '0.3s',
                 animationFillMode: 'both'
@@ -317,12 +317,12 @@ function HomePage() {
 
             {/* Projects Card */}
             <Card 
-              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden"
+              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden w-full sm:w-auto"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                 backdropFilter: 'blur(10px)',
-                width: '300px',
-                height: '380px',
+                maxWidth: '300px',
+                minHeight: '380px',
                 animation: 'slideUpFadeIn 0.8s ease-out',
                 animationDelay: '0.5s',
                 animationFillMode: 'both'
@@ -397,8 +397,8 @@ function HomePage() {
           </div>
 
           {/* Footer */}
-          <div className="text-center mt-16 text-white">
-            <p className="text-sm" style={{textShadow: '0 2px 10px rgba(0,0,0,0.5)'}}>
+          <div className="text-center mt-8 sm:mt-12 md:mt-16 text-white">
+            <p className="text-xs sm:text-sm" style={{textShadow: '0 2px 10px rgba(0,0,0,0.5)'}}>
               Built with ♥ by Pursuit + AI
             </p>
           </div>
