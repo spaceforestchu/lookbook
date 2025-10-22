@@ -6,6 +6,20 @@ const router = express.Router();
 const profileQueries = require('../queries/profileQueries');
 const { pool } = require('../db/dbConfig');
 
+// Simple in-memory cache for profiles (5 minute TTL)
+const cache = {
+  profiles: null,
+  profilesTimestamp: 0,
+  filters: null,
+  filtersTimestamp: 0,
+  TTL: 5 * 60 * 1000 // 5 minutes in milliseconds
+};
+
+// Helper to check if cache is valid
+function isCacheValid(timestamp) {
+  return Date.now() - timestamp < cache.TTL;
+}
+
 // =====================================================
 // GET /api/profiles
 // Get all profiles with optional filtering
@@ -14,6 +28,14 @@ const { pool } = require('../db/dbConfig');
 router.get('/', async (req, res) => {
   try {
     const { search, skills, openToWork, industries, limit, offset, page } = req.query;
+    
+    // If no filters and cache is valid, return cached data
+    const hasFilters = search || skills || openToWork || industries;
+    if (!hasFilters && cache.profiles && isCacheValid(cache.profilesTimestamp)) {
+      // Add cache headers for browser caching
+      res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
+      return res.json(cache.profiles);
+    }
     
     // Parse filters
     const filters = {
@@ -27,7 +49,7 @@ router.get('/', async (req, res) => {
     
     const result = await profileQueries.getAllProfiles(filters);
     
-    res.json({
+    const response = {
       success: true,
       data: result.profiles,
       pagination: {
@@ -37,7 +59,19 @@ router.get('/', async (req, res) => {
         page: Math.floor(result.offset / result.limit) + 1,
         totalPages: Math.ceil(result.total / result.limit)
       }
-    });
+    };
+    
+    // Cache the response if no filters
+    if (!hasFilters) {
+      cache.profiles = response;
+      cache.profilesTimestamp = Date.now();
+      res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
+    } else {
+      // Shorter cache for filtered results
+      res.set('Cache-Control', 'public, max-age=60'); // 1 minute
+    }
+    
+    res.json(response);
   } catch (error) {
     console.error('Error fetching profiles:', error);
     res.status(500).json({ 
@@ -55,18 +89,33 @@ router.get('/', async (req, res) => {
 
 router.get('/filters', async (req, res) => {
   try {
+    // Check cache first
+    if (cache.filters && isCacheValid(cache.filtersTimestamp)) {
+      res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
+      return res.json(cache.filters);
+    }
+    
     const [skills, industries] = await Promise.all([
       profileQueries.getAllSkills(),
       profileQueries.getAllIndustries()
     ]);
     
-    res.json({
+    const response = {
       success: true,
       data: {
         skills,
         industries
       }
-    });
+    };
+    
+    // Cache the filters
+    cache.filters = response;
+    cache.filtersTimestamp = Date.now();
+    
+    // Set cache headers
+    res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
+    
+    res.json(response);
   } catch (error) {
     console.error('Error fetching filter options:', error);
     res.status(500).json({ 
@@ -93,6 +142,9 @@ router.get('/:slug', async (req, res) => {
         error: 'Profile not found' 
       });
     }
+    
+    // Set cache headers for individual profiles (longer cache)
+    res.set('Cache-Control', 'public, max-age=600'); // 10 minutes
     
     res.json({
       success: true,
@@ -159,6 +211,10 @@ router.post('/', async (req, res) => {
     };
     
     const newProfile = await profileQueries.createProfile(profileDataWithUser);
+    
+    // Invalidate cache
+    cache.profiles = null;
+    cache.filters = null;
     
     res.status(201).json({
       success: true,
@@ -230,6 +286,9 @@ router.put('/:slug', async (req, res) => {
       }
     }
     
+    // Invalidate cache
+    cache.profiles = null;
+    
     res.json({
       success: true,
       data: updatedProfile,
@@ -262,6 +321,10 @@ router.delete('/:slug', async (req, res) => {
         error: 'Profile not found' 
       });
     }
+    
+    // Invalidate cache
+    cache.profiles = null;
+    cache.filters = null;
     
     res.json({
       success: true,

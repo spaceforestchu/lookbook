@@ -10,66 +10,85 @@ const { pool } = require('../db/dbConfig');
 const getAllProfiles = async (filters = {}) => {
   const { search, skills, openToWork, industries, limit = 50, offset = 0 } = filters;
   
-  let query = `
-    SELECT 
-      p.id as profile_id,
-      p.slug,
-      p.title,
-      p.bio,
-      p.skills,
-      p.industry_expertise,
-      p.open_to_work,
-      p.highlights,
-      p.photo_url,
-      p.photo_lqip,
-      p.linkedin_url,
-      p.github_url,
-      p.website_url,
-      p.x_url,
-      u.first_name || ' ' || u.last_name as name,
-      u.email,
-      COUNT(*) OVER() as total_count
-    FROM lookbook_profiles p
-    JOIN users u ON p.user_id = u.user_id
-    WHERE 1=1
-  `;
-  
+  // Build WHERE clause conditions
+  const conditions = [];
   const params = [];
   let paramCount = 1;
   
   // Text search (name, title, bio)
   if (search) {
-    query += ` AND (
+    conditions.push(`(
       (u.first_name || ' ' || u.last_name) ILIKE $${paramCount} OR 
       p.title ILIKE $${paramCount} OR 
       p.bio ILIKE $${paramCount}
-    )`;
+    )`);
     params.push(`%${search}%`);
     paramCount++;
   }
   
   // Skills filter (must have ALL specified skills)
   if (skills && skills.length > 0) {
-    query += ` AND p.skills @> $${paramCount}::text[]`;
+    conditions.push(`p.skills @> $${paramCount}::text[]`);
     params.push(skills);
     paramCount++;
   }
   
   // Industry filter (must have ALL specified industries)
   if (industries && industries.length > 0) {
-    query += ` AND p.industry_expertise @> $${paramCount}::text[]`;
+    conditions.push(`p.industry_expertise @> $${paramCount}::text[]`);
     params.push(industries);
     paramCount++;
   }
   
   // Open to work filter
   if (openToWork !== undefined) {
-    query += ` AND p.open_to_work = $${paramCount}`;
+    conditions.push(`p.open_to_work = $${paramCount}`);
     params.push(openToWork);
     paramCount++;
   }
   
-  query += ` ORDER BY u.first_name ASC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+  const whereClause = conditions.length > 0 
+    ? 'WHERE ' + conditions.join(' AND ')
+    : '';
+  
+  // Use a CTE (Common Table Expression) for better performance
+  // This avoids the expensive COUNT(*) OVER() window function
+  const query = `
+    WITH filtered_profiles AS (
+      SELECT 
+        p.id as profile_id,
+        p.slug,
+        p.title,
+        p.bio,
+        p.skills,
+        p.industry_expertise,
+        p.open_to_work,
+        p.highlights,
+        p.photo_url,
+        p.photo_lqip,
+        p.linkedin_url,
+        p.github_url,
+        p.website_url,
+        p.x_url,
+        u.first_name || ' ' || u.last_name as name,
+        u.email,
+        u.first_name as sort_name
+      FROM lookbook_profiles p
+      JOIN users u ON p.user_id = u.user_id
+      ${whereClause}
+    ),
+    profile_count AS (
+      SELECT COUNT(*) as total FROM filtered_profiles
+    )
+    SELECT 
+      fp.*,
+      pc.total as total_count
+    FROM filtered_profiles fp
+    CROSS JOIN profile_count pc
+    ORDER BY fp.sort_name ASC
+    LIMIT $${paramCount} OFFSET $${paramCount + 1}
+  `;
+  
   params.push(limit, offset);
   
   const result = await pool.query(query, params);

@@ -8,20 +8,28 @@ interface PeoplePageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-// Fetch people from backend API
+// Fetch people from backend API with optimizations
 async function getAllPeople() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002/api';
-  const res = await fetch(`${API_URL}/profiles?limit=100`, {
-    next: { revalidate: 300 }
-  });
   
-  if (!res.ok) {
-    console.error('Failed to fetch profiles:', await res.text());
+  try {
+    const res = await fetch(`${API_URL}/profiles?limit=100`, {
+      next: { revalidate: 300 },
+      // Add timeout to prevent hanging requests
+      signal: AbortSignal.timeout(10000) // 10 second timeout
+    });
+    
+    if (!res.ok) {
+      console.error('Failed to fetch profiles:', await res.text());
+      return [];
+    }
+    
+    const json = await res.json();
+    return json.data || [];
+  } catch (error) {
+    console.error('Error fetching profiles:', error);
     return [];
   }
-  
-  const json = await res.json();
-  return json.data || [];
 }
 
 // Fetch skills from taxonomy API
@@ -229,6 +237,10 @@ export default async function PeoplePage({ searchParams }: PeoplePageProps) {
                         fill
                         className="object-cover transition group-hover:scale-105"
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        loading="lazy"
+                        placeholder={person.photo_lqip ? "blur" : "empty"}
+                        blurDataURL={person.photo_lqip || undefined}
+                        quality={75}
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center bg-neutral-300 text-4xl font-bold text-neutral-500">
