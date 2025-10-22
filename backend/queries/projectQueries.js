@@ -25,7 +25,6 @@ const getAllProjects = async (filters = {}) => {
       p.slug,
       p.title,
       p.summary,
-      p.short_description,
       p.skills,
       p.sectors,
       p.main_image_url,
@@ -171,9 +170,9 @@ const createProject = async (projectData) => {
   
   const query = `
     INSERT INTO lookbook_projects (
-      slug, title, summary, short_description, description, main_image_url, main_image_lqip,
-      icon_url, demo_video_url, background_color, skills, sectors, github_url, live_url, cohort, status
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      slug, title, summary, description, main_image_url, main_image_lqip,
+      icon_url, demo_video_url, skills, sectors, github_url, live_url, cohort, status
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
     RETURNING *
   `;
   
@@ -192,8 +191,8 @@ const createProject = async (projectData) => {
 
 const updateProject = async (slug, updates) => {
   const allowedFields = [
-    'slug', 'title', 'summary', 'short_description', 'description', 'main_image_url', 'main_image_lqip',
-    'icon_url', 'demo_video_url', 'background_color', 'skills', 'sectors', 'github_url', 'live_url',
+    'slug', 'title', 'summary', 'description', 'main_image_url', 'main_image_lqip',
+    'icon_url', 'demo_video_url', 'skills', 'sectors', 'github_url', 'live_url',
     'cohort', 'status'
   ];
   
