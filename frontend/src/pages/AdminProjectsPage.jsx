@@ -20,7 +20,7 @@ function AdminProjectsPage() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await projectsAPI.getAll();
+      const response = await projectsAPI.getAll({ limit: 100 });
       setProjects(response.data || []);
     } catch (error) {
       console.error('Error fetching projects:', error);
