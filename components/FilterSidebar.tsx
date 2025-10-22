@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 
 export type FilterState = {
   industries: string[];
@@ -18,6 +19,8 @@ export default function FilterSidebar({
   filters = { industries: [], hasOpenToWork: false },
   onFilterChange
 }: FilterSidebarProps) {
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
   const handleIndustryChange = (industry: string, checked: boolean) => {
     if (!onFilterChange) return;
 
@@ -32,10 +35,11 @@ export default function FilterSidebar({
     if (!onFilterChange) return;
     onFilterChange({ ...filters, hasOpenToWork: checked });
   };
-  return (
-    <div className="hidden lg:block flex-shrink-0 m-4 self-start w-64">
-      {/* Tab Navigation - Above the panel */}
-      <div className="flex items-center gap-0 relative z-10" style={{ marginBottom: '-2px' }}>
+
+  const FilterContent = () => (
+    <>
+      {/* Tab Navigation - Above the panel (Desktop Only) */}
+      <div className="hidden lg:flex items-center gap-0 relative z-10" style={{ marginBottom: '-2px' }}>
         <Link
           href="/projects"
           className={`flex-1 text-center px-6 py-4 text-sm font-bold transition-all ${
@@ -58,22 +62,22 @@ export default function FilterSidebar({
         </Link>
       </div>
 
-      {/* Sidebar Panel - Below the tabs */}
-      <aside className={`bg-[#E8E8E8] rounded-b-3xl border-l-2 border-r-2 border-b-2 border-t-2 border-white shadow-lg overflow-y-auto w-full relative ${
-        currentPage === 'people' ? 'rounded-tl-lg' : ''
+      {/* Sidebar Panel */}
+      <aside className={`bg-[#E8E8E8] lg:rounded-b-3xl lg:border-l-2 lg:border-r-2 lg:border-b-2 lg:border-t-2 border-white lg:shadow-lg overflow-y-auto w-full relative ${
+        currentPage === 'people' ? 'lg:rounded-tl-lg' : ''
       }`}>
-      {/* Cover panels top corners to prevent double border */}
+      {/* Cover panels top corners to prevent double border (Desktop Only) */}
       {currentPage === 'people' && (
         <>
-          <div className="absolute top-[-2px] left-0 right-1/2 mr-1 h-0 border-t-2 border-white z-20"></div>
-          <div className="absolute top-[-2px] right-[-2px] w-[2px] h-[4px] bg-white z-20"></div>
-          <div className="absolute top-[-2px] left-[-2px] w-[12px] h-[12px] bg-[#E8E8E8] rounded-tl-xl z-10"></div>
+          <div className="hidden lg:block absolute top-[-2px] left-0 right-1/2 mr-1 h-0 border-t-2 border-white z-20"></div>
+          <div className="hidden lg:block absolute top-[-2px] right-[-2px] w-[2px] h-[4px] bg-white z-20"></div>
+          <div className="hidden lg:block absolute top-[-2px] left-[-2px] w-[12px] h-[12px] bg-[#E8E8E8] rounded-tl-xl z-10"></div>
         </>
       )}
       {currentPage === 'projects' && (
         <>
-          <div className="absolute top-[-2px] right-0 left-1/2 ml-1 h-0 border-t-2 border-white z-20"></div>
-          <div className="absolute top-[-2px] left-[-2px] w-[2px] h-[4px] bg-white z-20"></div>
+          <div className="hidden lg:block absolute top-[-2px] right-0 left-1/2 ml-1 h-0 border-t-2 border-white z-20"></div>
+          <div className="hidden lg:block absolute top-[-2px] left-[-2px] w-[2px] h-[4px] bg-white z-20"></div>
         </>
       )}
       <div className="px-6 pt-6">
@@ -232,6 +236,56 @@ export default function FilterSidebar({
 
       </div>
       </aside>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile Filter Button */}
+      <button
+        onClick={() => setMobileFiltersOpen(true)}
+        className="lg:hidden fixed bottom-6 right-6 z-30 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-colors"
+        aria-label="Open filters"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+        </svg>
+      </button>
+
+      {/* Mobile Filter Drawer */}
+      {mobileFiltersOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileFiltersOpen(false)}
+          />
+          
+          {/* Drawer */}
+          <div className="relative ml-auto w-full max-w-sm bg-[#E8E8E8] h-full overflow-y-auto">
+            {/* Close Button */}
+            <div className="sticky top-0 bg-[#E8E8E8] border-b-2 border-white px-6 py-4 flex items-center justify-between z-10">
+              <h2 className="text-lg font-bold">Filters</h2>
+              <button
+                onClick={() => setMobileFiltersOpen(false)}
+                className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+                aria-label="Close filters"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <FilterContent />
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block flex-shrink-0 m-4 self-start w-64">
+        <FilterContent />
+      </div>
+    </>
   );
 }

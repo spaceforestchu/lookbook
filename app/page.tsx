@@ -152,13 +152,13 @@ export default function Home() {
         <FilterSidebar currentPage="people" filters={filters} onFilterChange={setFilters} />
 
         {/* Main Content */}
-        <main className="flex-1 p-8 bg-[#E8E8E8]">
+        <main className="flex-1 p-4 md:p-8 bg-[#E8E8E8] pb-24 md:pb-8">
         {/* Top Bar */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">FELLOWS</h1>
+            <h1 className="text-xl md:text-2xl font-bold">FELLOWS</h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto justify-between sm:justify-end">
             <span className="text-sm text-neutral-600">{filteredPeople.length} of {people.length}</span>
             <div className="flex gap-1 border border-neutral-300 rounded bg-white">
               <button
@@ -197,11 +197,11 @@ export default function Home() {
             <p className="text-neutral-600">Loading...</p>
           </div>
         ) : (
-          <div className={
-            viewMode === 'list'
-              ? 'space-y-4'
-              : 'grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-          }>
+            <div className={
+              viewMode === 'list'
+                ? 'space-y-4'
+                : 'grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+            }>
             {filteredPeople.map((person, index) => {
               const imageUrl = person.photo ? urlForImage(person.photo)?.width(400).height(400).fit('crop').url() : null;
 
@@ -210,17 +210,17 @@ export default function Home() {
                 <button
                   key={person.slug}
                   onClick={() => openModal(index)}
-                  className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-xl text-left flex h-40 w-full"
+                  className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-xl text-left flex flex-col sm:flex-row h-auto sm:h-40 w-full"
                 >
                   {/* Left side - Image */}
-                  <div className="relative w-64 flex-shrink-0 overflow-hidden bg-neutral-200">
+                  <div className="relative w-full sm:w-64 h-48 sm:h-full flex-shrink-0 overflow-hidden bg-neutral-200">
                     {imageUrl ? (
                       <Image
                         src={imageUrl}
                         alt={person.name}
                         fill
                         className="object-cover transition group-hover:scale-105"
-                        sizes="256px"
+                        sizes="(max-width: 640px) 100vw, 256px"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center bg-neutral-300 text-4xl font-bold text-neutral-500">
@@ -229,10 +229,10 @@ export default function Home() {
                     )}
                   </div>
                   {/* Right side - Content */}
-                  <div className="flex-1 p-6 flex items-center justify-between min-w-0">
+                  <div className="flex-1 p-4 sm:p-6 flex items-center justify-between min-w-0">
                     <div className="flex-1 min-w-0 pr-4">
-                      <h3 className="text-xl font-bold mb-1 truncate">{person.name}</h3>
-                      {person.title && <p className="text-sm text-neutral-600 mb-3 truncate">{person.title}</p>}
+                      <h3 className="text-lg sm:text-xl font-bold mb-1 truncate">{person.name}</h3>
+                      {person.title && <p className="text-sm text-neutral-600 mb-2 sm:mb-3 truncate">{person.title}</p>}
                       <div className="flex flex-wrap gap-1">
                         {person.skills.slice(0, 4).map((skill) => (
                           <span key={skill} className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700">
@@ -305,7 +305,7 @@ export default function Home() {
       {/* Modal */}
       {selectedPerson && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4"
           onClick={closeModal}
         >
             {/* Navigation Arrows */}
@@ -315,9 +315,9 @@ export default function Home() {
                   e.stopPropagation();
                   goToPrevious();
                 }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-lg hover:bg-neutral-50 transition z-10"
+                className="hidden sm:flex absolute left-2 md:left-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-2 md:p-3 shadow-lg hover:bg-neutral-50 transition z-10"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
@@ -329,9 +329,9 @@ export default function Home() {
                   e.stopPropagation();
                   goToNext();
                 }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-lg hover:bg-neutral-50 transition z-10"
+                className="hidden sm:flex absolute right-2 md:right-4 top-1/2 -translate-y-1/2 rounded-full bg-white p-2 md:p-3 shadow-lg hover:bg-neutral-50 transition z-10"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
@@ -339,21 +339,21 @@ export default function Home() {
 
             {/* Modal Content */}
             <div
-              className="relative max-w-5xl w-full max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl"
+              className="relative max-w-5xl w-full max-h-[90vh] overflow-y-auto bg-white rounded-xl sm:rounded-2xl shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
               <button
                 onClick={closeModal}
-                className="absolute right-4 top-4 z-10 rounded-full bg-neutral-100 p-2 hover:bg-neutral-200 transition"
+                className="absolute right-2 sm:right-4 top-2 sm:top-4 z-10 rounded-full bg-neutral-100 p-1.5 sm:p-2 hover:bg-neutral-200 transition"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
 
               {/* Profile Content */}
-              <div className="p-8">
+              <div className="p-4 sm:p-6 md:p-8">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row gap-8 mb-8">
                   {/* Photo */}

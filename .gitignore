@@ -6,10 +6,28 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 
-# Environment files
+# Environment files - NEVER COMMIT THESE!
 .env
 .env.local
+.env.development
+.env.production
+.env.test
 .env*.local
+*.env
+backend/.env
+frontend/.env
+.env.backup
+
+# Secrets and credentials
+secrets/
+credentials/
+*.pem
+*.key
+*.cert
+config/secrets.yml
+
+# Private documentation and SQL files
+private-docs/
 
 # Build outputs
 dist/
@@ -37,13 +55,14 @@ coverage/
 Thumbs.db
 .DS_Store
 
-# Frontend specific
-frontend/dist/
-frontend/build/
-frontend/.vite/
-
 # Backend specific
 backend/.env
+backend/.env.*
+backend/secrets/
+
+# Frontend specific
+frontend/.env
+frontend/.env.*
 
 # Database
 *.db

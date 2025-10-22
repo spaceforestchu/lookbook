@@ -34,12 +34,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await api.post('/auth/login', {
+      const data = await api.post('/auth/login', {
         username,
         password,
       });
-
-      const data = response.data;
 
       if (data.success) {
         localStorage.setItem('adminToken', data.token);
