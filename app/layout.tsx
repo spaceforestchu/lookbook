@@ -29,21 +29,21 @@ function Navigation() {
   
   return (
     <nav className="sticky top-0 z-40 border-b border-gray-300 bg-white">
-      <div className="px-4 md:px-8 py-3 md:py-4 flex gap-4 md:gap-8 items-center justify-between">
+      <div className="px-4 md:px-8 py-3 md:py-4 flex gap-2 md:gap-8 items-center justify-between">
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity flex-shrink-0"
+          className="flex items-center gap-1.5 md:gap-3 hover:opacity-80 transition-opacity flex-shrink-0 min-w-0"
         >
           <Image
             src="/pursuit-wordmark.png"
             alt="Pursuit Logo"
-            width={90}
-            height={24}
-            className="md:w-[120px] md:h-[32px]"
+            width={70}
+            height={18}
+            className="md:w-[120px] md:h-[32px] flex-shrink-0"
             priority
           />
-          <span className="font-bold text-lg md:text-xl text-gray-900">Lookbook</span>
+          <span className="font-bold text-base md:text-xl text-gray-900 whitespace-nowrap">Lookbook</span>
         </Link>
         
         {/* Desktop Navigation */}
