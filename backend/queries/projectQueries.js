@@ -41,6 +41,7 @@ const getAllProjects = async (filters = {}) => {
           json_build_object(
             'slug', prof.slug,
             'name', u.first_name || ' ' || u.last_name,
+            'photoUrl', prof.photo_url,
             'role', pp.role
           ) ORDER BY pp.display_order
         )

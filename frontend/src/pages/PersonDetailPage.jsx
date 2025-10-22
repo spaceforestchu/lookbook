@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Linkedin, Globe, Camera, Code, Rocket, Zap, Lightbulb, Target, Square, Grid3x3, List, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Linkedin, Globe, Camera, Code, Rocket, Zap, Lightbulb, Target, Square, Grid3x3, List, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
 
 // Helper function to adjust color brightness for gradients
 const adjustColor = (hex, percent) => {
@@ -53,6 +53,7 @@ function PersonDetailPage() {
   
   // Sidebar state
   const [filterView, setFilterView] = useState('people');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Filter state
   const [peopleFilters, setPeopleFilters] = useState({
@@ -293,6 +294,7 @@ function PersonDetailPage() {
     setFilterView(tab);
     setViewMode(tab);
     setCurrentIndex(-1);
+    setMobileMenuOpen(false); // Close mobile menu when switching tabs
     // Navigate to base route (grid view will be set by useEffect if no slug)
     if (tab === 'people') {
       navigate('/people');
@@ -360,8 +362,17 @@ function PersonDetailPage() {
         </div>
       </div>
 
+      {/* Mobile Menu Button - Top Right - Fixed */}
+      <button
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        className="sm:hidden fixed right-2 top-2 z-50 bg-white rounded-lg p-2 shadow-md border border-gray-200"
+        aria-label="Toggle menu"
+      >
+        {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
       {/* Search Bar and View Icons - Scrolls with content */}
-      <div className="absolute top-2 md:top-4 z-40 left-2 right-2 sm:left-[280px] lg:left-[272px] md:right-4">
+      <div className="absolute top-2 md:top-4 z-40 left-2 right-14 sm:right-2 sm:left-[280px] lg:left-[272px] md:right-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2 sm:gap-3">
           {/* Page indicator */}
           {layoutView === 'grid' && (
@@ -431,7 +442,7 @@ function PersonDetailPage() {
               <Square className="w-3 h-3 md:w-4 md:h-4" />
             </button>
             <button 
-              className="p-1.5 md:p-2 rounded hover:bg-gray-100"
+              className="hidden md:inline-flex p-1.5 md:p-2 rounded hover:bg-gray-100"
               style={{backgroundColor: layoutView === 'list' ? '#4242ea' : 'transparent', color: layoutView === 'list' ? 'white' : 'black'}}
               onClick={() => setLayoutView('list')}
             >
@@ -442,9 +453,19 @@ function PersonDetailPage() {
         </div>
       </div>
 
-      {/* Left Sidebar - Floating - Hidden on mobile */}
-      <div className="hidden sm:block fixed left-4 top-20 z-50">
-        <aside className="w-60 rounded-xl overflow-y-auto border-2 border-white" style={{backgroundColor: '#e3e3e3', maxHeight: 'calc(100vh - 10rem)'}}>
+      {/* Mobile Sidebar Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="sm:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Left Sidebar - Floating - Slides in on mobile, always visible on desktop */}
+      <div className={`fixed left-0 sm:left-4 top-0 sm:top-20 z-50 transition-transform duration-300 ${
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
+      } sm:block`}>
+        <aside style={{backgroundColor: '#e3e3e3'}} className="w-72 sm:w-60 h-screen sm:h-auto sm:rounded-xl overflow-y-auto border-r-2 sm:border-2 border-white sm:max-h-[calc(100vh-10rem)] pt-14 sm:pt-0">
           <div className="flex flex-col h-full">
 
           {/* Filter Content */}
@@ -849,8 +870,8 @@ function PersonDetailPage() {
           {/* People Grid View */}
           {layoutView === 'grid' && viewMode === 'people' && (
             <>
-              {/* Grid Navigation Arrows */}
-              <div className="sticky top-1/2 -translate-y-1/2 left-0 right-0 h-0 pointer-events-none z-50">
+              {/* Grid Navigation Arrows - Hidden on mobile */}
+              <div className="hidden md:block sticky top-1/2 -translate-y-1/2 left-0 right-0 h-0 pointer-events-none z-50">
                 <button
                   onClick={() => setGridPage(Math.max(0, gridPage - 1))}
                   disabled={gridPage === 0}
@@ -1321,7 +1342,7 @@ function PersonDetailPage() {
                         </a>
                       )}
                       {person.x_url && (
-                        <a href={person.x_url} target="_blank" rel="noopener noreferrer">
+                        <a href={person.x_url.startsWith('http') ? person.x_url : `https://x.com/${person.x_url.replace('@', '')}`} target="_blank" rel="noopener noreferrer">
                           <Button size="icon" style={{ backgroundColor: '#000000', color: 'white' }} className="hover:opacity-90">
                             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>

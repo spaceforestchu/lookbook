@@ -7,6 +7,7 @@
   transition: all 0.2s;
   text-decoration: none;
   color: inherit;
+  position: relative;
 }
 
 .person-card:hover {
@@ -42,6 +43,14 @@
 
 .person-card__body {
   padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 200px;
+}
+
+.person-card__content {
+  flex: 1;
 }
 
 .person-card__name {
@@ -62,17 +71,38 @@
   display: inline-block;
 }
 
-.person-card__skills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-sm);
-}
-
 .person-card__industries {
   margin-top: var(--spacing-sm);
   padding-top: var(--spacing-sm);
   border-top: 1px solid var(--color-border);
+}
+
+.person-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.person-card__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.person-card__arrow {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  border-radius: 50%;
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
 }
 
 
