@@ -20,7 +20,7 @@ function AdminPeoplePage() {
   const fetchPeople = async () => {
     try {
       setLoading(true);
-      const response = await profilesAPI.getAll({ limit: 100 });
+      const response = await profilesAPI.getAll({ limit: 50 });
       setPeople(response.data || []);
     } catch (error) {
       console.error('Error fetching people:', error);

@@ -20,7 +20,6 @@ const getAllProfiles = async (filters = {}) => {
       p.industry_expertise,
       p.open_to_work,
       p.highlights,
-      p.photo_url,
       p.photo_lqip,
       p.linkedin_url,
       p.github_url,
