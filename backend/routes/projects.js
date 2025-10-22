@@ -178,7 +178,13 @@ router.put('/:slug', async (req, res) => {
     const updates = req.body;
     
     // Separate participants from other updates
-    const { participants, ...projectUpdates } = updates;
+    const { participants, ...projectUpdates} = updates;
+    
+    // Map camelCase to snake_case for backwards compatibility
+    if (projectUpdates.shortDescription !== undefined) {
+      projectUpdates.short_description = projectUpdates.shortDescription;
+      delete projectUpdates.shortDescription;
+    }
     
     // Update the project
     const updatedProject = await projectQueries.updateProject(slug, projectUpdates);
@@ -190,16 +196,26 @@ router.put('/:slug', async (req, res) => {
       });
     }
     
+    console.log('Updated project:', updatedProject);
+    console.log('Project ID:', updatedProject.id);
+    console.log('Participants to save:', JSON.stringify(participants, null, 2));
+    
     // If participants data is provided, update it
     if (participants && Array.isArray(participants)) {
       // First, delete all existing participants for this project
-      await pool.query('DELETE FROM lookbook_project_participants WHERE project_id = $1', [updatedProject.project_id]);
+      await pool.query('DELETE FROM lookbook_project_participants WHERE project_id = $1', [updatedProject.id]);
       
       // Then insert all participant entries
       for (let i = 0; i < participants.length; i++) {
         const participant = participants[i];
+        
+        // Skip null or undefined participants
+        if (!participant) {
+          continue;
+        }
+        
         // participant can be either a profile_id (number) or an object with profile_id
-        const profileId = typeof participant === 'number' ? participant : (participant.profile_id || participant.profileId);
+        const profileId = typeof participant === 'number' ? participant : (participant.profile_id || participant.profileId || participant.id);
         const role = typeof participant === 'object' && participant !== null ? (participant.role || '') : '';
         
         if (profileId) {
@@ -207,7 +223,7 @@ router.put('/:slug', async (req, res) => {
             INSERT INTO lookbook_project_participants (project_id, profile_id, role, display_order)
             VALUES ($1, $2, $3, $4)
           `, [
-            updatedProject.project_id,
+            updatedProject.id,
             profileId,
             role,
             i

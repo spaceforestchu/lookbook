@@ -25,6 +25,7 @@ const getAllProjects = async (filters = {}) => {
       p.slug,
       p.title,
       p.summary,
+      p.short_description,
       p.skills,
       p.sectors,
       p.main_image_url,
@@ -46,7 +47,7 @@ const getAllProjects = async (filters = {}) => {
           ) ORDER BY pp.display_order
         )
         FROM lookbook_project_participants pp
-        JOIN lookbook_profiles prof ON pp.profile_id = prof.profile_id
+        JOIN lookbook_profiles prof ON pp.profile_id = prof.id
         JOIN users u ON prof.user_id = u.user_id
         WHERE pp.project_id = p.id
       ) as participants,
@@ -122,6 +123,7 @@ const getProjectBySlug = async (slug) => {
       (
         SELECT json_agg(
           json_build_object(
+            'profile_id', prof.id,
             'slug', prof.slug,
             'name', u.first_name || ' ' || u.last_name,
             'title', prof.title,
@@ -131,7 +133,7 @@ const getProjectBySlug = async (slug) => {
           ) ORDER BY pp.display_order
         )
         FROM lookbook_project_participants pp
-        JOIN lookbook_profiles prof ON pp.profile_id = prof.profile_id
+        JOIN lookbook_profiles prof ON pp.profile_id = prof.id
         JOIN users u ON prof.user_id = u.user_id
         WHERE pp.project_id = p.id
       ) as participants
@@ -152,13 +154,11 @@ const createProject = async (projectData) => {
     slug,
     title,
     summary,
-    shortDescription,
     description,
     mainImageUrl,
     mainImageLqip,
     iconUrl,
     demoVideoUrl,
-    backgroundColor = '#6366f1',
     skills = [],
     sectors = [],
     githubUrl,
@@ -176,8 +176,8 @@ const createProject = async (projectData) => {
   `;
   
   const params = [
-    slug, title, summary, shortDescription, description, mainImageUrl, mainImageLqip,
-    iconUrl, demoVideoUrl, backgroundColor, skills, sectors, githubUrl, liveUrl, cohort, status
+    slug, title, summary, description, mainImageUrl, mainImageLqip,
+    iconUrl, demoVideoUrl, skills, sectors, githubUrl, liveUrl, cohort, status
   ];
   
   const result = await pool.query(query, params);
@@ -190,7 +190,7 @@ const createProject = async (projectData) => {
 
 const updateProject = async (slug, updates) => {
   const allowedFields = [
-    'slug', 'title', 'summary', 'description', 'main_image_url', 'main_image_lqip',
+    'slug', 'title', 'summary', 'short_description', 'description', 'main_image_url', 'main_image_lqip',
     'icon_url', 'demo_video_url', 'skills', 'sectors', 'github_url', 'live_url',
     'cohort', 'status'
   ];

@@ -132,6 +132,7 @@ const getProfileBySlug = async (slug) => {
             'slug', proj.slug,
             'title', proj.title,
             'summary', proj.summary,
+            'short_description', proj.short_description,
             'skills', proj.skills,
             'sectors', proj.sectors,
             'mainImageUrl', proj.main_image_url

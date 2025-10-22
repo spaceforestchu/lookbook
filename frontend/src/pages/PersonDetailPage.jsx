@@ -924,19 +924,21 @@ function PersonDetailPage() {
                   )}
                   
                   <CardContent className="relative z-10 p-6 h-full flex flex-col justify-between">
-                    {/* Top Section - Name and Bio */}
+                    {/* Top Section - Name and Title Only */}
                     <div>
                       <h3 className="font-bold text-white uppercase mb-2" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '1.5rem'}}>{prof.name}</h3>
                       {prof.title && (
                         <p className="text-white mb-2" style={{fontSize: '14px', fontWeight: '500', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{prof.title}</p>
                       )}
-                      {prof.bio && (
-                        <p className="text-white leading-snug mb-2 line-clamp-3" style={{fontSize: '14px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{prof.bio}</p>
-                      )}
                     </div>
                     
-                    {/* Bottom Section - Skills and Status */}
+                    {/* Bottom Section - Bio, Skills and Status */}
                     <div>
+                      {/* Bio */}
+                      {prof.bio && (
+                        <p className="text-white leading-snug mb-3 line-clamp-2" style={{fontSize: '13px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{prof.bio}</p>
+                      )}
+                      
                       {/* Skills */}
                       {prof.skills && prof.skills.length > 0 && (
                         <div className="mb-4">

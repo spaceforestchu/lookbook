@@ -206,7 +206,8 @@ function AdminProjectEditPage() {
       const project = response.data;
       
       // Extract participant profile_ids from participants array
-      const participantIds = project.participants ? project.participants.map(p => p.profile_id || p.profileId) : [];
+      const participantIds = project.participants ? project.participants.map(p => p.profile_id) : [];
+
       
       // Normalize the video URL if it exists
       const normalizedVideoUrl = project.demo_video_url ? normalizeVimeoUrl(project.demo_video_url) : '';
@@ -795,7 +796,7 @@ function AdminProjectEditPage() {
               {/* Selected team members */}
               <div className="space-y-2">
                 {formData.participants.map((profileId) => {
-                  const person = allPeople.find(p => p.profile_id === profileId);
+                  const person = allPeople.find(p => p.profile_id === profileId || p.id === profileId);
                   if (!person) return null;
                   
                   return (
