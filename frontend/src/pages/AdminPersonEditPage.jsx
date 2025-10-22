@@ -800,7 +800,7 @@ function AdminPersonEditPage() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 pt-2">
                         {/* Experience */}
                         <div>
-                          <h3 className="text-lg font-bold mb-3">Experience + Education</h3>
+                          <h3 className="text-lg font-bold mb-3">Experience & Education</h3>
                           {formData.experience && formData.experience.length > 0 ? (
                             <div className="space-y-3">
                               {formData.experience.map((exp, idx) => (

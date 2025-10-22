@@ -1428,9 +1428,9 @@ function PersonDetailPage() {
 
                   {/* Three Column Layout - Experience, Skills, Industry Expertise */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 pt-2">
-                    {/* Experience + Education */}
+                    {/* Experience & Education */}
                     <div>
-                      <h3 className="text-lg font-bold mb-3">Experience + Education</h3>
+                      <h3 className="text-lg font-bold mb-3">Experience & Education</h3>
                       {person.experience && person.experience.length > 0 ? (
                         <div className="space-y-3">
                           {person.experience.map((exp, idx) => (
