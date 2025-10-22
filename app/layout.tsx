@@ -121,8 +121,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Lookbook</title>
-        <meta name="description" content="A simple lookbook for people and projects" />
+        <title>The Pursuit Lookbook - Talented Builders & Innovative Projects</title>
+        <meta name="description" content="Discover talented software engineers, designers, and innovators from Pursuit's fellowship program. Browse portfolios, skills, and groundbreaking projects across AI, fintech, e-commerce, and more." />
+        <meta name="keywords" content="Pursuit, software engineers, tech talent, portfolio, projects, fellowship, coding bootcamp, diverse talent, hire developers" />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="The Pursuit Lookbook - Talented Builders & Innovative Projects" />
+        <meta property="og:description" content="Discover talented software engineers, designers, and innovators from Pursuit's fellowship program. Browse portfolios and groundbreaking projects." />
+        <meta property="og:site_name" content="Pursuit Lookbook" />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="The Pursuit Lookbook - Talented Builders & Innovative Projects" />
+        <meta name="twitter:description" content="Discover talented software engineers, designers, and innovators from Pursuit's fellowship program." />
+        
+        {/* Additional SEO */}
+        <meta name="author" content="Pursuit" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://lookbook.pursuit.org" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Navigation />
