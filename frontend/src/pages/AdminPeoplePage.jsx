@@ -121,16 +121,23 @@ function AdminPeoplePage() {
                   <tr key={person.profile_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-                          {person.name?.charAt(0) || '?'}
-                        </div>
+                        {person.photo_url ? (
+                          <img 
+                            src={person.photo_url} 
+                            alt={person.name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                            {person.name?.charAt(0) || '?'}
+                          </div>
+                        )}
                         <div>
                           <div className="font-medium text-gray-900">{person.name}</div>
                           <div className="text-sm text-gray-500">{person.title}</div>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
+                    </td>                    <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
                         {person.skills?.slice(0, 3).map((skill, idx) => (
                           <Badge 
