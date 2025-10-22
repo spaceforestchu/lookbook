@@ -21,7 +21,7 @@ const getAllProjects = async (filters = {}) => {
   
   let query = `
     SELECT 
-      p.project_id,
+      p.id as project_id,
       p.slug,
       p.title,
       p.summary,
@@ -50,7 +50,7 @@ const getAllProjects = async (filters = {}) => {
         FROM lookbook_project_participants pp
         JOIN lookbook_profiles prof ON pp.profile_id = prof.profile_id
         JOIN users u ON prof.user_id = u.user_id
-        WHERE pp.project_id = p.project_id
+        WHERE pp.project_id = p.id
       ) as participants,
       COUNT(*) OVER() as total_count
     FROM lookbook_projects p
@@ -135,7 +135,7 @@ const getProjectBySlug = async (slug) => {
         FROM lookbook_project_participants pp
         JOIN lookbook_profiles prof ON pp.profile_id = prof.profile_id
         JOIN users u ON prof.user_id = u.user_id
-        WHERE pp.project_id = p.project_id
+        WHERE pp.project_id = p.id
       ) as participants
     FROM lookbook_projects p
     WHERE p.slug = $1

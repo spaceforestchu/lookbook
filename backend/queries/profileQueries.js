@@ -12,7 +12,7 @@ const getAllProfiles = async (filters = {}) => {
   
   let query = `
     SELECT 
-      p.profile_id,
+      p.id as profile_id,
       p.slug,
       p.title,
       p.bio,
@@ -104,7 +104,7 @@ const getProfileBySlug = async (slug) => {
           ) ORDER BY e.display_order
         )
         FROM lookbook_experience e
-        WHERE e.profile_id = p.profile_id
+        WHERE e.profile_id = p.id
       ) as experience,
       (
         SELECT json_agg(
@@ -121,7 +121,7 @@ const getProfileBySlug = async (slug) => {
         )
         FROM lookbook_projects proj
         JOIN lookbook_project_participants pp ON proj.project_id = pp.project_id
-        WHERE pp.profile_id = p.profile_id
+        WHERE pp.profile_id = p.id
       ) as projects
     FROM lookbook_profiles p
     JOIN users u ON p.user_id = u.user_id
