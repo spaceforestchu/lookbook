@@ -29,7 +29,6 @@ const getAllProjects = async (filters = {}) => {
       p.skills,
       p.sectors,
       p.main_image_url,
-      p.main_image_lqip,
       p.icon_url,
       p.demo_video_url,
       p.github_url,
@@ -42,7 +41,6 @@ const getAllProjects = async (filters = {}) => {
           json_build_object(
             'slug', prof.slug,
             'name', u.first_name || ' ' || u.last_name,
-            'photoUrl', prof.photo_url,
             'role', pp.role
           ) ORDER BY pp.display_order
         )
