@@ -179,14 +179,16 @@ function HomePage() {
 
       {/* Logo - Top Left */}
       <div className="fixed left-2 sm:left-4 top-2 sm:top-4 z-50">
-        <img 
-          src="/pursuit-wordmark.png" 
-          alt="Pursuit" 
-          className="h-5 sm:h-6 md:h-8"
-          style={{
-            filter: 'brightness(0) invert(1)',
-          }}
-        />
+        <a href="/" className="hover:opacity-80 transition-opacity cursor-pointer block">
+          <img 
+            src="/pursuit-wordmark.png" 
+            alt="Pursuit" 
+            className="h-5 sm:h-6 md:h-8"
+            style={{
+              filter: 'brightness(0) invert(1)',
+            }}
+          />
+        </a>
       </div>
 
       {/* Main Content */}

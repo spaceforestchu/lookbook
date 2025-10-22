@@ -362,14 +362,14 @@ function PersonDetailPage() {
     <div className="flex min-h-screen" style={{backgroundColor: '#e3e3e3'}}>
       {/* Logo - Top Left - Fixed */}
       <div className="fixed left-2 md:left-4 top-2 md:top-4 z-50">
-        <div className="flex items-center gap-2">
+        <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
           <img 
             src="/pursuit-wordmark.png" 
             alt="Pursuit" 
             className="h-6 md:h-8"
           />
           <span className="font-semibold text-sm md:text-base hidden sm:inline">Lookbook</span>
-        </div>
+        </a>
       </div>
 
       {/* Mobile Menu Button - Top Right - Fixed */}
