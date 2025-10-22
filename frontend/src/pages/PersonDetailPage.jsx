@@ -673,7 +673,8 @@ function PersonDetailPage() {
               <Separator className="bg-white" />
               <div className="space-y-1">
                 <p className="text-sm font-bold">Contact for Resume / Hiring Interest</p>
-                <p className="text-sm">hiring@pursuit.org</p>
+                <p className="text-sm font-semibold">Devika Gopal Agge</p>
+                <p className="text-sm">devika@pursuit.org</p>
               </div>
             </div>
         </div>
