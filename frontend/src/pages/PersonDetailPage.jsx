@@ -24,6 +24,16 @@ const adjustColor = (hex, percent) => {
     .toString(16).slice(1);
 };
 
+// Helper function to format name as "FirstName L."
+const formatNameShort = (fullName) => {
+  if (!fullName) return '';
+  const parts = fullName.trim().split(' ');
+  if (parts.length === 1) return parts[0];
+  const firstName = parts[0];
+  const lastInitial = parts[parts.length - 1].charAt(0);
+  return `${firstName} ${lastInitial}.`;
+};
+
 function PersonDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -99,7 +109,7 @@ function PersonDetailPage() {
     // Industries filter
     if (peopleFilters.industries.length > 0) {
       const hasIndustry = peopleFilters.industries.some(filterIndustry => 
-        profile.industries?.includes(filterIndustry)
+        profile.industry_expertise?.includes(filterIndustry)
       );
       if (!hasIndustry) return false;
     }
@@ -559,8 +569,7 @@ function PersonDetailPage() {
                     </div>
                   </div>
 
-                  <Separator className="bg-white" />
-
+                  {/* TEMPORARILY HIDDEN - Additional Filters
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox id="has-demo-video" />
@@ -599,6 +608,7 @@ function PersonDetailPage() {
                       </label>
                     </div>
                   </div>
+                  */}
                 </div>
               )}
 
@@ -733,7 +743,7 @@ function PersonDetailPage() {
               {filteredProjects.slice(gridPage * 8, (gridPage + 1) * 8).map((proj, idx) => (
                 <Card 
                   key={proj.slug} 
-                  className="rounded-xl border-0 shadow-none cursor-pointer hover:shadow-lg transition-all overflow-hidden relative"
+                  className="rounded-xl border-0 shadow-md cursor-pointer hover:shadow-2xl transition-all duration-300 overflow-hidden relative hover:-translate-y-1"
                   style={{backgroundColor: 'white', height: '380px'}}
                   onClick={() => {
                     setLayoutView('detail');
@@ -757,13 +767,13 @@ function PersonDetailPage() {
                         className="w-full h-full object-cover opacity-90"
                       />
                       {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80"></div>
                     </div>
                   ) : (
                     <div className="absolute inset-0 z-0" style={{
                       background: `linear-gradient(135deg, ${proj.background_color || '#6366f1'} 0%, ${adjustColor(proj.background_color || '#6366f1', -30)} 100%)`
                     }}>
-                      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60"></div>
                       {/* Display icon if available */}
                       {proj.icon_url && (
                         <div className="absolute inset-0 flex items-center justify-center opacity-20">
@@ -828,8 +838,7 @@ function PersonDetailPage() {
                             )}
                           </div>
                           <p className="text-white text-sm">
-                            {proj.participants && proj.participants.slice(0, 3).map(p => p.name || p).join(', ')}
-                            {proj.participants && proj.participants.length > 3 && ` +${proj.participants.length - 3}`}
+                            {proj.participants && proj.participants.map(p => formatNameShort(p.name || p)).join(', ')}
                           </p>
                         </div>
                       </div>
@@ -921,7 +930,7 @@ function PersonDetailPage() {
               {filteredProfiles.slice(gridPage * 8, (gridPage + 1) * 8).map((prof, idx) => (
                 <Card 
                   key={prof.slug} 
-                  className="rounded-xl border-0 shadow-none cursor-pointer hover:shadow-lg transition-all overflow-hidden relative"
+                  className="rounded-xl border-0 shadow-md cursor-pointer hover:shadow-2xl transition-all duration-300 overflow-hidden relative hover:-translate-y-1"
                   style={{backgroundColor: 'white', height: '380px'}}
                   onClick={() => {
                     setLayoutView('detail');
@@ -982,7 +991,7 @@ function PersonDetailPage() {
                       {/* Industry Tags and Status */}
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex flex-wrap gap-1">
-                          {prof.industries && prof.industries.slice(0, 2).map((industry, i) => (
+                          {prof.industry_expertise && prof.industry_expertise.slice(0, 2).map((industry, i) => (
                             <span key={i} className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase">
                               {industry}
                             </span>
