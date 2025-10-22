@@ -1093,7 +1093,7 @@ function PersonDetailPage() {
                           <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Project Team</h4>
                           {proj.participants && proj.participants.length > 0 ? (
                             <div className="space-y-2">
-                              {proj.participants.slice(0, 3).map((participant, i) => (
+                              {proj.participants.map((participant, i) => (
                                 <div key={i} className="flex items-center gap-2">
                                   <div 
                                     className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
@@ -1112,11 +1112,6 @@ function PersonDetailPage() {
                                   <span className="text-sm text-gray-700 truncate">{participant.name || participant}</span>
                                 </div>
                               ))}
-                              {proj.participants.length > 3 && (
-                                <div className="text-xs text-gray-500 pl-8">
-                                  +{proj.participants.length - 3} more
-                                </div>
-                              )}
                             </div>
                           ) : (
                             <p className="text-sm text-gray-500">No team listed</p>
