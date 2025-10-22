@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import imageCompression from 'browser-image-compression';
 import { profilesAPI } from '../utils/api';
 import AdminLayout from '../components/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -99,27 +100,38 @@ function AdminPersonEditPage() {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File too large', {
-        description: 'Please upload an image smaller than 5MB'
-      });
-      return;
-    }
-
     try {
-      toast.info('Uploading photo...', {
-        description: 'Converting photo to base64...'
+      // Show compression toast
+      toast.info('Compressing image...', {
+        description: 'This may take a moment for large images'
       });
-      const base64 = await fileToBase64(file);
-      setFormData({ ...formData, photo_url: base64 });
-      toast.success('Photo uploaded!', {
-        description: 'Photo has been converted and will be saved with the profile'
+
+      // Compression options
+      const options = {
+        maxSizeMB: 0.5,          // Max 500KB
+        maxWidthOrHeight: 1024,   // Max dimension 1024px
+        useWebWorker: true,
+        fileType: file.type
+      };
+
+      // Compress the image
+      const compressedFile = await imageCompression(file, options);
+      
+      // Show size reduction
+      const originalSizeMB = (file.size / 1024 / 1024).toFixed(2);
+      const compressedSizeMB = (compressedFile.size / 1024 / 1024).toFixed(2);
+      
+      toast.success('Image compressed!', {
+        description: `Reduced from ${originalSizeMB}MB to ${compressedSizeMB}MB`
       });
+
+      // Convert compressed file to base64
+      const base64 = await fileToBase64(compressedFile);
+      setFormData(prev => ({ ...prev, photo_url: base64 }));
     } catch (error) {
-      console.error('Error uploading photo:', error);
-      toast.error('Upload failed', {
-        description: 'Failed to process the photo. Please try again.'
+      console.error('Error compressing image:', error);
+      toast.error('Failed to compress image', {
+        description: 'Please try a different image'
       });
     }
   };
