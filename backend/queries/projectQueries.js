@@ -31,7 +31,6 @@ const getAllProjects = async (filters = {}) => {
       p.main_image_lqip,
       p.icon_url,
       p.demo_video_url,
-      p.background_color,
       p.github_url,
       p.live_url,
       p.cohort,

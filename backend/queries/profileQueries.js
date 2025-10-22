@@ -95,7 +95,7 @@ const getProfileBySlug = async (slug) => {
       (
         SELECT json_agg(
           json_build_object(
-            'experience_id', e.experience_id,
+            'experience_id', e.id,
             'org', e.org,
             'role', e.role,
             'dateFrom', e.date_from,
