@@ -178,11 +178,11 @@ function HomePage() {
       )}
 
       {/* Logo - Top Left */}
-      <div className="fixed left-4 top-4 z-50">
+      <div className="fixed left-2 sm:left-4 top-2 sm:top-4 z-50">
         <img 
           src="/pursuit-wordmark.png" 
           alt="Pursuit" 
-          className="h-8"
+          className="h-5 sm:h-6 md:h-8"
           style={{
             filter: 'brightness(0) invert(1)',
           }}
@@ -190,7 +190,7 @@ function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen py-8">
+      <div className="relative z-10 flex items-center justify-center min-h-screen py-8 pt-16 sm:pt-8">
         <div className="max-w-6xl w-full">
           {/* Hero Section */}
           <div className="text-center mb-8 sm:mb-12 md:mb-16 px-4 sm:px-8">
@@ -198,7 +198,7 @@ function HomePage() {
               className="font-bold uppercase tracking-tight mb-3 sm:mb-4 text-white" 
               style={{
                 fontFamily: "'Galano Grotesque', sans-serif", 
-                fontSize: 'clamp(2.75rem, 9vw, 4rem)',
+                fontSize: 'clamp(2rem, 9vw, 4rem)',
                 lineHeight: '1.1',
                 textShadow: '0 2px 10px rgba(0,0,0,0.5)'
               }}
