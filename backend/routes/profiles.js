@@ -211,7 +211,7 @@ router.put('/:slug', async (req, res) => {
     // If experience data is provided, update it
     if (experience && Array.isArray(experience)) {
       // First, delete all existing experience for this profile
-      await pool.query('DELETE FROM lookbook_experience WHERE profile_id = $1', [updatedProfile.profile_id]);
+      await pool.query('DELETE FROM lookbook_experience WHERE profile_id = $1', [updatedProfile.id]);
       
       // Then insert all experience entries
       for (let i = 0; i < experience.length; i++) {
@@ -220,7 +220,7 @@ router.put('/:slug', async (req, res) => {
           INSERT INTO lookbook_experience (profile_id, org, role, date_from, date_to, display_order)
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [
-          updatedProfile.profile_id,
+          updatedProfile.id,
           exp.org || '',
           exp.role || '',
           exp.dateFrom || exp.date_from || '',
