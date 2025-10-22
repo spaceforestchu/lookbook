@@ -109,18 +109,17 @@ const getProfileBySlug = async (slug) => {
       (
         SELECT json_agg(
           json_build_object(
-            'project_id', proj.project_id,
+            'project_id', proj.id,
             'slug', proj.slug,
             'title', proj.title,
             'summary', proj.summary,
-            'short_description', proj.short_description,
             'skills', proj.skills,
             'sectors', proj.sectors,
             'mainImageUrl', proj.main_image_url
           )
         )
         FROM lookbook_projects proj
-        JOIN lookbook_project_participants pp ON proj.project_id = pp.project_id
+        JOIN lookbook_project_participants pp ON proj.id = pp.project_id
         WHERE pp.profile_id = p.id
       ) as projects
     FROM lookbook_profiles p
