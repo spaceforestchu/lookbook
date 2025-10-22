@@ -34,6 +34,33 @@ const formatNameShort = (fullName) => {
   return `${firstName} ${lastInitial}.`;
 };
 
+// Helper function to convert video URLs to embeddable format
+const getEmbedUrl = (url) => {
+  if (!url) return url;
+  
+  // YouTube patterns
+  const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+  const youtubeMatch = url.match(youtubeRegex);
+  if (youtubeMatch) {
+    return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+  }
+  
+  // Vimeo patterns
+  const vimeoRegex = /vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|)(\d+)(?:$|\/|\?)/;
+  const vimeoMatch = url.match(vimeoRegex);
+  if (vimeoMatch) {
+    return `https://player.vimeo.com/video/${vimeoMatch[3]}`;
+  }
+  
+  // If already an embed URL, return as-is
+  if (url.includes('youtube.com/embed/') || url.includes('player.vimeo.com/video/')) {
+    return url;
+  }
+  
+  // Return original URL if no pattern matches
+  return url;
+};
+
 function PersonDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -1011,10 +1038,35 @@ function PersonDetailPage() {
                 </Card>
               ))}
             </div>
+            
+            {/* Mobile Pagination - Fixed at bottom on mobile only */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 z-40 flex items-center justify-between">
+              <button
+                onClick={() => setGridPage(Math.max(0, gridPage - 1))}
+                disabled={gridPage === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{backgroundColor: gridPage === 0 ? '#e5e5e5' : '#4242ea', color: gridPage === 0 ? '#999' : 'white'}}
+              >
+                <ChevronLeft className="w-5 h-5" />
+                Previous
+              </button>
+              <span className="text-sm font-semibold text-gray-700">
+                Page {gridPage + 1} of {Math.ceil(filteredProfiles.length / 8)}
+              </span>
+              <button
+                onClick={() => setGridPage(Math.min(Math.ceil(filteredProfiles.length / 8) - 1, gridPage + 1))}
+                disabled={gridPage >= Math.ceil(filteredProfiles.length / 8) - 1}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{backgroundColor: gridPage >= Math.ceil(filteredProfiles.length / 8) - 1 ? '#e5e5e5' : '#4242ea', color: gridPage >= Math.ceil(filteredProfiles.length / 8) - 1 ? '#999' : 'white'}}
+              >
+                Next
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
             </>
           )}
 
-          {/* List View */}
+          {/* List View */
           {layoutView === 'list' && (
             <Card className="rounded-xl border-2 border-white shadow-none mb-12" style={{
               backgroundColor: 'white',
@@ -1698,7 +1750,7 @@ function PersonDetailPage() {
                               <div key={idx}>
                                 <div className="rounded-lg overflow-hidden" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
                                   <iframe
-                                    src={typeof video === 'string' ? video : video.url}
+                                    src={getEmbedUrl(typeof video === 'string' ? video : video.url)}
                                     title={`Demo Video ${idx + 1}`}
                                     style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}
                                     frameBorder="0"
@@ -1728,7 +1780,7 @@ function PersonDetailPage() {
                         return (
                           <div className="rounded-lg overflow-hidden" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
                             <iframe
-                              src={project.demo_video_url}
+                              src={getEmbedUrl(project.demo_video_url)}
                               title="Demo Video"
                               style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}
                               frameBorder="0"
