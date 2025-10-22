@@ -4,6 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const projectQueries = require('../queries/projectQueries');
+const { pool } = require('../db/dbConfig');
 
 // =====================================================
 // GET /api/projects
@@ -176,13 +177,43 @@ router.put('/:slug', async (req, res) => {
     const { slug } = req.params;
     const updates = req.body;
     
-    const updatedProject = await projectQueries.updateProject(slug, updates);
+    // Separate participants from other updates
+    const { participants, ...projectUpdates } = updates;
+    
+    // Update the project
+    const updatedProject = await projectQueries.updateProject(slug, projectUpdates);
     
     if (!updatedProject) {
       return res.status(404).json({ 
         success: false,
         error: 'Project not found' 
       });
+    }
+    
+    // If participants data is provided, update it
+    if (participants && Array.isArray(participants)) {
+      // First, delete all existing participants for this project
+      await pool.query('DELETE FROM lookbook_project_participants WHERE project_id = $1', [updatedProject.project_id]);
+      
+      // Then insert all participant entries
+      for (let i = 0; i < participants.length; i++) {
+        const participant = participants[i];
+        // participant can be either a profile_id (number) or an object with profile_id
+        const profileId = typeof participant === 'number' ? participant : (participant.profile_id || participant.profileId);
+        const role = typeof participant === 'object' && participant !== null ? (participant.role || '') : '';
+        
+        if (profileId) {
+          await pool.query(`
+            INSERT INTO lookbook_project_participants (project_id, profile_id, role, display_order)
+            VALUES ($1, $2, $3, $4)
+          `, [
+            updatedProject.project_id,
+            profileId,
+            role,
+            i
+          ]);
+        }
+      }
     }
     
     res.json({

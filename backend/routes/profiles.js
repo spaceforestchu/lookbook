@@ -4,6 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const profileQueries = require('../queries/profileQueries');
+const { pool } = require('../db/dbConfig');
 
 // =====================================================
 // GET /api/profiles
@@ -118,14 +119,46 @@ router.post('/', async (req, res) => {
     const profileData = req.body;
     
     // Basic validation
-    if (!profileData.userId || !profileData.slug) {
+    if (!profileData.slug) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: userId, slug'
+        error: 'Missing required field: slug'
       });
     }
     
-    const newProfile = await profileQueries.createProfile(profileData);
+    // If no userId provided, create a user first
+    let userId = profileData.userId;
+    if (!userId) {
+      // Extract name from profile data or use slug as fallback
+      const nameParts = profileData.name ? profileData.name.split(' ') : [profileData.slug, ''];
+      const firstName = nameParts[0] || profileData.slug;
+      const lastName = nameParts.slice(1).join(' ') || '';
+      const email = profileData.email || `${profileData.slug}@pursuit.org`;
+      
+      // Create user in users table
+      const userQuery = `
+        INSERT INTO users (first_name, last_name, email, password_hash, role, cohort)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING user_id
+      `;
+      const userResult = await pool.query(userQuery, [
+        firstName,
+        lastName,
+        email,
+        'placeholder_hash', // Placeholder password hash
+        'builder',
+        '2024'
+      ]);
+      userId = userResult.rows[0].user_id;
+    }
+    
+    // Add userId to profileData
+    const profileDataWithUser = {
+      ...profileData,
+      userId
+    };
+    
+    const newProfile = await profileQueries.createProfile(profileDataWithUser);
     
     res.status(201).json({
       success: true,
@@ -162,13 +195,39 @@ router.put('/:slug', async (req, res) => {
     const { slug } = req.params;
     const updates = req.body;
     
-    const updatedProfile = await profileQueries.updateProfile(slug, updates);
+    // Separate experience from other updates
+    const { experience, ...profileUpdates } = updates;
+    
+    // Update the profile
+    const updatedProfile = await profileQueries.updateProfile(slug, profileUpdates);
     
     if (!updatedProfile) {
       return res.status(404).json({ 
         success: false,
         error: 'Profile not found' 
       });
+    }
+    
+    // If experience data is provided, update it
+    if (experience && Array.isArray(experience)) {
+      // First, delete all existing experience for this profile
+      await pool.query('DELETE FROM lookbook_experience WHERE profile_id = $1', [updatedProfile.profile_id]);
+      
+      // Then insert all experience entries
+      for (let i = 0; i < experience.length; i++) {
+        const exp = experience[i];
+        await pool.query(`
+          INSERT INTO lookbook_experience (profile_id, org, role, date_from, date_to, display_order)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          updatedProfile.profile_id,
+          exp.org || '',
+          exp.role || '',
+          exp.dateFrom || exp.date_from || '',
+          exp.dateTo || exp.date_to || '',
+          i
+        ]);
+      }
     }
     
     res.json({

@@ -76,6 +76,54 @@ function AdminPersonEditPage() {
     }
   };
 
+  // Helper function to convert file to base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  // Handle photo file upload
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Invalid file type', {
+        description: 'Please upload an image file (PNG, JPG, etc.)'
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large', {
+        description: 'Please upload an image smaller than 5MB'
+      });
+      return;
+    }
+
+    try {
+      toast.info('Uploading photo...', {
+        description: 'Converting photo to base64...'
+      });
+      const base64 = await fileToBase64(file);
+      setFormData({ ...formData, photo_url: base64 });
+      toast.success('Photo uploaded!', {
+        description: 'Photo has been converted and will be saved with the profile'
+      });
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      toast.error('Upload failed', {
+        description: 'Failed to process the photo. Please try again.'
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -520,7 +568,11 @@ function AdminPersonEditPage() {
                   <div className="flex items-start gap-6 mb-6">
                     {/* Profile Photo Card */}
                     <div className="flex-shrink-0 w-60">
-                      <div className="rounded-lg overflow-hidden mb-4 bg-gray-100 border-2 border-dashed border-gray-300 hover:border-blue-400 cursor-pointer transition-colors" style={{height: '270px'}}>
+                      <div 
+                        className="rounded-lg overflow-hidden mb-4 bg-gray-100 border-2 border-dashed border-gray-300 hover:border-blue-400 cursor-pointer transition-colors relative" 
+                        style={{height: '270px'}}
+                        onClick={() => document.getElementById('photo-upload')?.click()}
+                      >
                         {formData.photo_url ? (
                           <div className="relative group h-full">
                             <img 
@@ -528,29 +580,68 @@ function AdminPersonEditPage() {
                               alt={formData.name}
                               className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-4">
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  document.getElementById('photo-upload')?.click();
+                                }}
+                              >
+                                Upload New Photo
+                              </Button>
+                              <div className="text-xs text-center text-white">or paste URL below:</div>
                               <Input
                                 value={formData.photo_url}
-                                onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  setFormData({ ...formData, photo_url: e.target.value });
+                                }}
+                                onClick={(e) => e.stopPropagation()}
                                 placeholder="Photo URL"
-                                className="w-5/6 bg-white"
+                                className="w-5/6 bg-white text-xs"
                               />
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-6xl">
-                            <div className="text-center">
-                              <div className="mb-2">{formData.name?.split(' ').map(n => n.charAt(0)).join('') || '?'}</div>
+                          <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white">
+                            <div className="text-center p-4">
+                              <div className="mb-4 text-6xl font-bold">{formData.name?.split(' ').map(n => n.charAt(0)).join('') || '?'}</div>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  document.getElementById('photo-upload')?.click();
+                                }}
+                              >
+                                Upload Photo
+                              </Button>
+                              <div className="text-xs mt-3 mb-2">or paste URL:</div>
                               <Input
                                 value={formData.photo_url}
-                                onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
-                                placeholder="Add photo URL"
-                                className="text-xs mt-2"
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  setFormData({ ...formData, photo_url: e.target.value });
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="Photo URL"
+                                className="text-xs mt-2 bg-white"
                               />
                             </div>
                           </div>
                         )}
                       </div>
+                      <input
+                        id="photo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
                       
                       {/* Highlights */}
                       <Card className="bg-black border-black">
@@ -592,7 +683,7 @@ function AdminPersonEditPage() {
                                 onChange={(e) => setHighlightInput(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addHighlight())}
                                 placeholder="Add highlight..."
-                                className="text-xs"
+                                className="text-xs text-white placeholder:text-gray-400"
                               />
                               <Button type="button" onClick={addHighlight} size="sm">
                                 <Plus className="w-3 h-3" />

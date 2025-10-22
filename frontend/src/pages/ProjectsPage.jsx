@@ -40,7 +40,7 @@ function ProjectsPage() {
       <div className="projects-page__search">
         <input
           type="text"
-          placeholder="Search projects..."
+          placeholder="Search Projects"
           value={filters.search}
           onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           className="search-input"

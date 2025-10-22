@@ -32,7 +32,7 @@ function FilterBar({ filters, availableFilters, onFilterChange, onClearFilters, 
       <div className="filter-bar__main">
         <input
           type="text"
-          placeholder="Search by name, title, or bio..."
+          placeholder="Search People"
           value={filters.search}
           onChange={handleSearchChange}
           className="filter-bar__search"

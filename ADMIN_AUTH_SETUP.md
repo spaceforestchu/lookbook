@@ -6,10 +6,10 @@ The Lookbook admin portal now has authentication protection. All admin routes re
 ## Default Credentials
 
 **For initial setup/testing:**
-- Username: `admin`
-- Password: `admin123`
+- Username: Set in `backend/.env` as `ADMIN_USERNAME`
+- Password: Set in `backend/.env` as `ADMIN_PASSWORD_HASH` (hashed)
 
-⚠️ **IMPORTANT:** Change these credentials before deploying to production!
+⚠️ **IMPORTANT:** Configure your own secure credentials in the `.env` file before use!
 
 ## How to Change Admin Credentials
 

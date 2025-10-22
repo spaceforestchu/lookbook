@@ -349,38 +349,38 @@ function PersonDetailPage() {
   return (
     <div className="flex min-h-screen" style={{backgroundColor: '#e3e3e3'}}>
       {/* Logo - Top Left - Fixed */}
-      <div className="fixed left-4 top-4 z-50">
-        <div className="flex items-center gap-3">
+      <div className="fixed left-2 md:left-4 top-2 md:top-4 z-50">
+        <div className="flex items-center gap-2">
           <img 
             src="/pursuit-wordmark.png" 
             alt="Pursuit" 
-            className="h-8"
+            className="h-6 md:h-8"
           />
-          <span className="font-semibold text-base">Lookbook</span>
+          <span className="font-semibold text-sm md:text-base hidden sm:inline">Lookbook</span>
         </div>
       </div>
 
       {/* Search Bar and View Icons - Scrolls with content */}
-      <div className="absolute top-4 z-40" style={{left: '272px', right: '1rem'}}>
-        <div className="max-w-7xl mx-auto flex justify-between items-end gap-3">
+      <div className="absolute top-2 md:top-4 z-40 left-2 right-2 sm:left-[280px] lg:left-[272px] md:right-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2 sm:gap-3">
           {/* Page indicator */}
           {layoutView === 'grid' && (
-            <div className="text-base font-semibold text-gray-700">
+            <div className="text-sm md:text-base font-semibold text-gray-700 hidden sm:block">
               Page {gridPage + 1} of {Math.ceil((viewMode === 'people' ? filteredProfiles.length : filteredProjects.length) / 8)}
             </div>
           )}
           {layoutView === 'detail' && currentLength > 0 && currentIndex >= 0 && (
-            <div className="text-base font-semibold text-gray-700">
+            <div className="text-sm md:text-base font-semibold text-gray-700 hidden sm:block">
               {currentIndex + 1} of {currentLength}
             </div>
           )}
           {layoutView === 'list' && (
-            <div className="text-base font-semibold text-gray-700">
+            <div className="text-sm md:text-base font-semibold text-gray-700 hidden sm:block">
               {viewMode === 'people' ? filteredProfiles.length : filteredProjects.length} {viewMode === 'people' ? 'People' : 'Projects'}
             </div>
           )}
           
-          <div className="flex items-center gap-3 ml-auto">
+          <div className="flex items-center gap-2 sm:gap-3 ml-auto w-full sm:w-auto justify-end">
           {layoutView === 'grid' && (
           <Input
               placeholder={viewMode === 'people' ? 'Search People' : 'Search Projects'}
@@ -392,13 +392,13 @@ function PersonDetailPage() {
                   setProjectFilters({ ...projectFilters, search: e.target.value });
                 }
               }}
-            className="w-64 bg-white"
+            className="w-32 sm:w-48 md:w-64 bg-white text-sm"
           />
           )}
           {/* View Toggle Icons */}
-          <div className="flex items-center gap-2 bg-white rounded-md border p-1">
+          <div className="flex items-center gap-1 bg-white rounded-md border p-1">
             <button 
-              className="p-2 rounded hover:bg-gray-100"
+              className="p-1.5 md:p-2 rounded hover:bg-gray-100"
               style={{backgroundColor: layoutView === 'grid' ? '#4242ea' : 'transparent', color: layoutView === 'grid' ? 'white' : 'black'}}
               onClick={() => {
                 setLayoutView('grid');
@@ -410,10 +410,10 @@ function PersonDetailPage() {
                 }
               }}
             >
-              <Grid3x3 className="w-4 h-4" />
+              <Grid3x3 className="w-3 h-3 md:w-4 md:h-4" />
             </button>
             <button 
-              className="p-2 rounded" 
+              className="p-1.5 md:p-2 rounded" 
               style={{backgroundColor: layoutView === 'detail' ? '#4242ea' : 'transparent', color: layoutView === 'detail' ? 'white' : 'black'}}
               onClick={() => {
                 // When switching to detail view, navigate to first item if no slug
@@ -428,10 +428,10 @@ function PersonDetailPage() {
                 }
               }}
             >
-              <Square className="w-4 h-4" />
+              <Square className="w-3 h-3 md:w-4 md:h-4" />
             </button>
             <button 
-              className="p-2 rounded hover:bg-gray-100"
+              className="p-1.5 md:p-2 rounded hover:bg-gray-100"
               style={{backgroundColor: layoutView === 'list' ? '#4242ea' : 'transparent', color: layoutView === 'list' ? 'white' : 'black'}}
               onClick={() => setLayoutView('list')}
             >
@@ -442,8 +442,8 @@ function PersonDetailPage() {
         </div>
       </div>
 
-      {/* Left Sidebar - Floating */}
-      <div className="fixed left-4 top-20 z-50">
+      {/* Left Sidebar - Floating - Hidden on mobile */}
+      <div className="hidden sm:block fixed left-4 top-20 z-50">
         <aside className="w-60 rounded-xl overflow-y-auto border-2 border-white" style={{backgroundColor: '#e3e3e3', maxHeight: 'calc(100vh - 10rem)'}}>
           <div className="flex flex-col h-full">
 
@@ -655,14 +655,14 @@ function PersonDetailPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 mt-20" style={{marginLeft: '344px', marginRight: '80px'}}>
+      <div className="flex-1 mt-16 sm:mt-20 mx-2 sm:ml-[280px] lg:ml-[344px] lg:mr-12">
         <div className="max-w-7xl mx-auto relative">
           
           {/* Grid View */}
           {layoutView === 'grid' && viewMode === 'projects' && (
             <>
-              {/* Grid Navigation Arrows */}
-              <div className="sticky top-1/2 -translate-y-1/2 left-0 right-0 h-0 pointer-events-none z-50">
+              {/* Grid Navigation Arrows - Hidden on mobile */}
+              <div className="hidden md:block sticky top-1/2 -translate-y-1/2 left-0 right-0 h-0 pointer-events-none z-50">
                 <button
                   onClick={() => setGridPage(Math.max(0, gridPage - 1))}
                   disabled={gridPage === 0}
@@ -1193,8 +1193,8 @@ function PersonDetailPage() {
           {/* Detail View */}
           {layoutView === 'detail' && (
             <>
-          {/* Navigation Arrows - fixed vertically, positioned relative to card horizontally */}
-          <div className="sticky top-1/2 -translate-y-1/2 left-0 right-0 h-0 pointer-events-none z-50">
+          {/* Navigation Arrows - fixed vertically, positioned relative to card horizontally - Hidden on mobile */}
+          <div className="hidden md:block sticky top-1/2 -translate-y-1/2 left-0 right-0 h-0 pointer-events-none z-50">
             <button
               onClick={handlePrevious}
               disabled={!canGoPrevious}
@@ -1222,19 +1222,47 @@ function PersonDetailPage() {
             </button>
           </div>
 
-          <Card className="rounded-xl border-2 border-white shadow-none mb-12" style={{
+          {/* Mobile Navigation - Bottom Fixed */}
+          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-3 flex items-center justify-between shadow-lg">
+            <button
+              onClick={handlePrevious}
+              disabled={!canGoPrevious}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{backgroundColor: canGoPrevious ? '#4242ea' : '#e5e7eb', color: canGoPrevious ? 'white' : '#9ca3af'}}
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span className="font-semibold text-sm">Previous</span>
+            </button>
+            
+            <div className="text-sm font-semibold text-gray-700">
+              {currentIndex + 1} / {currentLength}
+            </div>
+
+            <button
+              onClick={handleNext}
+              disabled={!canGoNext}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{backgroundColor: canGoNext ? '#4242ea' : '#e5e7eb', color: canGoNext ? 'white' : '#9ca3af'}}
+            >
+              <span className="font-semibold text-sm">Next</span>
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          <Card className="rounded-xl border-2 border-white shadow-none mb-12 md:mb-12" style={{
             backgroundColor: 'white', 
             minHeight: '800px',
+            marginBottom: 'calc(3rem + 70px)', // Extra space for mobile nav on mobile
             animation: 'fadeIn 0.3s ease-in-out',
           }}>
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               {/* Render Person or Project based on viewMode */}
               {viewMode === 'people' && person && (
               <>
               {/* Header with Photo and Name */}
-              <div className="flex items-start gap-6 mb-6">
+              <div className="flex flex-col md:flex-row items-start gap-6 mb-6">
                 {/* Profile Photo Card and Highlights */}
-                <div className="flex-shrink-0 w-60">
+                <div className="flex-shrink-0 w-full md:w-60">
                   <div className="rounded-lg overflow-hidden mb-4" style={{height: '270px'}}>
                     {(person.photo_url || person.photoUrl) ? (
                       <img 
@@ -1270,13 +1298,13 @@ function PersonDetailPage() {
                 </div>
                 
                 {/* Name and Info */}
-                <div className="flex-1 pt-4">
-                  <div className="flex items-start justify-between mb-4">
+                <div className="flex-1 w-full md:w-auto pt-0 md:pt-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4">
                     <div>
-                      <div className="flex items-baseline gap-3">
-                        <h1 className="font-bold uppercase tracking-tight" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '2rem'}}>{person.name}</h1>
+                      <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-3">
+                        <h1 className="font-bold uppercase tracking-tight text-2xl md:text-3xl" style={{fontFamily: "'Galano Grotesque', sans-serif"}}>{person.name}</h1>
                         {person.title && (
-                          <p className="text-lg text-gray-600">{person.title}</p>
+                          <p className="text-base md:text-lg text-gray-600">{person.title}</p>
                         )}
                       </div>
                     </div>
@@ -1470,9 +1498,9 @@ function PersonDetailPage() {
               <div className="mb-6">
                 {/* Project Info */}
                 <div className="mb-6">
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4">
                     <div>
-                      <h1 className="font-bold uppercase tracking-tight mb-2" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '2rem'}}>{project.title}</h1>
+                      <h1 className="font-bold uppercase tracking-tight mb-2 text-2xl md:text-3xl" style={{fontFamily: "'Galano Grotesque', sans-serif"}}>{project.title}</h1>
                     </div>
                     <div className="flex gap-2">
                       {project.github_url && (

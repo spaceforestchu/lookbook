@@ -19,6 +19,7 @@ function AdminProjectEditPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [allPeople, setAllPeople] = useState([]);
+  const [participantSearch, setParticipantSearch] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     summary: '',
@@ -31,6 +32,7 @@ function AdminProjectEditPage() {
     background_color: '#6366f1', // Default indigo color
     skills: [],
     sectors: [],
+    participants: [], // Array of profile_ids
     slug: ''
   });
 
@@ -139,6 +141,48 @@ function AdminProjectEditPage() {
     }
   };
 
+  // Helper to convert regular Vimeo URLs to player embed URLs
+  const normalizeVimeoUrl = (url) => {
+    if (!url) return url;
+    
+    // Trim whitespace and remove leading @ symbol if present
+    url = url.trim().replace(/^@+/, '');
+    
+    // If it's already a player URL, return as is
+    if (url.includes('player.vimeo.com')) return url;
+    
+    // Match various Vimeo URL formats and extract video ID
+    const patterns = [
+      /vimeo\.com\/(\d+)/,           // https://vimeo.com/123456789
+      /vimeo\.com\/video\/(\d+)/,    // https://vimeo.com/video/123456789
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return `https://player.vimeo.com/video/${match[1]}`;
+      }
+    }
+    
+    // If no pattern matches, return cleaned URL
+    return url;
+  };
+
+  // Handle demo video URL change with automatic conversion
+  const handleDemoVideoChange = (e) => {
+    const rawUrl = e.target.value;
+    const normalizedUrl = normalizeVimeoUrl(rawUrl);
+    
+    // Show a toast if we converted the URL
+    if (rawUrl !== normalizedUrl && normalizedUrl) {
+      toast.info('Vimeo URL converted', {
+        description: 'Converted to player embed format'
+      });
+    }
+    
+    setFormData({ ...formData, demo_video_url: normalizedUrl });
+  };
+
   useEffect(() => {
     fetchAllPeople();
     if (!isNew) {
@@ -161,18 +205,25 @@ function AdminProjectEditPage() {
       const response = await projectsAPI.getBySlug(slug);
       const project = response.data;
       
+      // Extract participant profile_ids from participants array
+      const participantIds = project.participants ? project.participants.map(p => p.profile_id || p.profileId) : [];
+      
+      // Normalize the video URL if it exists
+      const normalizedVideoUrl = project.demo_video_url ? normalizeVimeoUrl(project.demo_video_url) : '';
+      
       setFormData({
         title: project.title || '',
         summary: project.summary || '',
         short_description: project.short_description || '',
         main_image_url: project.main_image_url || '',
         icon_url: project.icon_url || '',
-        demo_video_url: project.demo_video_url || '',
+        demo_video_url: normalizedVideoUrl,
         github_url: project.github_url || '',
         live_url: project.live_url || '',
         background_color: project.background_color || '#6366f1',
         skills: project.skills || [],
         sectors: project.sectors || [],
+        participants: participantIds,
         slug: project.slug || ''
       });
     } catch (error) {
@@ -230,6 +281,26 @@ function AdminProjectEditPage() {
   const removeSector = (sector) => {
     setFormData({ ...formData, sectors: formData.sectors.filter(s => s !== sector) });
   };
+
+  const addParticipant = (profileId) => {
+    if (!formData.participants.includes(profileId)) {
+      setFormData({ ...formData, participants: [...formData.participants, profileId] });
+    }
+    setParticipantSearch('');
+  };
+
+  const removeParticipant = (profileId) => {
+    setFormData({ ...formData, participants: formData.participants.filter(id => id !== profileId) });
+  };
+
+  // Filter people based on search
+  const filteredPeople = allPeople.filter(person => {
+    if (!participantSearch) return false;
+    const searchLower = participantSearch.toLowerCase();
+    const name = (person.name || `${person.user?.first_name || ''} ${person.user?.last_name || ''}`).toLowerCase();
+    const title = (person.title || '').toLowerCase();
+    return (name.includes(searchLower) || title.includes(searchLower)) && !formData.participants.includes(person.profile_id);
+  });
 
   if (loading) {
     return (
@@ -571,12 +642,12 @@ function AdminProjectEditPage() {
                 <Textarea
                   id="demo_video_url"
                   value={formData.demo_video_url}
-                  onChange={(e) => setFormData({ ...formData, demo_video_url: e.target.value })}
+                  onChange={handleDemoVideoChange}
                   rows={3}
-                  placeholder="Vimeo embed URL or JSON array with descriptions"
+                  placeholder="Vimeo URL (will be auto-converted to embed format)"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Example: https://player.vimeo.com/video/1234567
+                  Paste any Vimeo URL (e.g., https://vimeo.com/1234567) and it will be automatically converted to the embed format
                 </p>
               </div>
             </CardContent>
@@ -677,6 +748,89 @@ function AdminProjectEditPage() {
               <p className="text-xs text-gray-500">
                 Suggested: B2B, Fintech, Consumer, Education, Healthcare, Real Estate and Construction, Industrials, Government
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Project Team */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Team</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="relative">
+                <Input
+                  value={participantSearch}
+                  onChange={(e) => setParticipantSearch(e.target.value)}
+                  placeholder="Search people by name..."
+                />
+                {/* Dropdown with filtered results */}
+                {participantSearch && filteredPeople.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filteredPeople.slice(0, 10).map((person) => (
+                      <button
+                        key={person.profile_id}
+                        type="button"
+                        onClick={() => addParticipant(person.profile_id)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-3"
+                      >
+                        {person.photo_url && (
+                          <img 
+                            src={person.photo_url} 
+                            alt="" 
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        )}
+                        <div>
+                          <div className="font-medium">
+                            {person.name || `${person.user?.first_name || ''} ${person.user?.last_name || ''}`}
+                          </div>
+                          <div className="text-xs text-gray-500">{person.title}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Selected team members */}
+              <div className="space-y-2">
+                {formData.participants.map((profileId) => {
+                  const person = allPeople.find(p => p.profile_id === profileId);
+                  if (!person) return null;
+                  
+                  return (
+                    <div key={profileId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {person.photo_url && (
+                          <img 
+                            src={person.photo_url} 
+                            alt="" 
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        )}
+                        <div>
+                          <div className="font-medium">
+                            {person.name || `${person.user?.first_name || ''} ${person.user?.last_name || ''}`}
+                          </div>
+                          <div className="text-sm text-gray-500">{person.title}</div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeParticipant(profileId)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+                {formData.participants.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    No team members added yet. Search and add people above.
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -908,8 +1062,8 @@ function AdminProjectEditPage() {
                       <Label className="text-sm font-semibold">Demo Video URL</Label>
                       <Input
                         value={formData.demo_video_url}
-                        onChange={(e) => setFormData({ ...formData, demo_video_url: e.target.value })}
-                        placeholder="https://vimeo.com/..."
+                        onChange={handleDemoVideoChange}
+                        placeholder="https://vimeo.com/... (will auto-convert)"
                         className="mt-1"
                       />
                     </div>

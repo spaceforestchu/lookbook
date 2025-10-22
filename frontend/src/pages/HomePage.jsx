@@ -203,7 +203,7 @@ function HomePage() {
                 textShadow: '0 2px 10px rgba(0,0,0,0.5)'
               }}
             >
-              WELCOME TO PAGES
+              WELCOME TO THE LOOKBOOK
             </h1>
             <p className="text-xl mb-8 text-white" style={{fontSize: '1.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)'}}>
               Discover talented individuals and innovative projects
@@ -306,7 +306,7 @@ function HomePage() {
                     Talented People
                   </h3>
                   <p className="text-gray-600 mb-6" style={{fontSize: '1rem'}}>
-                    Browse profiles of skilled professionals with diverse expertise and backgrounds
+                    Browse profiles of Pursuit's Builders and Fellows—skilled professionals with diverse expertise and backgrounds
                   </p>
                 </div>
                 <div className="flex items-center gap-2 font-semibold" style={{color: '#4242ea'}}>
@@ -386,7 +386,7 @@ function HomePage() {
                     Amazing Projects
                   </h3>
                   <p className="text-gray-600 mb-6" style={{fontSize: '1rem'}}>
-                    Discover innovative projects across various industries and technologies
+                    Discover innovative projects built by Builders and Fellows across various industries and technologies
                   </p>
                 </div>
                 <div className="flex items-center gap-2 font-semibold" style={{color: '#4242ea'}}>
