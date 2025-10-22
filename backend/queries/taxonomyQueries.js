@@ -1,4 +1,4 @@
-const pool = require('../db/dbConfig');
+const { pool } = require('../db/dbConfig');
 
 /**
  * Get all skills
