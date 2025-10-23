@@ -85,7 +85,7 @@ function AdminPeoplePage() {
             <CardContent className="p-4">
               <div className="text-sm text-gray-500">With Projects</div>
               <div className="text-2xl font-bold mt-1">
-                {people.filter(p => p.projects && p.projects.length > 0).length}
+                {people.filter(p => p.project_count > 0).length}
               </div>
             </CardContent>
           </Card>
@@ -158,7 +158,7 @@ function AdminPeoplePage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {person.projects?.length || 0} projects
+                        {person.project_count || 0} projects
                       </div>
                     </td>
                     <td className="px-6 py-4">

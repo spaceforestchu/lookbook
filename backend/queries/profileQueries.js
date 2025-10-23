@@ -72,7 +72,12 @@ const getAllProfiles = async (filters = {}) => {
         p.x_url,
         u.first_name || ' ' || u.last_name as name,
         u.email,
-        u.first_name as sort_name
+        u.first_name as sort_name,
+        (
+          SELECT COUNT(*)::int
+          FROM lookbook_project_participants pp
+          WHERE pp.profile_id = p.id
+        ) as project_count
       FROM lookbook_profiles p
       JOIN users u ON p.user_id = u.user_id
       ${whereClause}

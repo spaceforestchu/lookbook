@@ -380,6 +380,15 @@ function AdminPersonEditPage() {
                 />
               </div>
               <div>
+                <Label htmlFor="github_url">GitHub URL</Label>
+                <Input
+                  id="github_url"
+                  value={formData.github_url}
+                  onChange={(e) => setFormData({ ...formData, github_url: e.target.value })}
+                  placeholder="https://github.com/..."
+                />
+              </div>
+              <div>
                 <Label htmlFor="x_url">X (Twitter) URL</Label>
                 <Input
                   id="x_url"
