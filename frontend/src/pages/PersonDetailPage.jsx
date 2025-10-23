@@ -331,6 +331,7 @@ function PersonDetailPage() {
     setFilterView(tab);
     setViewMode(tab);
     setCurrentIndex(-1);
+    setGridPage(0); // Reset grid page when switching between people and projects
     setMobileMenuOpen(false); // Close mobile menu when switching tabs
     // Navigate to base route (grid view will be set by useEffect if no slug)
     if (tab === 'people') {
