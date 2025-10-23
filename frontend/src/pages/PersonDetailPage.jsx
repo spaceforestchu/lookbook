@@ -395,7 +395,7 @@ function PersonDetailPage() {
             alt="Pursuit" 
             className="h-6 md:h-8"
           />
-          <span className="font-semibold text-sm md:text-base hidden sm:inline">Lookbook</span>
+          <span className="text-sm md:text-base hidden sm:inline">Lookbook</span>
         </a>
       </div>
 
@@ -537,7 +537,7 @@ function PersonDetailPage() {
               {filterView === 'people' && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Skills</h4>
+                    <h4 className="text-sm">Skills</h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {availablePeopleFilters.skills.length > 0 ? (
                         availablePeopleFilters.skills.map(skill => (
@@ -568,7 +568,7 @@ function PersonDetailPage() {
                   <Separator className="bg-white" />
 
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Industries</h4>
+                    <h4 className="text-sm">Industries</h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {availablePeopleFilters.industries.length > 0 ? (
                         availablePeopleFilters.industries.map(industry => (
@@ -643,7 +643,7 @@ function PersonDetailPage() {
               {filterView === 'projects' && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Technologies</h4>
+                    <h4 className="text-sm">Technologies</h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {availableProjectFilters.skills.map(skill => (
                         <div key={skill} className="flex items-center space-x-2">
@@ -670,7 +670,7 @@ function PersonDetailPage() {
                   <Separator className="bg-white" />
 
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Industries</h4>
+                    <h4 className="text-sm">Industries</h4>
                     <div className="space-y-2 max-h-96 overflow-y-auto">
                       {availableProjectFilters.sectors.map(sector => (
                         <div key={sector} className="flex items-center space-x-2">
@@ -751,7 +751,7 @@ function PersonDetailPage() {
 
               <div 
                 key={`projects-grid-${gridPage}-${projectFilters.skills.join(',')}-${projectFilters.sectors.join(',')}-${projectFilters.search}`}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-2 gap-6" 
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-2 gap-6 md:mb-0 mb-20" 
                 style={{
                 animation: 'fadeIn 0.3s ease-in-out',
                 }}
@@ -901,6 +901,41 @@ function PersonDetailPage() {
                 </Card>
               ))}
             </div>
+
+            {/* Mobile Navigation - Bottom Fixed for Projects Grid */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-3 flex items-center justify-between shadow-lg">
+              <button
+                onClick={() => setGridPage(Math.max(0, gridPage - 1))}
+                disabled={gridPage === 0}
+                className="flex items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                  style={{backgroundColor: gridPage > 0 ? '#4242ea' : '#e5e7eb'}}
+                >
+                  <ChevronLeft className="w-5 h-5" style={{color: gridPage > 0 ? 'white' : '#9ca3af'}} />
+                </div>
+                <span className="text-sm" style={{color: gridPage > 0 ? '#4242ea' : '#9ca3af'}}>Previous</span>
+              </button>
+              
+              <div className="text-sm font-semibold text-gray-700">
+                Page {gridPage + 1} of {Math.ceil(filteredProjects.length / 8)}
+              </div>
+
+              <button
+                onClick={() => setGridPage(Math.min(Math.ceil(filteredProjects.length / 8) - 1, gridPage + 1))}
+                disabled={gridPage >= Math.ceil(filteredProjects.length / 8) - 1}
+                className="flex items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span className="text-sm" style={{color: gridPage < Math.ceil(filteredProjects.length / 8) - 1 ? '#4242ea' : '#9ca3af'}}>Next</span>
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                  style={{backgroundColor: gridPage < Math.ceil(filteredProjects.length / 8) - 1 ? '#4242ea' : '#e5e7eb'}}
+                >
+                  <ChevronRight className="w-5 h-5" style={{color: gridPage < Math.ceil(filteredProjects.length / 8) - 1 ? 'white' : '#9ca3af'}} />
+                </div>
+              </button>
+            </div>
             </>
           )}
 
@@ -938,9 +973,9 @@ function PersonDetailPage() {
 
               <div 
                 key={`people-grid-${gridPage}-${peopleFilters.skills.join(',')}-${peopleFilters.industries.join(',')}-${peopleFilters.search}-${peopleFilters.openToWork}`}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-2 gap-6" 
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-2 gap-6 md:mb-0 mb-20" 
                 style={{
-                  animation: 'fadeIn 0.3s ease-in-out',
+                animation: 'fadeIn 0.3s ease-in-out',
                 }}
               >
               <style>{`
@@ -1038,35 +1073,45 @@ function PersonDetailPage() {
                 </Card>
               ))}
             </div>
-            
-            {/* Mobile Pagination - Fixed at bottom on mobile only */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 z-40 flex items-center justify-between">
+
+            {/* Mobile Navigation - Bottom Fixed for People Grid */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-3 flex items-center justify-between shadow-lg">
               <button
                 onClick={() => setGridPage(Math.max(0, gridPage - 1))}
                 disabled={gridPage === 0}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                style={{backgroundColor: gridPage === 0 ? '#e5e5e5' : '#4242ea', color: gridPage === 0 ? '#999' : 'white'}}
+                className="flex items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                <ChevronLeft className="w-5 h-5" />
-                Previous
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                  style={{backgroundColor: gridPage > 0 ? '#4242ea' : '#e5e7eb'}}
+                >
+                  <ChevronLeft className="w-5 h-5" style={{color: gridPage > 0 ? 'white' : '#9ca3af'}} />
+                </div>
+                <span className="text-sm" style={{color: gridPage > 0 ? '#4242ea' : '#9ca3af'}}>Previous</span>
               </button>
-              <span className="text-sm font-semibold text-gray-700">
+              
+              <div className="text-sm font-semibold text-gray-700">
                 Page {gridPage + 1} of {Math.ceil(filteredProfiles.length / 8)}
-              </span>
+              </div>
+
               <button
                 onClick={() => setGridPage(Math.min(Math.ceil(filteredProfiles.length / 8) - 1, gridPage + 1))}
                 disabled={gridPage >= Math.ceil(filteredProfiles.length / 8) - 1}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                style={{backgroundColor: gridPage >= Math.ceil(filteredProfiles.length / 8) - 1 ? '#e5e5e5' : '#4242ea', color: gridPage >= Math.ceil(filteredProfiles.length / 8) - 1 ? '#999' : 'white'}}
+                className="flex items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                Next
-                <ChevronRight className="w-5 h-5" />
+                <span className="text-sm" style={{color: gridPage < Math.ceil(filteredProfiles.length / 8) - 1 ? '#4242ea' : '#9ca3af'}}>Next</span>
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                  style={{backgroundColor: gridPage < Math.ceil(filteredProfiles.length / 8) - 1 ? '#4242ea' : '#e5e7eb'}}
+                >
+                  <ChevronRight className="w-5 h-5" style={{color: gridPage < Math.ceil(filteredProfiles.length / 8) - 1 ? 'white' : '#9ca3af'}} />
+                </div>
               </button>
             </div>
             </>
           )}
 
-          {/* List View */
+          {/* List View */}
           {layoutView === 'list' && (
             <Card className="rounded-xl border-2 border-white shadow-none mb-12" style={{
               backgroundColor: 'white',
@@ -1307,11 +1352,15 @@ function PersonDetailPage() {
             <button
               onClick={handlePrevious}
               disabled={!canGoPrevious}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{backgroundColor: canGoPrevious ? '#4242ea' : '#e5e7eb', color: canGoPrevious ? 'white' : '#9ca3af'}}
+              className="flex items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <ChevronLeft className="w-5 h-5" />
-              <span className="font-semibold text-sm">Previous</span>
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                style={{backgroundColor: canGoPrevious ? '#4242ea' : '#e5e7eb'}}
+              >
+                <ChevronLeft className="w-5 h-5" style={{color: canGoPrevious ? 'white' : '#9ca3af'}} />
+              </div>
+              <span className="text-sm" style={{color: canGoPrevious ? '#4242ea' : '#9ca3af'}}>Previous</span>
             </button>
             
             <div className="text-sm font-semibold text-gray-700">
@@ -1321,11 +1370,15 @@ function PersonDetailPage() {
             <button
               onClick={handleNext}
               disabled={!canGoNext}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{backgroundColor: canGoNext ? '#4242ea' : '#e5e7eb', color: canGoNext ? 'white' : '#9ca3af'}}
+              className="flex items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <span className="font-semibold text-sm">Next</span>
-              <ChevronRight className="w-5 h-5" />
+              <span className="text-sm" style={{color: canGoNext ? '#4242ea' : '#9ca3af'}}>Next</span>
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                style={{backgroundColor: canGoNext ? '#4242ea' : '#e5e7eb'}}
+              >
+                <ChevronRight className="w-5 h-5" style={{color: canGoNext ? 'white' : '#9ca3af'}} />
+              </div>
             </button>
           </div>
 
