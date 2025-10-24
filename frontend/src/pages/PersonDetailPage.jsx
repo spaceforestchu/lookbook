@@ -562,7 +562,7 @@ function PersonDetailPage() {
       <div className={`fixed left-0 sm:left-4 top-0 sm:top-20 z-50 transition-transform duration-300 ${
         mobileMenuOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
       } sm:block`}>
-        <aside style={{backgroundColor: '#e3e3e3'}} className="w-72 sm:w-60 h-screen sm:h-auto sm:rounded-xl overflow-y-auto border-r-2 sm:border-2 border-white sm:max-h-[calc(100vh-10rem)] pt-14 sm:pt-0">
+        <aside style={{backgroundColor: '#e3e3e3'}} className="w-72 sm:w-60 h-screen sm:h-auto sm:rounded-xl overflow-y-auto border-r-2 sm:border-2 border-white sm:max-h-[calc(100vh-10rem)] pt-14 sm:pt-0 pb-20 sm:pb-0">
           <div className="flex flex-col h-full">
 
           {/* Filter Content */}
@@ -963,6 +963,7 @@ function PersonDetailPage() {
             </div>
 
             {/* Mobile Navigation - Bottom Fixed for Projects Grid */}
+            {Math.ceil(filteredProjects.length / 8) > 1 && (
             <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-3 flex items-center justify-between shadow-lg">
               <button
                 onClick={() => setGridPage(Math.max(0, gridPage - 1))}
@@ -996,6 +997,7 @@ function PersonDetailPage() {
                 </div>
               </button>
             </div>
+            )}
             </>
           )}
 
@@ -1135,6 +1137,7 @@ function PersonDetailPage() {
             </div>
 
             {/* Mobile Navigation - Bottom Fixed for People Grid */}
+            {Math.ceil(filteredProfiles.length / 8) > 1 && (
             <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-3 flex items-center justify-between shadow-lg">
               <button
                 onClick={() => setGridPage(Math.max(0, gridPage - 1))}
@@ -1168,6 +1171,7 @@ function PersonDetailPage() {
                 </div>
               </button>
             </div>
+            )}
             </>
           )}
 
@@ -1408,6 +1412,7 @@ function PersonDetailPage() {
           </div>
 
           {/* Mobile Navigation - Bottom Fixed */}
+          {currentLength > 1 && (
           <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-3 flex items-center justify-between shadow-lg">
             <button
               onClick={handlePrevious}
@@ -1441,6 +1446,7 @@ function PersonDetailPage() {
               </div>
             </button>
           </div>
+          )}
 
           <Card className="rounded-xl border-2 border-white shadow-none mb-12 md:mb-12" style={{
             backgroundColor: 'white', 
