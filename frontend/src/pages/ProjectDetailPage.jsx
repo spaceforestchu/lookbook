@@ -28,6 +28,29 @@ function ProjectDetailPage() {
     <div>
       <Link to="/projects" className="back-link">← Back to Projects</Link>
       <h1>{project.title}</h1>
+      
+      {/* Project Partner Section */}
+      {project.has_partner && (project.partner_logo_url || project.partner_name) && (
+        <div className="mt-4 mb-4">
+          {project.partner_logo_url && (
+            <div className="mb-2">
+              <img 
+                src={project.partner_logo_url} 
+                alt={project.partner_name || 'Partner logo'} 
+                className="max-h-16 object-contain"
+                style={{ maxWidth: '200px' }}
+              />
+            </div>
+          )}
+          <div className="text-sm text-gray-600">
+            <span className="font-semibold">Project Partner</span>
+            {project.partner_name && (
+              <span className="ml-2">{project.partner_name}</span>
+            )}
+          </div>
+        </div>
+      )}
+      
       {project.summary && <p className="text-muted">{project.summary}</p>}
       
       {project.skills && (

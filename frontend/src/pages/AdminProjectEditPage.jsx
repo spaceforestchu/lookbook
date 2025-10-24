@@ -33,13 +33,17 @@ function AdminProjectEditPage() {
     skills: [],
     sectors: [],
     participants: [], // Array of profile_ids
-    slug: ''
+    slug: '',
+    has_partner: false,
+    partner_name: '',
+    partner_logo_url: ''
   });
 
   const [skillInput, setSkillInput] = useState('');
   const [sectorInput, setSectorInput] = useState('');
   const [imageInputMode, setImageInputMode] = useState('url'); // 'url' or 'upload'
   const [iconInputMode, setIconInputMode] = useState('url'); // 'url' or 'upload'
+  const [partnerLogoInputMode, setPartnerLogoInputMode] = useState('url'); // 'url' or 'upload'
   const [editMode, setEditMode] = useState('form'); // 'form' or 'wysiwyg'
 
   // Helper function to adjust color brightness for gradients
@@ -99,6 +103,44 @@ function AdminProjectEditPage() {
       console.error('Error uploading image:', error);
       toast.error('Upload failed', {
         description: 'Failed to process the image. Please try again.'
+      });
+    }
+  };
+
+  // Handle partner logo file upload
+  const handlePartnerLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Invalid file type', {
+        description: 'Please upload an image file (PNG, JPG, SVG, etc.)'
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large', {
+        description: 'Please upload an image smaller than 5MB'
+      });
+      return;
+    }
+
+    try {
+      toast.info('Uploading partner logo...', {
+        description: 'Converting image to base64...'
+      });
+      const base64 = await fileToBase64(file);
+      setFormData({ ...formData, partner_logo_url: base64 });
+      toast.success('Partner logo uploaded!', {
+        description: 'Logo has been converted and will be saved with the project'
+      });
+    } catch (error) {
+      console.error('Error uploading partner logo:', error);
+      toast.error('Upload failed', {
+        description: 'Failed to process the partner logo. Please try again.'
       });
     }
   };
@@ -225,7 +267,10 @@ function AdminProjectEditPage() {
         skills: project.skills || [],
         sectors: project.sectors || [],
         participants: participantIds,
-        slug: project.slug || ''
+        slug: project.slug || '',
+        has_partner: project.has_partner || false,
+        partner_name: project.partner_name || '',
+        partner_logo_url: project.partner_logo_url || ''
       });
     } catch (error) {
       console.error('Error fetching project:', error);
@@ -408,6 +453,119 @@ function AdminProjectEditPage() {
                 />
                 <p className="text-xs text-gray-500 mt-1">Use line breaks to create paragraphs</p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Project Partner */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Partner</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="has_partner"
+                  checked={formData.has_partner}
+                  onChange={(e) => setFormData({ ...formData, has_partner: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <Label htmlFor="has_partner" className="cursor-pointer">
+                  This project has a partner organization
+                </Label>
+              </div>
+
+              {formData.has_partner && (
+                <>
+                  <div>
+                    <Label htmlFor="partner_name">Partner Company Name</Label>
+                    <Input
+                      id="partner_name"
+                      value={formData.partner_name}
+                      onChange={(e) => setFormData({ ...formData, partner_name: e.target.value })}
+                      placeholder="Enter partner company name..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="partner_logo_url">Partner Logo</Label>
+                    
+                    {/* Toggle between URL and Upload */}
+                    <div className="flex gap-2 mb-3 mt-2">
+                      <Button
+                        type="button"
+                        variant={partnerLogoInputMode === 'url' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setPartnerLogoInputMode('url')}
+                        className="flex items-center gap-2"
+                      >
+                        <LinkIcon className="w-4 h-4" />
+                        URL
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={partnerLogoInputMode === 'upload' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setPartnerLogoInputMode('upload')}
+                        className="flex items-center gap-2"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Upload
+                      </Button>
+                    </div>
+
+                    {partnerLogoInputMode === 'url' ? (
+                      <>
+                        <Textarea
+                          id="partner_logo_url"
+                          value={formData.partner_logo_url}
+                          onChange={(e) => setFormData({ ...formData, partner_logo_url: e.target.value })}
+                          rows={3}
+                          placeholder="https://example.com/partner-logo.png"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Enter the URL of the partner logo
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePartnerLogoUpload}
+                            className="flex-1"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Upload a partner logo (PNG, JPG, SVG, max 5MB)
+                        </p>
+                      </>
+                    )}
+
+                    {/* Logo Preview */}
+                    {formData.partner_logo_url && (
+                      <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <p className="text-sm font-medium text-gray-700 mb-2">Partner Logo Preview:</p>
+                        <div className="bg-white p-4 rounded flex items-center justify-center" style={{minHeight: '120px'}}>
+                          <img 
+                            src={formData.partner_logo_url} 
+                            alt="Partner logo preview" 
+                            className="max-h-20 max-w-full object-contain"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextElementSibling.style.display = 'block';
+                            }}
+                          />
+                          <p className="text-xs text-red-500" style={{display: 'none'}}>
+                            Unable to load partner logo preview
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 

@@ -16,8 +16,27 @@ const getAllProjects = async (filters = {}) => {
     hasDemoVideo,
     status = 'active',
     limit = 50,
-    offset = 0
+    offset = 0,
+    includeParticipants = false // New flag to optionally include participants
   } = filters;
+  
+  // Build participants subquery only if requested
+  const participantsQuery = includeParticipants ? `
+    (
+      SELECT json_agg(
+        json_build_object(
+          'slug', prof.slug,
+          'name', u.first_name || ' ' || u.last_name,
+          'photoUrl', prof.photo_url,
+          'role', pp.role
+        ) ORDER BY pp.display_order
+      )
+      FROM lookbook_project_participants pp
+      JOIN lookbook_profiles prof ON pp.profile_id = prof.id
+      JOIN users u ON prof.user_id = u.user_id
+      WHERE pp.project_id = p.id
+    ) as participants,
+  ` : `NULL as participants,`;
   
   let query = `
     SELECT 
@@ -35,21 +54,11 @@ const getAllProjects = async (filters = {}) => {
       p.live_url,
       p.cohort,
       p.status,
+      p.has_partner,
+      p.partner_name,
+      p.partner_logo_url,
       p.created_at,
-      (
-        SELECT json_agg(
-          json_build_object(
-            'slug', prof.slug,
-            'name', u.first_name || ' ' || u.last_name,
-            'photoUrl', prof.photo_url,
-            'role', pp.role
-          ) ORDER BY pp.display_order
-        )
-        FROM lookbook_project_participants pp
-        JOIN lookbook_profiles prof ON pp.profile_id = prof.id
-        JOIN users u ON prof.user_id = u.user_id
-        WHERE pp.project_id = p.id
-      ) as participants,
+      ${participantsQuery}
       COUNT(*) OVER() as total_count
     FROM lookbook_projects p
     WHERE p.status = $1
@@ -163,20 +172,25 @@ const createProject = async (projectData) => {
     githubUrl,
     liveUrl,
     cohort,
-    status = 'active'
+    status = 'active',
+    hasPartner = false,
+    partnerName,
+    partnerLogoUrl
   } = projectData;
   
   const query = `
     INSERT INTO lookbook_projects (
       slug, title, summary, description, main_image_url, main_image_lqip,
-      icon_url, demo_video_url, skills, sectors, github_url, live_url, cohort, status
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      icon_url, demo_video_url, skills, sectors, github_url, live_url, cohort, status,
+      has_partner, partner_name, partner_logo_url
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
     RETURNING *
   `;
   
   const params = [
     slug, title, summary, description, mainImageUrl, mainImageLqip,
-    iconUrl, demoVideoUrl, skills, sectors, githubUrl, liveUrl, cohort, status
+    iconUrl, demoVideoUrl, skills, sectors, githubUrl, liveUrl, cohort, status,
+    hasPartner, partnerName, partnerLogoUrl
   ];
   
   const result = await pool.query(query, params);
@@ -191,7 +205,7 @@ const updateProject = async (slug, updates) => {
   const allowedFields = [
     'slug', 'title', 'summary', 'short_description', 'description', 'main_image_url', 'main_image_lqip',
     'icon_url', 'demo_video_url', 'skills', 'sectors', 'github_url', 'live_url',
-    'cohort', 'status'
+    'cohort', 'status', 'has_partner', 'partner_name', 'partner_logo_url'
   ];
   
   const setClause = [];

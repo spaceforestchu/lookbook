@@ -186,6 +186,20 @@ router.put('/:slug', async (req, res) => {
       delete projectUpdates.shortDescription;
     }
     
+    // Map partner fields from camelCase to snake_case
+    if (projectUpdates.hasPartner !== undefined) {
+      projectUpdates.has_partner = projectUpdates.hasPartner;
+      delete projectUpdates.hasPartner;
+    }
+    if (projectUpdates.partnerName !== undefined) {
+      projectUpdates.partner_name = projectUpdates.partnerName;
+      delete projectUpdates.partnerName;
+    }
+    if (projectUpdates.partnerLogoUrl !== undefined) {
+      projectUpdates.partner_logo_url = projectUpdates.partnerLogoUrl;
+      delete projectUpdates.partnerLogoUrl;
+    }
+    
     // Update the project
     const updatedProject = await projectQueries.updateProject(slug, projectUpdates);
     

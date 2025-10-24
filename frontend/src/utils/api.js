@@ -2,6 +2,7 @@
 // Follows axios pattern with error handling
 
 import axios from 'axios';
+import { apiCache } from './cache';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4002/api';
 
@@ -36,14 +37,38 @@ api.interceptors.response.use(
   }
 );
 
+// Cached GET helper with request deduplication
+const cachedGet = async (url, cacheKey, ttl = 60000) => {
+  // Check cache first
+  const cached = apiCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  
+  // Check if there's already a pending request for this key
+  const pending = apiCache.getPendingRequest(cacheKey);
+  if (pending) {
+    return pending;
+  }
+  
+  // Make the request and cache it
+  const requestPromise = api.get(url).then(result => {
+    apiCache.set(cacheKey, result, ttl);
+    return result;
+  });
+  
+  apiCache.setPendingRequest(cacheKey, requestPromise);
+  return requestPromise;
+};
+
 // =====================================================
 // PROFILE ENDPOINTS
 // =====================================================
 
 export const profilesAPI = {
   getAll: (filters = {}) => api.get('/profiles', { params: filters }),
-  getBySlug: (slug) => api.get(`/profiles/${slug}`),
-  getFilters: () => api.get('/profiles/filters'),
+  getBySlug: (slug) => cachedGet(`/profiles/${slug}`, `profile-${slug}`, 120000), // Cache for 2 minutes
+  getFilters: () => cachedGet('/profiles/filters', 'profiles-filters', 300000), // Cache for 5 minutes
   create: (data) => api.post('/profiles', data),
   update: (slug, data) => api.put(`/profiles/${slug}`, data),
   delete: (slug) => api.delete(`/profiles/${slug}`),
@@ -56,8 +81,8 @@ export const profilesAPI = {
 
 export const projectsAPI = {
   getAll: (filters = {}) => api.get('/projects', { params: filters }),
-  getBySlug: (slug) => api.get(`/projects/${slug}`),
-  getFilters: () => api.get('/projects/filters'),
+  getBySlug: (slug) => cachedGet(`/projects/${slug}`, `project-${slug}`, 120000), // Cache for 2 minutes
+  getFilters: () => cachedGet('/projects/filters', 'projects-filters', 300000), // Cache for 5 minutes
   create: (data) => api.post('/projects', data),
   update: (slug, data) => api.put(`/projects/${slug}`, data),
   delete: (slug) => api.delete(`/projects/${slug}`),

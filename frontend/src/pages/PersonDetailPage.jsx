@@ -65,6 +65,8 @@ function PersonDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  // Initialize viewMode based on current URL path immediately
+  const initialViewMode = location.pathname.startsWith('/projects') ? 'projects' : 'people';
   const [person, setPerson] = useState(null);
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +74,7 @@ function PersonDetailPage() {
   const [allProfiles, setAllProfiles] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
-  const [viewMode, setViewMode] = useState('people'); // 'people' or 'projects'
+  const [viewMode, setViewMode] = useState(initialViewMode); // Initialize from URL
   const [layoutView, setLayoutView] = useState('grid'); // 'detail' or 'grid' - default to grid
   const [gridPage, setGridPage] = useState(0); // For grid pagination
   const [projectCarouselIndex, setProjectCarouselIndex] = useState(0); // For project carousel
@@ -89,7 +91,7 @@ function PersonDetailPage() {
   }, [location.pathname]);
   
   // Sidebar state
-  const [filterView, setFilterView] = useState('people');
+  const [filterView, setFilterView] = useState(initialViewMode);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Filter state
@@ -184,61 +186,74 @@ function PersonDetailPage() {
     setGridPage(0);
   }, [peopleFilters, projectFilters]);
 
-  // Fetch all profiles for navigation
+  // Fetch filters once on mount - these are cached
   useEffect(() => {
-    const fetchAllProfiles = async () => {
+    const fetchFilters = async () => {
       try {
-        const data = await profilesAPI.getAll({ limit: 100 });
-        if (data.success) {
-          setAllProfiles(data.data);
+        const [peopleFiltersData, projectFiltersData] = await Promise.all([
+          profilesAPI.getFilters(),
+          projectsAPI.getFilters()
+        ]);
+        
+        if (peopleFiltersData.success) {
+          setAvailablePeopleFilters(peopleFiltersData.data);
+        }
+        if (projectFiltersData.success) {
+          setAvailableProjectFilters(projectFiltersData.data);
         }
       } catch (err) {
-        console.error('Error fetching profiles:', err);
+        console.error('Error fetching filters:', err);
       }
     };
-    fetchAllProfiles();
-  }, []);
-
-  // Fetch all projects for navigation
-  useEffect(() => {
-    const fetchAllProjects = async () => {
-      try {
-        const data = await projectsAPI.getAll({ limit: 100 });
-        if (data.success) {
-          setAllProjects(data.data);
-        }
-      } catch (err) {
-        console.error('Error fetching projects:', err);
-      }
-    };
-    fetchAllProjects();
-  }, []);
+    fetchFilters();
+  }, []); // Run once on mount
 
   useEffect(() => {
-    // If no slug, default to grid view
+    // If no slug, default to grid view and fetch lists if needed
     if (!slug) {
       setLayoutView('grid');
       setLoading(false);
-      console.log('No slug, setting grid view. ViewMode:', viewMode, 'AllProfiles:', allProfiles.length, 'AllProjects:', allProjects.length);
+      
+      // Fetch lists if not already loaded
+      if (allProfiles.length === 0) {
+        profilesAPI.getAll({ limit: 100 }).then(data => {
+          if (data.success) setAllProfiles(data.data);
+        }).catch(err => console.error('Error fetching profiles:', err));
+      }
+      if (allProjects.length === 0) {
+        projectsAPI.getAll({ limit: 100 }).then(data => {
+          if (data.success) setAllProjects(data.data);
+        }).catch(err => console.error('Error fetching projects:', err));
+      }
       return;
     }
     
     // If there's a slug, show detail view
     setLayoutView('detail');
-        setLoading(true);
+    setLoading(true);
     
     if (viewMode === 'people') {
-      const fetchPerson = async () => {
+      const fetchPersonAndList = async () => {
         try {
-          const data = await profilesAPI.getBySlug(slug);
-          if (data.success) {
-            setPerson(data.data);
-            setProject(null); // Clear project data
-            // Find current index in all profiles (only if profiles are loaded)
-            if (allProfiles.length > 0) {
-            const index = allProfiles.findIndex(p => p.slug === slug);
-            setCurrentIndex(index);
+          // Fetch both in parallel
+          const [personData, allData] = await Promise.all([
+            profilesAPI.getBySlug(slug),
+            allProfiles.length > 0 ? Promise.resolve({ success: true, data: allProfiles }) : profilesAPI.getAll({ limit: 100 })
+          ]);
+          
+          if (personData.success) {
+            setPerson(personData.data);
+            setProject(null);
+            
+            // Update allProfiles if we just fetched them
+            if (allData.success && allProfiles.length === 0) {
+              setAllProfiles(allData.data);
             }
+            
+            // Find current index
+            const profiles = allData.success ? allData.data : allProfiles;
+            const index = profiles.findIndex(p => p.slug === slug);
+            setCurrentIndex(index);
             setError(null);
           } else {
             setError('Person not found');
@@ -250,20 +265,29 @@ function PersonDetailPage() {
           setLoading(false);
         }
       };
-      fetchPerson();
+      fetchPersonAndList();
     } else if (viewMode === 'projects') {
-      // Fetch the current project by slug
-      const fetchProject = async () => {
+      const fetchProjectAndList = async () => {
         try {
-          const data = await projectsAPI.getBySlug(slug);
-          if (data.success) {
-            setProject(data.data);
-            setPerson(null); // Clear person data
-            // Find current index in all projects (only if projects are loaded)
-            if (allProjects.length > 0) {
-            const index = allProjects.findIndex(p => p.slug === slug);
-            setCurrentIndex(index);
+          // Fetch both in parallel
+          const [projectData, allData] = await Promise.all([
+            projectsAPI.getBySlug(slug),
+            allProjects.length > 0 ? Promise.resolve({ success: true, data: allProjects }) : projectsAPI.getAll({ limit: 100 })
+          ]);
+          
+          if (projectData.success) {
+            setProject(projectData.data);
+            setPerson(null);
+            
+            // Update allProjects if we just fetched them
+            if (allData.success && allProjects.length === 0) {
+              setAllProjects(allData.data);
             }
+            
+            // Find current index
+            const projects = allData.success ? allData.data : allProjects;
+            const index = projects.findIndex(p => p.slug === slug);
+            setCurrentIndex(index);
             setError(null);
           } else {
             setError('Project not found');
@@ -275,31 +299,65 @@ function PersonDetailPage() {
           setLoading(false);
         }
       };
-      fetchProject();
+      fetchProjectAndList();
     } else {
       setLoading(false);
     }
   }, [slug, viewMode]);
 
-  // Fetch filters separately - always run
+  // Update currentIndex when allProfiles or allProjects array loads
   useEffect(() => {
-    const fetchFilters = async () => {
-      try {
-        const peopleFiltersData = await profilesAPI.getFilters();
-        if (peopleFiltersData.success) {
-          setAvailablePeopleFilters(peopleFiltersData.data);
+    if (viewMode === 'people' && person && allProfiles.length > 0) {
+      const index = allProfiles.findIndex(p => p.slug === person.slug);
+      setCurrentIndex(index);
+    } else if (viewMode === 'projects' && project && allProjects.length > 0) {
+      const index = allProjects.findIndex(p => p.slug === project.slug);
+      setCurrentIndex(index);
+    }
+  }, [allProfiles, allProjects, person, project, viewMode]);
+
+  // Prefetch adjacent items for instant navigation
+  useEffect(() => {
+    if (currentIndex < 0 || layoutView !== 'detail') return;
+    
+    const prefetchAdjacent = async () => {
+      if (viewMode === 'people') {
+        // Prefetch next person
+        if (currentIndex < allProfiles.length - 1) {
+          const nextSlug = allProfiles[currentIndex + 1]?.slug;
+          if (nextSlug) {
+            profilesAPI.getBySlug(nextSlug).catch(() => {}); // Fire and forget
+          }
         }
-        
-        const projectFiltersData = await projectsAPI.getFilters();
-        if (projectFiltersData.success) {
-          setAvailableProjectFilters(projectFiltersData.data);
+        // Prefetch previous person
+        if (currentIndex > 0) {
+          const prevSlug = allProfiles[currentIndex - 1]?.slug;
+          if (prevSlug) {
+            profilesAPI.getBySlug(prevSlug).catch(() => {}); // Fire and forget
+          }
         }
-      } catch (err) {
-        console.error('Error fetching filters:', err);
+      } else if (viewMode === 'projects') {
+        // Prefetch next project
+        if (currentIndex < allProjects.length - 1) {
+          const nextSlug = allProjects[currentIndex + 1]?.slug;
+          if (nextSlug) {
+            projectsAPI.getBySlug(nextSlug).catch(() => {}); // Fire and forget
+          }
+        }
+        // Prefetch previous project
+        if (currentIndex > 0) {
+          const prevSlug = allProjects[currentIndex - 1]?.slug;
+          if (prevSlug) {
+            projectsAPI.getBySlug(prevSlug).catch(() => {}); // Fire and forget
+          }
+        }
       }
     };
-    fetchFilters();
-  }, []); // Run once on mount
+    
+    // Delay prefetch slightly to not interfere with current page load
+    const timer = setTimeout(prefetchAdjacent, 300);
+    return () => clearTimeout(timer);
+  }, [currentIndex, viewMode, allProfiles, allProjects, layoutView]);
 
   // Navigation handlers
   const handlePrevious = () => {
@@ -381,7 +439,8 @@ function PersonDetailPage() {
   const canGoNext = currentIndex >= 0 && currentIndex < currentLength - 1;
 
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  if (error && slug) return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
+  // Only show error if we're done loading and viewMode has been set
+  if (error && slug && !loading && viewMode) return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
   if (!person && !project && slug && layoutView === 'detail') return <div className="flex items-center justify-center min-h-screen">Not found</div>;
 
   const initials = person?.name?.split(' ').map(n => n.charAt(0)).join('') || project?.title?.charAt(0) || '?';
@@ -715,7 +774,7 @@ function PersonDetailPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 mt-16 sm:mt-20 mx-2 sm:ml-[280px] lg:ml-[344px] lg:mr-12">
+      <div className="flex-1 mt-16 sm:mt-20 mx-2 sm:ml-[260px] lg:ml-[260px] sm:mr-8 lg:mr-16">
         <div className="max-w-7xl mx-auto relative">
           
           {/* Grid View */}
@@ -1644,6 +1703,41 @@ function PersonDetailPage() {
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4">
                     <div>
                       <h1 className="font-bold uppercase tracking-tight mb-2 text-2xl md:text-3xl" style={{fontFamily: "'Galano Grotesque', sans-serif"}}>{project.title}</h1>
+                      
+                      {/* Project Partner Section */}
+                      {project.has_partner && (project.partner_logo_url || project.partner_name) && (
+                        <div className="mt-6 mb-2">
+                          {project.partner_logo_url ? (
+                            <>
+                              <div className="mb-2">
+                                <img 
+                                  src={project.partner_logo_url} 
+                                  alt={project.partner_name || 'Partner logo'} 
+                                  className="max-h-12 object-contain"
+                                  style={{ maxWidth: '180px' }}
+                                />
+                              </div>
+                              <div className="text-xs text-gray-600 uppercase tracking-wide">
+                                <span className="font-bold">Project Partner</span>
+                                {project.partner_name && (
+                                  <span className="ml-2">{project.partner_name}</span>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="mb-2">
+                                <div className="text-2xl font-bold text-gray-900">
+                                  {project.partner_name}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-600 uppercase tracking-wide font-bold">
+                                Project Partner
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       {project.github_url && (
