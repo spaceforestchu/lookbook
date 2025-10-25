@@ -19,7 +19,7 @@ function HomePage() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const data = await projectsAPI.getAll({ limit: 100 });
+        const data = await projectsAPI.getAll({ limit: 30 });
         if (data.success) {
           setProjects(data.data);
           // Initialize with first 5 projects for display
@@ -59,7 +59,7 @@ function HomePage() {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const data = await profilesAPI.getAll({ limit: 100 });
+        const data = await profilesAPI.getAll({ limit: 30 });
         if (data.success) {
           setProfiles(data.data);
           // Initialize with first 5 profiles
@@ -140,7 +140,7 @@ function HomePage() {
   }, [projects.length, isInitialLoad]); // Removed projects from dependencies
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{backgroundColor: '#e3e3e3'}}>
+    <div className="min-h-screen relative overflow-hidden" style={{backgroundColor: '#1a1a1a'}}>
       {/* Background Image Slideshow */}
       {projectImages.length > 0 && (
         <>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { profilesAPI, projectsAPI } from '../utils/api';
+import analytics from '../utils/analytics';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -216,12 +217,12 @@ function PersonDetailPage() {
       
       // Fetch lists if not already loaded
       if (allProfiles.length === 0) {
-        profilesAPI.getAll({ limit: 100 }).then(data => {
+        profilesAPI.getAll({ limit: 30 }).then(data => {
           if (data.success) setAllProfiles(data.data);
         }).catch(err => console.error('Error fetching profiles:', err));
       }
       if (allProjects.length === 0) {
-        projectsAPI.getAll({ limit: 100 }).then(data => {
+        projectsAPI.getAll({ limit: 30 }).then(data => {
           if (data.success) setAllProjects(data.data);
         }).catch(err => console.error('Error fetching projects:', err));
       }
@@ -238,12 +239,19 @@ function PersonDetailPage() {
           // Fetch both in parallel
           const [personData, allData] = await Promise.all([
             profilesAPI.getBySlug(slug),
-            allProfiles.length > 0 ? Promise.resolve({ success: true, data: allProfiles }) : profilesAPI.getAll({ limit: 100 })
+            allProfiles.length > 0 ? Promise.resolve({ success: true, data: allProfiles }) : profilesAPI.getAll({ limit: 30 })
           ]);
           
           if (personData.success) {
             setPerson(personData.data);
             setProject(null);
+            
+            // Track person view
+            analytics.personViewed(
+              personData.data.slug,
+              `${personData.data.first_name} ${personData.data.last_name}`,
+              personData.data.skills || []
+            );
             
             // Update allProfiles if we just fetched them
             if (allData.success && allProfiles.length === 0) {
@@ -272,12 +280,20 @@ function PersonDetailPage() {
           // Fetch both in parallel
           const [projectData, allData] = await Promise.all([
             projectsAPI.getBySlug(slug),
-            allProjects.length > 0 ? Promise.resolve({ success: true, data: allProjects }) : projectsAPI.getAll({ limit: 100 })
+            allProjects.length > 0 ? Promise.resolve({ success: true, data: allProjects }) : projectsAPI.getAll({ limit: 30 })
           ]);
           
           if (projectData.success) {
             setProject(projectData.data);
             setPerson(null);
+            
+            // Track project view
+            analytics.projectViewed(
+              projectData.data.slug,
+              projectData.data.title,
+              projectData.data.skills || [],
+              projectData.data.sectors || []
+            );
             
             // Update allProjects if we just fetched them
             if (allData.success && allProjects.length === 0) {
@@ -364,9 +380,11 @@ function PersonDetailPage() {
     if (currentIndex > 0) {
       if (viewMode === 'people') {
         const prevProfile = allProfiles[currentIndex - 1];
+        analytics.navigation('previous', person?.slug, prevProfile.slug);
         navigate(`/people/${prevProfile.slug}`);
       } else {
         const prevProject = allProjects[currentIndex - 1];
+        analytics.navigation('previous', project?.slug, prevProject.slug);
         navigate(`/projects/${prevProject.slug}`);
       }
     }
@@ -377,9 +395,11 @@ function PersonDetailPage() {
     if (currentIndex < maxLength - 1) {
       if (viewMode === 'people') {
         const nextProfile = allProfiles[currentIndex + 1];
+        analytics.navigation('next', person?.slug, nextProfile.slug);
         navigate(`/people/${nextProfile.slug}`);
       } else {
         const nextProject = allProjects[currentIndex + 1];
+        analytics.navigation('next', project?.slug, nextProject.slug);
         navigate(`/projects/${nextProject.slug}`);
       }
     }
@@ -606,12 +626,17 @@ function PersonDetailPage() {
                             id={`skill-${skill}`}
                             checked={peopleFilters.skills.includes(skill)}
                             onCheckedChange={(checked) => {
+                              const newSkills = checked
+                                ? [...peopleFilters.skills, skill]
+                                : peopleFilters.skills.filter(s => s !== skill);
+                              
                               setPeopleFilters({
                                 ...peopleFilters,
-                                skills: checked
-                                  ? [...peopleFilters.skills, skill]
-                                  : peopleFilters.skills.filter(s => s !== skill)
+                                skills: newSkills
                               });
+                              
+                              // Track filter application
+                              analytics.filterApplied('skill', skill, 'people');
                             }}
                           />
                           <label htmlFor={`skill-${skill}`} className="text-sm cursor-pointer" style={{fontWeight: 400}}>
@@ -637,12 +662,17 @@ function PersonDetailPage() {
                             id={`industry-${industry}`}
                             checked={peopleFilters.industries.includes(industry)}
                             onCheckedChange={(checked) => {
+                              const newIndustries = checked
+                                ? [...peopleFilters.industries, industry]
+                                : peopleFilters.industries.filter(i => i !== industry);
+                              
                               setPeopleFilters({
                                 ...peopleFilters,
-                                industries: checked
-                                  ? [...peopleFilters.industries, industry]
-                                  : peopleFilters.industries.filter(i => i !== industry)
+                                industries: newIndustries
                               });
+                              
+                              // Track filter application
+                              analytics.filterApplied('industry', industry, 'people');
                             }}
                           />
                           <label htmlFor={`industry-${industry}`} className="text-sm cursor-pointer" style={{fontWeight: 400}}>
@@ -711,12 +741,17 @@ function PersonDetailPage() {
                             id={`proj-skill-${skill}`}
                             checked={projectFilters.skills.includes(skill)}
                             onCheckedChange={(checked) => {
+                              const newSkills = checked
+                                ? [...projectFilters.skills, skill]
+                                : projectFilters.skills.filter(s => s !== skill);
+                              
                               setProjectFilters({
                                 ...projectFilters,
-                                skills: checked
-                                  ? [...projectFilters.skills, skill]
-                                  : projectFilters.skills.filter(s => s !== skill)
+                                skills: newSkills
                               });
+                              
+                              // Track filter application
+                              analytics.filterApplied('skill', skill, 'projects');
                             }}
                           />
                           <Label htmlFor={`proj-skill-${skill}`} className="text-sm cursor-pointer">
@@ -738,12 +773,17 @@ function PersonDetailPage() {
                             id={`proj-sector-${sector}`}
                             checked={projectFilters.sectors.includes(sector)}
                             onCheckedChange={(checked) => {
+                              const newSectors = checked
+                                ? [...projectFilters.sectors, sector]
+                                : projectFilters.sectors.filter(s => s !== sector);
+                              
                               setProjectFilters({
                                 ...projectFilters,
-                                sectors: checked
-                                  ? [...projectFilters.sectors, sector]
-                                  : projectFilters.sectors.filter(s => s !== sector)
+                                sectors: newSectors
                               });
+                              
+                              // Track filter application
+                              analytics.filterApplied('sector', sector, 'projects');
                             }}
                           />
                           <Label htmlFor={`proj-sector-${sector}`} className="text-sm cursor-pointer">
@@ -853,6 +893,7 @@ function PersonDetailPage() {
                         })()}
                         alt={proj.title}
                         className="w-full h-full object-cover opacity-90"
+                        loading="lazy"
                       />
                       {/* Gradient Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80"></div>
@@ -1069,6 +1110,7 @@ function PersonDetailPage() {
                         src={prof.photo_url || prof.photoUrl}
                         alt={prof.name}
                         className="w-full h-full object-cover opacity-90"
+                        loading="lazy"
                       />
                       {/* Gradient Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/70"></div>
@@ -1537,8 +1579,8 @@ function PersonDetailPage() {
                       )}
                       {person.website_url && (
                         <a href={person.website_url} target="_blank" rel="noopener noreferrer">
-                          <Button variant="outline" size="icon">
-                            <Globe className="h-4 w-4" />
+                          <Button variant="outline" size="icon" className="bg-white hover:bg-gray-200">
+                            <Globe className="h-4 w-4 text-black" />
                           </Button>
                         </a>
                       )}
@@ -1757,8 +1799,8 @@ function PersonDetailPage() {
                       )}
                       {project.live_url && (
                         <a href={project.live_url} target="_blank" rel="noopener noreferrer">
-                          <Button variant="outline" size="icon">
-                            <Globe className="h-4 w-4" />
+                          <Button variant="outline" size="icon" className="bg-white hover:bg-gray-200">
+                            <Globe className="h-4 w-4 text-black" />
                           </Button>
                         </a>
                       )}

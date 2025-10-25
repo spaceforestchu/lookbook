@@ -147,19 +147,19 @@ export default function Home() {
 
   return (
     <>
-      <div className="flex min-h-screen bg-[#E8E8E8]">
+      <div className="flex min-h-screen bg-black">
         {/* Left Sidebar */}
         <FilterSidebar currentPage="people" filters={filters} onFilterChange={setFilters} />
 
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8 bg-[#E8E8E8] pb-24 md:pb-8">
+        <main className="flex-1 p-4 md:p-8 bg-black pb-24 md:pb-8">
         {/* Top Bar */}
         <div className="mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl md:text-2xl font-bold">FELLOWS</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-white">FELLOWS</h1>
           </div>
           <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto justify-between sm:justify-end">
-            <span className="text-sm text-neutral-600">{filteredPeople.length} of {people.length}</span>
+            <span className="text-sm text-gray-400">{filteredPeople.length} of {people.length}</span>
             <div className="flex gap-1 border border-neutral-300 rounded bg-white">
               <button
                 onClick={() => setViewMode('grid')}
