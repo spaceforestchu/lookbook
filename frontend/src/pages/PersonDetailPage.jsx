@@ -62,6 +62,168 @@ const getEmbedUrl = (url) => {
   return url;
 };
 
+// ProfileCard component with holographic effect
+const ProfileCard = ({ prof, onClick }) => {
+  const [cardRef, setCardRef] = useState(null);
+  const isFeatured = prof.featured === true;
+  
+  const handleMouseMove = (e) => {
+    if (!cardRef) return;
+    const rect = cardRef.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    // Featured cards get more dramatic tilt (10 degrees vs 5 degrees)
+    const maxRotation = isFeatured ? 10 : 5;
+    const rotateX = ((y - centerY) / centerY) * -maxRotation;
+    const rotateY = ((x - centerX) / centerX) * maxRotation;
+    
+    // Featured cards lift higher on hover
+    const liftAmount = isFeatured ? -8 : -4;
+    cardRef.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(${liftAmount}px)`;
+    
+    // Update holographic gradient position
+    const holoElement = cardRef.querySelector('.holo-effect');
+    if (holoElement) {
+      holoElement.style.backgroundPosition = `${(x / rect.width) * 100}% ${(y / rect.height) * 100}%`;
+    }
+
+    // Update reflection position for featured cards
+    if (isFeatured) {
+      const reflectionElement = cardRef.querySelector('.reflection-effect');
+      if (reflectionElement) {
+        const xPercent = (x / rect.width) * 100;
+        reflectionElement.style.backgroundPosition = `${xPercent}% 0`;
+      }
+    }
+  };
+  
+  const handleMouseLeave = () => {
+    if (!cardRef) return;
+    cardRef.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+  };
+  
+  return (
+    <div 
+      ref={setCardRef}
+      className={`rounded-xl person-card-wrapper ${isFeatured ? 'featured' : ''}`}
+      style={{
+        transformStyle: 'preserve-3d',
+        WebkitTransformStyle: 'preserve-3d',
+        cursor: 'pointer'
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <Card 
+        className="rounded-xl border-0 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden relative person-card"
+        style={{
+          backgroundColor: 'white', 
+          height: '380px',
+          borderRadius: '0.75rem'
+        }}
+        onClick={onClick}
+      >
+      {/* Background Image */}
+      {(prof.photo_url || prof.photoUrl) && (
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={prof.photo_url || prof.photoUrl}
+            alt={prof.name}
+            className="w-full h-full object-cover opacity-90"
+            loading="lazy"
+          />
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/70"></div>
+          
+          {/* Holographic Effect Overlay - Enhanced for featured */}
+          <div className={`holo-effect ${isFeatured ? 'featured' : ''} absolute inset-0 opacity-0 hover:opacity-30 transition-opacity duration-300 pointer-events-none`}></div>
+          
+          {/* Ultra Premium effects - Only for featured cards */}
+          {isFeatured && (
+            <>
+              {/* Foil texture */}
+              <div className="foil-texture"></div>
+              
+              {/* Sparkle particles */}
+              <div className="sparkle" style={{zIndex: 20}}></div>
+              <div className="sparkle" style={{zIndex: 20}}></div>
+              <div className="sparkle" style={{zIndex: 20}}></div>
+              <div className="sparkle" style={{zIndex: 20}}></div>
+              <div className="sparkle" style={{zIndex: 20}}></div>
+              
+              {/* Reflection effect */}
+              <div className="reflection-effect"></div>
+            </>
+          )}
+        </div>
+      )}
+      {!(prof.photo_url || prof.photoUrl) && (
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-600 to-purple-600"></div>
+      )}
+      
+      <CardContent className="relative z-10 p-6 h-full flex flex-col justify-between">
+        {/* Top Section - Name and Title Only */}
+        <div>
+          <h3 className="font-bold text-white uppercase mb-2" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '1.5rem'}}>{prof.name}</h3>
+          {prof.title && (
+            <p className="text-white mb-2" style={{fontSize: '14px', fontWeight: '500', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{prof.title}</p>
+          )}
+        </div>
+        
+        {/* Bottom Section - Bio, Skills and Status */}
+        <div>
+          {/* Bio */}
+          {prof.bio && (
+            <p className="text-white leading-snug mb-3 line-clamp-2" style={{fontSize: '13px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{prof.bio}</p>
+          )}
+          
+          {/* Skills */}
+          {prof.skills && prof.skills.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-white font-semibold mb-2" style={{fontSize: '14px'}}>Skills</h4>
+              <div className="flex flex-wrap gap-1">
+                {prof.skills.slice(0, 5).map((skill, i) => (
+                  <span key={i} className="text-xs px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
+                    {skill}
+                  </span>
+                ))}
+                {prof.skills.length > 5 && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
+                    +{prof.skills.length - 5}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Industry Tags and Status */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-1">
+              {prof.industry_expertise && prof.industry_expertise.slice(0, 2).map((industry, i) => (
+                <span key={i} className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase">
+                  {industry}
+                </span>
+              ))}
+            </div>
+            
+            {/* Arrow Button */}
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+              <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+    </div>
+  );
+};
+
 function PersonDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -1094,87 +1256,14 @@ function PersonDetailPage() {
                 }
               `}</style>
               {filteredProfiles.slice(gridPage * 8, (gridPage + 1) * 8).map((prof, idx) => (
-                <Card 
-                  key={prof.slug} 
-                  className="rounded-xl border-0 shadow-md cursor-pointer hover:shadow-2xl transition-all duration-300 overflow-hidden relative hover:-translate-y-1"
-                  style={{backgroundColor: 'white', height: '380px'}}
+                <ProfileCard 
+                  key={prof.slug}
+                  prof={prof}
                   onClick={() => {
                     setLayoutView('detail');
                     navigate(`/people/${prof.slug}`);
                   }}
-                >
-                  {/* Background Image */}
-                  {(prof.photo_url || prof.photoUrl) && (
-                    <div className="absolute inset-0 z-0">
-                      <img 
-                        src={prof.photo_url || prof.photoUrl}
-                        alt={prof.name}
-                        className="w-full h-full object-cover opacity-90"
-                        loading="lazy"
-                      />
-                      {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/70"></div>
-                    </div>
-                  )}
-                  {!(prof.photo_url || prof.photoUrl) && (
-                    <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-600 to-purple-600"></div>
-                  )}
-                  
-                  <CardContent className="relative z-10 p-6 h-full flex flex-col justify-between">
-                    {/* Top Section - Name and Title Only */}
-                    <div>
-                      <h3 className="font-bold text-white uppercase mb-2" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '1.5rem'}}>{prof.name}</h3>
-                      {prof.title && (
-                        <p className="text-white mb-2" style={{fontSize: '14px', fontWeight: '500', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{prof.title}</p>
-                      )}
-                    </div>
-                    
-                    {/* Bottom Section - Bio, Skills and Status */}
-                    <div>
-                      {/* Bio */}
-                      {prof.bio && (
-                        <p className="text-white leading-snug mb-3 line-clamp-2" style={{fontSize: '13px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{prof.bio}</p>
-                      )}
-                      
-                      {/* Skills */}
-                      {prof.skills && prof.skills.length > 0 && (
-                        <div className="mb-4">
-                          <h4 className="text-white font-semibold mb-2" style={{fontSize: '14px'}}>Skills</h4>
-                          <div className="flex flex-wrap gap-1">
-                            {prof.skills.slice(0, 5).map((skill, i) => (
-                              <span key={i} className="text-xs px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
-                                {skill}
-                              </span>
-                            ))}
-                            {prof.skills.length > 5 && (
-                              <span className="text-xs px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
-                                +{prof.skills.length - 5}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Industry Tags and Status */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex flex-wrap gap-1">
-                          {prof.industry_expertise && prof.industry_expertise.slice(0, 2).map((industry, i) => (
-                            <span key={i} className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase">
-                              {industry}
-                            </span>
-                          ))}
-                        </div>
-                        
-                        {/* Arrow Button */}
-                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
-                          <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                />
               ))}
             </div>
 

@@ -70,6 +70,7 @@ const getAllProfiles = async (filters = {}) => {
         p.github_url,
         p.website_url,
         p.x_url,
+        p.featured,
         u.first_name || ' ' || u.last_name as name,
         u.email,
         u.first_name as sort_name,
@@ -175,22 +176,23 @@ const createProfile = async (profileData) => {
     linkedinUrl,
     githubUrl,
     websiteUrl,
-    xUrl
+    xUrl,
+    featured = false
   } = profileData;
   
   const query = `
     INSERT INTO lookbook_profiles (
       user_id, slug, title, bio, skills, industry_expertise,
       open_to_work, highlights, photo_url, photo_lqip,
-      linkedin_url, github_url, website_url, x_url
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      linkedin_url, github_url, website_url, x_url, featured
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
     RETURNING *
   `;
   
   const params = [
     userId, slug, title, bio, skills, industryExpertise,
     openToWork, highlights, photoUrl, photoLqip,
-    linkedinUrl, githubUrl, websiteUrl, xUrl
+    linkedinUrl, githubUrl, websiteUrl, xUrl, featured
   ];
   
   const result = await pool.query(query, params);
@@ -205,7 +207,7 @@ const updateProfile = async (slug, updates) => {
   const allowedFields = [
     'slug', 'title', 'bio', 'skills', 'industry_expertise', 'open_to_work',
     'highlights', 'photo_url', 'photo_lqip', 'linkedin_url',
-    'github_url', 'website_url', 'x_url'
+    'github_url', 'website_url', 'x_url', 'featured'
   ];
   
   const setClause = [];

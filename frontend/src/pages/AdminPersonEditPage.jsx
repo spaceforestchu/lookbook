@@ -40,6 +40,7 @@ function AdminPersonEditPage() {
     highlights: [],
     experience: [],
     open_to_work: false,
+    featured: false,
     slug: ''
   });
 
@@ -86,7 +87,8 @@ function AdminPersonEditPage() {
         industry_expertise: person.industry_expertise || [],
         highlights: person.highlights || [],
         experience: person.experience || [],
-        open_to_work: person.openToWork || false,
+        open_to_work: person.openToWork || person.open_to_work || false,
+        featured: person.featured || false,
         slug: person.slug || ''
       });
     } catch (error) {
@@ -360,6 +362,18 @@ function AdminPersonEditPage() {
                   onCheckedChange={(checked) => setFormData({ ...formData, open_to_work: checked })}
                 />
                 <Label htmlFor="open_to_work" className="cursor-pointer">Open to Work</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="featured"
+                  checked={formData.featured}
+                  onCheckedChange={(checked) => setFormData({ ...formData, featured: checked })}
+                />
+                <Label htmlFor="featured" className="cursor-pointer">
+                  Featured ⭐
+                  <span className="ml-2 text-xs text-gray-500">(Ultra Premium card effect)</span>
+                </Label>
               </div>
             </CardContent>
           </Card>
@@ -1058,7 +1072,7 @@ function AdminPersonEditPage() {
 
                       {/* URL Slug and Open to Work - At the bottom */}
                       <div className="border-t pt-4 mt-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                           <div>
                             <Label htmlFor="slug-wysiwyg" className="text-sm font-semibold">URL Slug</Label>
                             <Input
@@ -1078,6 +1092,16 @@ function AdminPersonEditPage() {
                                 onCheckedChange={(checked) => setFormData({ ...formData, open_to_work: checked })}
                               />
                               <Label htmlFor="open_to_work-wysiwyg" className="cursor-pointer">Open to Work</Label>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="featured-wysiwyg"
+                                checked={formData.featured}
+                                onCheckedChange={(checked) => setFormData({ ...formData, featured: checked })}
+                              />
+                              <Label htmlFor="featured-wysiwyg" className="cursor-pointer">Featured ⭐</Label>
                             </div>
                           </div>
                         </div>

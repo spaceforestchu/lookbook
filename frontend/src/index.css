@@ -108,3 +108,245 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+/* Holographic Card Effects */
+.person-card-wrapper {
+  transition: transform 0.2s ease-out;
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+
+.person-card {
+  transition: box-shadow 0.3s ease;
+  overflow: hidden !important;
+}
+
+.person-card-wrapper:hover .holo-effect {
+  opacity: 0.3 !important;
+}
+
+.holo-effect {
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 100, 200, 0.6) 36%,
+    rgba(100, 200, 255, 0.6) 43%,
+    rgba(255, 255, 100, 0.6) 50%,
+    rgba(100, 255, 200, 0.6) 57%,
+    rgba(200, 100, 255, 0.6) 64%,
+    transparent 80%
+  );
+  background-size: 200% 200%;
+  background-position: 0% 0%;
+  mix-blend-mode: color-dodge;
+  filter: brightness(1) contrast(1);
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+/* ============================================ */
+/* ULTRA PREMIUM FEATURED CARD EFFECTS (Option C) */
+/* ============================================ */
+
+/* Featured card wrapper - more dramatic transforms */
+.person-card-wrapper.featured {
+  position: relative;
+}
+
+/* Featured cards get stronger holographic effect */
+.person-card-wrapper.featured:hover .holo-effect {
+  opacity: 0.6 !important;
+}
+
+/* Animated rainbow border for featured cards */
+.person-card-wrapper.featured::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 0.75rem;
+  padding: 2px;
+  background: linear-gradient(
+    45deg,
+    #ff0080,
+    #ff8c00,
+    #40e0d0,
+    #9370db,
+    #ff1493,
+    #ff0080
+  );
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: rotateBorder 4s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.person-card-wrapper.featured:hover::before {
+  opacity: 1;
+}
+
+@keyframes rotateBorder {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Edge glow effect for featured cards */
+.person-card-wrapper.featured::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem;
+  box-shadow: 
+    0 0 20px rgba(255, 0, 128, 0.4),
+    0 0 40px rgba(64, 224, 208, 0.3),
+    0 0 60px rgba(147, 112, 219, 0.2);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.person-card-wrapper.featured:hover::after {
+  opacity: 1;
+}
+
+/* Foil texture overlay for featured cards */
+.foil-texture {
+  position: absolute;
+  inset: 0;
+  background: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.03) 2px,
+      rgba(255, 255, 255, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.03) 2px,
+      rgba(255, 255, 255, 0.03) 4px
+    );
+  mix-blend-mode: overlay;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.person-card-wrapper.featured:hover .foil-texture {
+  opacity: 1;
+}
+
+/* Sparkle particles for featured cards */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: white;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: sparkle 1.5s ease-in-out infinite;
+  box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Multiple sparkles at different positions and timings */
+.sparkle:nth-child(1) {
+  top: 20%;
+  left: 30%;
+  animation-delay: 0s;
+}
+
+.sparkle:nth-child(2) {
+  top: 60%;
+  left: 70%;
+  animation-delay: 0.5s;
+}
+
+.sparkle:nth-child(3) {
+  top: 40%;
+  left: 80%;
+  animation-delay: 1s;
+}
+
+.sparkle:nth-child(4) {
+  top: 80%;
+  left: 40%;
+  animation-delay: 0.7s;
+}
+
+.sparkle:nth-child(5) {
+  top: 30%;
+  left: 60%;
+  animation-delay: 1.2s;
+}
+
+/* Reflection effect for featured cards */
+.reflection-effect {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.1) 40%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.1) 60%,
+    transparent 80%
+  );
+  background-size: 200% 200%;
+  background-position: -100% 0;
+  transition: background-position 0.6s ease;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+}
+
+.person-card-wrapper.featured:hover .reflection-effect {
+  opacity: 1;
+  background-position: 200% 0;
+}
+
+/* Enhanced holo effect specifically for featured cards */
+.holo-effect.featured {
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 0, 128, 0.8) 25%,
+    rgba(255, 140, 0, 0.8) 30%,
+    rgba(64, 224, 208, 0.8) 40%,
+    rgba(255, 255, 0, 0.8) 50%,
+    rgba(147, 112, 219, 0.8) 60%,
+    rgba(255, 20, 147, 0.8) 70%,
+    transparent 100%
+  );
+  filter: brightness(1.2) contrast(1.2);
+  mix-blend-mode: screen;
+}
+
