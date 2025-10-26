@@ -991,7 +991,7 @@ function AdminPersonEditPage() {
                           ) : (
                             <p className="text-gray-500 text-sm">No experience listed</p>
                           )}
-                          <Button type="button" onClick={addExperience} size="sm" variant="outline" className="mt-3 w-full">
+                          <Button type="button" onClick={addExperience} size="sm" variant="outline" className="mt-3 w-full" style={{backgroundColor: 'white', color: '#1f2937', borderColor: '#d1d5db'}}>
                             <Plus className="w-3 h-3 mr-1" />
                             Add Experience
                           </Button>
