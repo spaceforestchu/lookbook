@@ -273,7 +273,7 @@ function AdminPersonEditPage() {
                 variant={editMode === 'form' ? 'default' : 'outline'}
                 onClick={() => setEditMode('form')}
                 className="flex items-center gap-2"
-                style={editMode === 'form' ? {backgroundColor: '#4242ea'} : {}}
+                style={editMode === 'form' ? {backgroundColor: '#4242ea'} : {backgroundColor: 'white', color: '#1f2937', borderColor: '#d1d5db'}}
               >
                 <Edit3 className="w-4 h-4" />
                 Form Mode
@@ -283,7 +283,7 @@ function AdminPersonEditPage() {
                 variant={editMode === 'wysiwyg' ? 'default' : 'outline'}
                 onClick={() => setEditMode('wysiwyg')}
                 className="flex items-center gap-2"
-                style={editMode === 'wysiwyg' ? {backgroundColor: '#4242ea'} : {}}
+                style={editMode === 'wysiwyg' ? {backgroundColor: '#4242ea'} : {backgroundColor: 'white', color: '#1f2937', borderColor: '#d1d5db'}}
               >
                 <Eye className="w-4 h-4" />
                 WYSIWYG Mode
@@ -342,6 +342,7 @@ function AdminPersonEditPage() {
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                   rows={4}
+                  className="bg-white text-gray-900"
                 />
               </div>
 
@@ -683,6 +684,7 @@ function AdminPersonEditPage() {
               type="button"
               variant="outline"
               onClick={() => navigate('/admin/people')}
+              style={{backgroundColor: 'white', color: '#1f2937', borderColor: '#d1d5db'}}
             >
               Cancel
             </Button>
@@ -1126,6 +1128,7 @@ function AdminPersonEditPage() {
                   type="button"
                   variant="outline"
                   onClick={() => navigate('/admin/people')}
+                  style={{backgroundColor: 'white', color: '#1f2937', borderColor: '#d1d5db'}}
                 >
                   Cancel
                 </Button>
