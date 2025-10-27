@@ -33,8 +33,20 @@ export async function generateMetadata({
     };
   }
 
-  const description =
-    project.summary || `Project involving ${project.skills.join(', ')}`;
+  // Create a more descriptive SEO description
+  let description = '';
+  
+  if (project.shortDescription) {
+    // Use the short description and add a mention of Lookbook
+    description = `${project.shortDescription} Featured in the Pursuit Lookbook - showcasing innovative projects from our community.`;
+  } else if (project.skills && project.skills.length > 0) {
+    // Fallback to skills-based description
+    const skillsList = project.skills.slice(0, 3).join(', ');
+    description = `Innovative project built with ${skillsList} by Pursuit's talented Builders and Fellows. Explore this project in the Pursuit Lookbook.`;
+  } else {
+    // Generic fallback
+    description = `${project.title} - An innovative project featured in the Pursuit Lookbook, showcasing the work of Pursuit's talented community.`;
+  }
 
   return {
     title: `${project.title} — Lookbook`,
