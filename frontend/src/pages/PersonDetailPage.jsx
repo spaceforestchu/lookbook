@@ -423,6 +423,26 @@ const ProjectCard = ({ proj, onClick }) => {
             {proj.short_description && (
               <p className="text-white leading-snug mb-2" style={{fontSize: '14px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{proj.short_description}</p>
             )}
+            
+            {/* Project Partner */}
+            {proj.has_partner && (proj.partner_logo_url || proj.partner_name) && (
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-white text-xs opacity-75">Project Partner</span>
+                {proj.partner_logo_url ? (
+                  <img 
+                    src={getImageUrl(proj.partner_logo_url)}
+                    alt={proj.partner_name || 'Partner'}
+                    className="h-5 object-contain"
+                    style={{
+                      filter: 'brightness(0) invert(1)',
+                      maxWidth: '120px'
+                    }}
+                  />
+                ) : (
+                  <span className="text-white text-xs font-semibold">{proj.partner_name}</span>
+                )}
+              </div>
+            )}
           </div>
           
           {/* Bottom Section - Team and Category */}
