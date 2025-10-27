@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { profilesAPI } from '../utils/api';
+import { profilesAPI, getImageUrl } from '../utils/api';
 import AdminLayout from '../components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,7 +123,7 @@ function AdminPeoplePage() {
                       <div className="flex items-center gap-3">
                         {person.photo_url ? (
                           <img 
-                            src={person.photo_url} 
+                            src={getImageUrl(person.photo_url)} 
                             alt={person.name}
                             className="w-10 h-10 rounded-full object-cover"
                           />

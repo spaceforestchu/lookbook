@@ -27,6 +27,12 @@ class SimpleCache {
     this.timestamps.clear();
     this.pendingRequests.clear();
   }
+  
+  delete(key) {
+    this.cache.delete(key);
+    this.timestamps.delete(key);
+    this.pendingRequests.delete(key);
+  }
 
   has(key) {
     const value = this.get(key);

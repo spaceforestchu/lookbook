@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import imageCompression from 'browser-image-compression';
-import { profilesAPI, taxonomyAPI } from '../utils/api';
+import { profilesAPI, taxonomyAPI, getImageUrl } from '../utils/api';
+import { apiCache } from '../utils/cache';
 import AdminLayout from '../components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -181,6 +182,10 @@ function AdminPersonEditPage() {
           });
         }
       }
+      
+      // Clear the frontend cache to ensure fresh data is fetched
+      apiCache.clear();
+      
       navigate('/admin/people');
     } catch (error) {
       console.error('Error saving person:', error);
@@ -707,7 +712,7 @@ function AdminPersonEditPage() {
                         {formData.photo_url ? (
                           <div className="relative group h-full">
                             <img 
-                              src={formData.photo_url} 
+                              src={getImageUrl(formData.photo_url)} 
                               alt={formData.name}
                               className="w-full h-full object-cover"
                             />

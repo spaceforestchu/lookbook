@@ -237,7 +237,7 @@ function AdminBulkUploadPage() {
             <Button
               onClick={downloadTemplate}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-white text-gray-900 hover:bg-gray-100 border border-gray-300"
             >
               <Download className="w-4 h-4" />
               Download {uploadType === 'people' ? 'People' : 'Projects'} Template
@@ -364,6 +364,7 @@ function AdminBulkUploadPage() {
                       setResults(null);
                       setErrors([]);
                     }}
+                    className="bg-white text-gray-900 hover:bg-gray-100 border border-gray-300"
                   >
                     Upload More
                   </Button>

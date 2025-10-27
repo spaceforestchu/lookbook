@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { projectsAPI, profilesAPI } from '../utils/api';
+import { projectsAPI, profilesAPI, getImageUrl } from '../utils/api';
 import AdminLayout from '../components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -380,7 +380,7 @@ function AdminProjectEditPage() {
                 variant={editMode === 'form' ? 'default' : 'outline'}
                 onClick={() => setEditMode('form')}
                 className="flex items-center gap-2"
-                style={editMode === 'form' ? {backgroundColor: '#4242ea'} : {}}
+                style={editMode === 'form' ? {backgroundColor: '#4242ea', color: 'white'} : {backgroundColor: 'white', color: '#374151'}}
               >
                 <Edit3 className="w-4 h-4" />
                 Form Mode
@@ -390,7 +390,7 @@ function AdminProjectEditPage() {
                 variant={editMode === 'wysiwyg' ? 'default' : 'outline'}
                 onClick={() => setEditMode('wysiwyg')}
                 className="flex items-center gap-2"
-                style={editMode === 'wysiwyg' ? {backgroundColor: '#4242ea'} : {}}
+                style={editMode === 'wysiwyg' ? {backgroundColor: '#4242ea', color: 'white'} : {backgroundColor: 'white', color: '#374151'}}
               >
                 <Eye className="w-4 h-4" />
                 WYSIWYG Mode
@@ -439,6 +439,7 @@ function AdminProjectEditPage() {
                   onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
                   rows={2}
                   placeholder="A brief 1-2 sentence description for grid view"
+                  className="bg-white text-gray-900"
                 />
               </div>
 
@@ -450,6 +451,7 @@ function AdminProjectEditPage() {
                   onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
                   rows={6}
                   placeholder="Detailed project description (supports multiple paragraphs)"
+                  className="bg-white text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">Use line breaks to create paragraphs</p>
               </div>
@@ -498,6 +500,7 @@ function AdminProjectEditPage() {
                         size="sm"
                         onClick={() => setPartnerLogoInputMode('url')}
                         className="flex items-center gap-2"
+                        style={partnerLogoInputMode === 'url' ? {backgroundColor: '#4242ea', color: 'white'} : {backgroundColor: 'white', color: '#374151'}}
                       >
                         <LinkIcon className="w-4 h-4" />
                         URL
@@ -508,6 +511,7 @@ function AdminProjectEditPage() {
                         size="sm"
                         onClick={() => setPartnerLogoInputMode('upload')}
                         className="flex items-center gap-2"
+                        style={partnerLogoInputMode === 'upload' ? {backgroundColor: '#4242ea', color: 'white'} : {backgroundColor: 'white', color: '#374151'}}
                       >
                         <Upload className="w-4 h-4" />
                         Upload
@@ -522,6 +526,7 @@ function AdminProjectEditPage() {
                           onChange={(e) => setFormData({ ...formData, partner_logo_url: e.target.value })}
                           rows={3}
                           placeholder="https://example.com/partner-logo.png"
+                          className="bg-white text-gray-900"
                         />
                         <p className="text-xs text-gray-500 mt-1">
                           Enter the URL of the partner logo
@@ -534,7 +539,7 @@ function AdminProjectEditPage() {
                             type="file"
                             accept="image/*"
                             onChange={handlePartnerLogoUpload}
-                            className="flex-1"
+                            className="flex-1 bg-white text-gray-900"
                           />
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
@@ -549,7 +554,7 @@ function AdminProjectEditPage() {
                         <p className="text-sm font-medium text-gray-700 mb-2">Partner Logo Preview:</p>
                         <div className="bg-white p-4 rounded flex items-center justify-center" style={{minHeight: '120px'}}>
                           <img 
-                            src={formData.partner_logo_url} 
+                            src={getImageUrl(formData.partner_logo_url)} 
                             alt="Partner logo preview" 
                             className="max-h-20 max-w-full object-contain"
                             onError={(e) => {
@@ -586,6 +591,7 @@ function AdminProjectEditPage() {
                     size="sm"
                     onClick={() => setImageInputMode('url')}
                     className="flex items-center gap-2"
+                    style={imageInputMode === 'url' ? {backgroundColor: '#4242ea', color: 'white'} : {backgroundColor: 'white', color: '#374151'}}
                   >
                     <LinkIcon className="w-4 h-4" />
                     URL
@@ -596,6 +602,7 @@ function AdminProjectEditPage() {
                     size="sm"
                     onClick={() => setImageInputMode('upload')}
                     className="flex items-center gap-2"
+                    style={imageInputMode === 'upload' ? {backgroundColor: '#4242ea', color: 'white'} : {backgroundColor: 'white', color: '#374151'}}
                   >
                     <Upload className="w-4 h-4" />
                     Upload
@@ -610,6 +617,7 @@ function AdminProjectEditPage() {
                       onChange={(e) => setFormData({ ...formData, main_image_url: e.target.value })}
                       rows={3}
                       placeholder="Single URL or JSON array: ['url1', 'url2']"
+                      className="bg-white text-gray-900"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       For multiple images, use JSON array format
@@ -654,7 +662,7 @@ function AdminProjectEditPage() {
                   <div className="mt-2 p-3 bg-gray-50 rounded border border-gray-200">
                     <p className="text-xs text-gray-600 mb-2">Preview:</p>
                     <img 
-                      src={formData.main_image_url} 
+                      src={getImageUrl(formData.main_image_url)} 
                       alt="Main image preview" 
                       className="w-full h-48 object-cover rounded"
                       onError={(e) => {
@@ -680,6 +688,7 @@ function AdminProjectEditPage() {
                     size="sm"
                     onClick={() => setIconInputMode('url')}
                     className="flex items-center gap-2"
+                    style={iconInputMode === 'url' ? {backgroundColor: '#4242ea', color: 'white'} : {backgroundColor: 'white', color: '#374151'}}
                   >
                     <LinkIcon className="w-4 h-4" />
                     URL
@@ -690,6 +699,7 @@ function AdminProjectEditPage() {
                     size="sm"
                     onClick={() => setIconInputMode('upload')}
                     className="flex items-center gap-2"
+                    style={iconInputMode === 'upload' ? {backgroundColor: '#4242ea', color: 'white'} : {backgroundColor: 'white', color: '#374151'}}
                   >
                     <Upload className="w-4 h-4" />
                     Upload
@@ -703,6 +713,7 @@ function AdminProjectEditPage() {
                       value={formData.icon_url}
                       onChange={(e) => setFormData({ ...formData, icon_url: e.target.value })}
                       placeholder="https://example.com/icon.svg"
+                      className="bg-white text-gray-900"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Square icon/logo for the project (SVG or PNG recommended)
@@ -804,6 +815,7 @@ function AdminProjectEditPage() {
                   onChange={handleDemoVideoChange}
                   rows={3}
                   placeholder="Vimeo URL (will be auto-converted to embed format)"
+                  className="bg-white text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Paste any Vimeo URL (e.g., https://vimeo.com/1234567) and it will be automatically converted to the embed format
@@ -934,7 +946,7 @@ function AdminProjectEditPage() {
                       >
                         {person.photo_url && (
                           <img 
-                            src={person.photo_url} 
+                            src={getImageUrl(person.photo_url)} 
                             alt="" 
                             className="w-8 h-8 rounded-full object-cover"
                           />
@@ -962,7 +974,7 @@ function AdminProjectEditPage() {
                       <div className="flex items-center gap-3">
                         {person.photo_url && (
                           <img 
-                            src={person.photo_url} 
+                            src={getImageUrl(person.photo_url)} 
                             alt="" 
                             className="w-10 h-10 rounded-full object-cover"
                           />
@@ -1008,6 +1020,7 @@ function AdminProjectEditPage() {
               type="button"
               variant="outline"
               onClick={() => navigate('/admin/projects')}
+              className="bg-white text-gray-900 hover:bg-gray-100 border border-gray-300"
             >
               Cancel
             </Button>
@@ -1016,28 +1029,28 @@ function AdminProjectEditPage() {
           ) : (
             // WYSIWYG MODE - Live preview with inline editing
             <>
-              <Card className="relative overflow-hidden rounded-xl border-2 border-gray-200 shadow-sm" style={{height: '400px'}}>
+              <Card className="relative overflow-hidden rounded-xl border-0 shadow-md hover:shadow-2xl transition-all" style={{backgroundColor: 'white', height: '380px'}}>
                 {/* Background Image or Color */}
                 {formData.main_image_url ? (
                   <div className="absolute inset-0 z-0">
                     <img 
-                      src={formData.main_image_url}
+                      src={getImageUrl(formData.main_image_url)}
                       alt={formData.title}
                       className="w-full h-full object-cover opacity-90"
                     />
                     {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80"></div>
                   </div>
                 ) : (
                   <div className="absolute inset-0 z-0" style={{
                     background: `linear-gradient(135deg, ${formData.background_color || '#6366f1'} 0%, ${adjustColor(formData.background_color || '#6366f1', -30)} 100%)`
                   }}>
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60"></div>
                     {/* Display icon if available */}
                     {formData.icon_url && (
                       <div className="absolute inset-0 flex items-center justify-center opacity-20">
                         <img 
-                          src={formData.icon_url} 
+                          src={getImageUrl(formData.icon_url)} 
                           alt={`${formData.title} icon`}
                           className="w-32 h-32 object-contain"
                         />
@@ -1051,7 +1064,7 @@ function AdminProjectEditPage() {
                   {formData.icon_url && (
                     <div className="absolute top-4 right-4 w-12 h-12 bg-white rounded-lg shadow-lg p-2 flex items-center justify-center">
                       <img 
-                        src={formData.icon_url} 
+                        src={getImageUrl(formData.icon_url)} 
                         alt={`${formData.title} icon`}
                         className="w-full h-full object-contain"
                       />
@@ -1080,61 +1093,98 @@ function AdminProjectEditPage() {
                         {formData.short_description}
                       </p>
                     )}
-                  </div>
-
-                  {/* Bottom Section - Technologies and Links */}
-                  <div>
-                    {/* Technologies */}
-                    {formData.skills && formData.skills.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        {formData.skills.map((skill, idx) => (
-                          <Badge 
-                            key={idx} 
-                            className="text-xs bg-white/90 text-gray-800 hover:bg-white border-0 font-semibold group relative"
-                          >
-                            {skill}
-                            <button
-                              type="button"
-                              onClick={() => removeSkill(skill)}
-                              className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                            >
-                              <X className="w-2 h-2" />
-                            </button>
-                          </Badge>
-                        ))}
+                    
+                    {/* Project Partner */}
+                    {formData.has_partner && (formData.partner_logo_url || formData.partner_name) && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="text-white text-xs opacity-75">Project Partner</span>
+                        {formData.partner_logo_url ? (
+                          <img 
+                            src={getImageUrl(formData.partner_logo_url)}
+                            alt={formData.partner_name || 'Partner'}
+                            className="h-5 object-contain"
+                            style={{
+                              filter: 'brightness(0) invert(1)',
+                              maxWidth: '120px'
+                            }}
+                          />
+                        ) : (
+                          <span className="text-white text-xs font-semibold">{formData.partner_name}</span>
+                        )}
                       </div>
                     )}
-
-                    {/* Project Links */}
-                    <div className="flex gap-2">
-                      {formData.github_url && (
-                        <Button 
-                          type="button"
-                          size="sm" 
-                          className="bg-white/90 text-gray-800 hover:bg-white font-semibold gap-2"
-                          onClick={() => {
-                            const newUrl = prompt('GitHub URL:', formData.github_url);
-                            if (newUrl !== null) setFormData({ ...formData, github_url: newUrl });
-                          }}
-                        >
-                          <Github className="w-4 h-4" />
-                          GitHub
-                        </Button>
-                      )}
-                      {formData.live_url && (
-                        <Button 
-                          type="button"
-                          size="sm" 
-                          className="bg-white/90 text-gray-800 hover:bg-white font-semibold gap-2"
-                          onClick={() => {
-                            const newUrl = prompt('Live URL:', formData.live_url);
-                            if (newUrl !== null) setFormData({ ...formData, live_url: newUrl });
-                          }}
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          Live Site
-                        </Button>
-                      )}
+                  </div>
+                  
+                  {/* Bottom Section - Team and Category */}
+                  <div>
+                    {/* Project Team */}
+                    <div className="mb-4">
+                      <h4 className="text-white font-semibold mb-2" style={{fontSize: '14px'}}>Project Team</h4>
+                      <div className="flex items-center gap-2">
+                        <div className="flex -space-x-2">
+                          {formData.participants.slice(0, 4).map((participantId, i) => {
+                            const participant = allPeople.find(p => p.profile_id === participantId || p.id === participantId);
+                            if (!participant) return null;
+                            
+                            return (
+                              <div 
+                                key={i}
+                                className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-semibold"
+                                title={participant.name}
+                              >
+                                {participant.photo_url ? (
+                                  <img 
+                                    src={getImageUrl(participant.photo_url)}
+                                    alt={participant.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <span>{(participant.name || '').split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                          {formData.participants.length > 4 && (
+                            <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-400 flex items-center justify-center text-white text-xs font-semibold">
+                              +{formData.participants.length - 4}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-white text-sm">
+                          {formData.participants.map(participantId => {
+                            const participant = allPeople.find(p => p.profile_id === participantId || p.id === participantId);
+                            if (!participant) return null;
+                            const nameParts = (participant.name || '').split(' ');
+                            return nameParts.length > 1 ? `${nameParts[0]} ${nameParts[nameParts.length - 1].charAt(0)}.` : participant.name;
+                          }).filter(Boolean).join(', ')}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Category Badge and Arrow */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap gap-1">
+                        {formData.sectors && formData.sectors.length > 0 ? (
+                          formData.sectors.map((sector, i) => (
+                            <span key={i} className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase">
+                              {sector}
+                            </span>
+                          ))
+                        ) : formData.skills && formData.skills.length > 0 ? (
+                          formData.skills.slice(0, 2).map((skill, i) => (
+                            <span key={i} className="text-xs px-2 py-1 rounded-full bg-blue-600 text-white font-semibold">
+                              {skill}
+                            </span>
+                          ))
+                        ) : null}
+                      </div>
+                      
+                      {/* Arrow Button */}
+                      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+                        <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -1154,9 +1204,9 @@ function AdminProjectEditPage() {
                         onChange={(e) => setSkillInput(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
                         placeholder="Add technology..."
-                        className="text-sm"
+                        className="text-sm bg-white text-gray-900"
                       />
-                      <Button type="button" onClick={addSkill} size="sm">
+                      <Button type="button" onClick={addSkill} size="sm" className="bg-white text-gray-900 hover:bg-gray-100 border border-gray-300">
                         <Plus className="w-3 h-3" />
                       </Button>
                     </div>
@@ -1179,9 +1229,9 @@ function AdminProjectEditPage() {
                           onChange={(e) => setSectorInput(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSector())}
                           placeholder="Add industry..."
-                          className="text-sm"
+                          className="text-sm bg-white text-gray-900"
                         />
-                        <Button type="button" onClick={addSector} size="sm">
+                        <Button type="button" onClick={addSector} size="sm" className="bg-white text-gray-900 hover:bg-gray-100 border border-gray-300">
                           <Plus className="w-3 h-3" />
                         </Button>
                       </div>
@@ -1213,7 +1263,7 @@ function AdminProjectEditPage() {
                         onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
                         rows={4}
                         placeholder="Detailed description..."
-                        className="mt-1 text-sm"
+                        className="mt-1 text-sm bg-white text-gray-900"
                       />
                     </div>
 
@@ -1223,7 +1273,7 @@ function AdminProjectEditPage() {
                         value={formData.demo_video_url}
                         onChange={handleDemoVideoChange}
                         placeholder="https://vimeo.com/... (will auto-convert)"
-                        className="mt-1"
+                        className="mt-1 bg-white text-gray-900"
                       />
                     </div>
 
@@ -1240,7 +1290,7 @@ function AdminProjectEditPage() {
                           value={formData.background_color}
                           onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
                           placeholder="#6366f1"
-                          className="flex-1"
+                          className="flex-1 bg-white text-gray-900"
                         />
                       </div>
                     </div>
@@ -1251,7 +1301,7 @@ function AdminProjectEditPage() {
                         value={formData.slug}
                         onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                         placeholder="project-slug"
-                        className="mt-1"
+                        className="mt-1 bg-white text-gray-900"
                       />
                       <p className="text-xs text-gray-500 mt-1">Will appear in URL: /projects/{formData.slug}</p>
                     </div>
@@ -1264,8 +1314,7 @@ function AdminProjectEditPage() {
                 <Button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center gap-2"
-                  style={{backgroundColor: '#4242ea'}}
+                  className="flex items-center gap-2 bg-white text-gray-900 hover:bg-gray-100 border border-gray-300"
                 >
                   <Save className="w-4 h-4" />
                   {saving ? 'Saving...' : 'Save Project'}
@@ -1274,6 +1323,7 @@ function AdminProjectEditPage() {
                   type="button"
                   variant="outline"
                   onClick={() => navigate('/admin/projects')}
+                  className="bg-white text-gray-900 hover:bg-gray-100 border border-gray-300"
                 >
                   Cancel
                 </Button>

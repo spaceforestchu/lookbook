@@ -535,6 +535,8 @@ function PersonDetailPage() {
   const [viewMode, setViewMode] = useState(initialViewMode); // Initialize from URL
   const [layoutView, setLayoutView] = useState('grid'); // 'detail' or 'grid' - default to grid
   const [gridPage, setGridPage] = useState(0); // For grid pagination
+  const [totalProfiles, setTotalProfiles] = useState(0); // Total count from server
+  const [totalProjects, setTotalProjects] = useState(0); // Total count from server
   const [projectCarouselIndex, setProjectCarouselIndex] = useState(0); // For project carousel
   
   // Detect viewMode from URL - run this first
@@ -648,6 +650,55 @@ function PersonDetailPage() {
     setGridPage(0);
   }, [peopleFilters, projectFilters]);
 
+  // Fetch paginated data when page or filters change (for grid view only)
+  useEffect(() => {
+    if (layoutView !== 'grid') return; // Only fetch when in grid view
+    
+    const fetchPaginatedData = async () => {
+      const pageSize = 8;
+      const offset = gridPage * pageSize;
+      
+      if (viewMode === 'people') {
+        try {
+          const response = await profilesAPI.getAll({
+            limit: pageSize,
+            offset,
+            search: debouncedPeopleSearch,
+            skills: peopleFilters.skills.length > 0 ? peopleFilters.skills : undefined,
+            industries: peopleFilters.industries.length > 0 ? peopleFilters.industries : undefined,
+            openToWork: peopleFilters.openToWork ? true : undefined
+          });
+          
+          if (response.success) {
+            setAllProfiles(response.data);
+            setTotalProfiles(response.total || response.data.length);
+          }
+        } catch (err) {
+          console.error('Error fetching profiles:', err);
+        }
+      } else if (viewMode === 'projects') {
+        try {
+          const response = await projectsAPI.getAll({
+            limit: pageSize,
+            offset,
+            search: debouncedProjectSearch,
+            skills: projectFilters.skills.length > 0 ? projectFilters.skills : undefined,
+            sectors: projectFilters.sectors.length > 0 ? projectFilters.sectors : undefined
+          });
+          
+          if (response.success) {
+            setAllProjects(response.data);
+            setTotalProjects(response.total || response.data.length);
+          }
+        } catch (err) {
+          console.error('Error fetching projects:', err);
+        }
+      }
+    };
+    
+    fetchPaginatedData();
+  }, [gridPage, viewMode, debouncedPeopleSearch, debouncedProjectSearch, peopleFilters, projectFilters, layoutView]);
+
   // Fetch filters once on mount - these are cached
   useEffect(() => {
     const fetchFilters = async () => {
@@ -678,7 +729,7 @@ function PersonDetailPage() {
       
       // Fetch lists if not already loaded
       if (allProfiles.length === 0) {
-        profilesAPI.getAll({ limit: 30 }).then(data => {
+        profilesAPI.getAll({ limit: 100 }).then(data => {
           if (data.success) setAllProfiles(data.data);
         }).catch(err => console.error('Error fetching profiles:', err));
       }
@@ -700,7 +751,7 @@ function PersonDetailPage() {
           // Fetch both in parallel
           const [personData, allData] = await Promise.all([
             profilesAPI.getBySlug(slug),
-            allProfiles.length > 0 ? Promise.resolve({ success: true, data: allProfiles }) : profilesAPI.getAll({ limit: 30 })
+            allProfiles.length > 0 ? Promise.resolve({ success: true, data: allProfiles }) : profilesAPI.getAll({ limit: 100 })
           ]);
           
           if (personData.success) {
@@ -955,7 +1006,7 @@ function PersonDetailPage() {
           {/* Page indicator */}
           {layoutView === 'grid' && (
             <div className="text-sm md:text-base font-semibold text-gray-700 hidden sm:block">
-              Page {gridPage + 1} of {Math.ceil((viewMode === 'people' ? filteredProfiles.length : filteredProjects.length) / 8)}
+              Page {gridPage + 1} of {Math.ceil((viewMode === 'people' ? totalProfiles : totalProjects) / 8)}
             </div>
           )}
           {layoutView === 'detail' && currentLength > 0 && currentIndex >= 0 && (
@@ -1297,8 +1348,8 @@ function PersonDetailPage() {
                 </button>
 
                 <button
-                  onClick={() => setGridPage(Math.min(Math.ceil(filteredProjects.length / 8) - 1, gridPage + 1))}
-                  disabled={gridPage >= Math.ceil(filteredProjects.length / 8) - 1}
+                  onClick={() => setGridPage(Math.min(Math.ceil(totalProjects / 8) - 1, gridPage + 1))}
+                  disabled={gridPage >= Math.ceil(totalProjects / 8) - 1}
                   className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
                   style={{right: '-70px'}}
                   aria-label="Next page"
@@ -1329,7 +1380,7 @@ function PersonDetailPage() {
                   }
                 }
               `}</style>
-              {filteredProjects.slice(gridPage * 8, (gridPage + 1) * 8).map((proj, idx) => (
+              {filteredProjects.map((proj, idx) => (
                 <MemoizedProjectCard 
                   key={proj.slug}
                   proj={proj}
@@ -1342,7 +1393,7 @@ function PersonDetailPage() {
             </div>
 
             {/* Mobile Navigation - Bottom Fixed for Projects Grid */}
-            {Math.ceil(filteredProjects.length / 8) > 1 && (
+            {Math.ceil(totalProjects / 8) > 1 && (
             <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-3 flex items-center justify-between shadow-lg">
               <button
                 onClick={() => setGridPage(Math.max(0, gridPage - 1))}
@@ -1359,20 +1410,20 @@ function PersonDetailPage() {
               </button>
               
               <div className="text-sm font-semibold text-gray-700">
-                Page {gridPage + 1} of {Math.ceil(filteredProjects.length / 8)}
+                Page {gridPage + 1} of {Math.ceil(totalProjects / 8)}
               </div>
 
               <button
-                onClick={() => setGridPage(Math.min(Math.ceil(filteredProjects.length / 8) - 1, gridPage + 1))}
-                disabled={gridPage >= Math.ceil(filteredProjects.length / 8) - 1}
+                onClick={() => setGridPage(Math.min(Math.ceil(totalProjects / 8) - 1, gridPage + 1))}
+                disabled={gridPage >= Math.ceil(totalProjects / 8) - 1}
                 className="flex items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                <span className="text-sm" style={{color: gridPage < Math.ceil(filteredProjects.length / 8) - 1 ? '#4242ea' : '#9ca3af'}}>Next</span>
+                <span className="text-sm" style={{color: gridPage < Math.ceil(totalProjects / 8) - 1 ? '#4242ea' : '#9ca3af'}}>Next</span>
                 <div 
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
-                  style={{backgroundColor: gridPage < Math.ceil(filteredProjects.length / 8) - 1 ? '#4242ea' : '#e5e7eb'}}
+                  style={{backgroundColor: gridPage < Math.ceil(totalProjects / 8) - 1 ? '#4242ea' : '#e5e7eb'}}
                 >
-                  <ChevronRight className="w-5 h-5" style={{color: gridPage < Math.ceil(filteredProjects.length / 8) - 1 ? 'white' : '#9ca3af'}} />
+                  <ChevronRight className="w-5 h-5" style={{color: gridPage < Math.ceil(totalProjects / 8) - 1 ? 'white' : '#9ca3af'}} />
                 </div>
               </button>
             </div>
@@ -1399,8 +1450,8 @@ function PersonDetailPage() {
                 </button>
 
                 <button
-                  onClick={() => setGridPage(Math.min(Math.ceil(filteredProfiles.length / 8) - 1, gridPage + 1))}
-                  disabled={gridPage >= Math.ceil(filteredProfiles.length / 8) - 1}
+                  onClick={() => setGridPage(Math.min(Math.ceil(totalProfiles / 8) - 1, gridPage + 1))}
+                  disabled={gridPage >= Math.ceil(totalProfiles / 8) - 1}
                   className="absolute flex flex-col items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto"
                   style={{right: '-70px'}}
                   aria-label="Next page"
@@ -1431,7 +1482,7 @@ function PersonDetailPage() {
                   }
                 }
               `}</style>
-              {filteredProfiles.slice(gridPage * 8, (gridPage + 1) * 8).map((prof, idx) => (
+              {filteredProfiles.map((prof, idx) => (
                 <MemoizedProfileCard 
                   key={prof.slug}
                   prof={prof}
@@ -1444,7 +1495,7 @@ function PersonDetailPage() {
             </div>
 
             {/* Mobile Navigation - Bottom Fixed for People Grid */}
-            {Math.ceil(filteredProfiles.length / 8) > 1 && (
+            {Math.ceil(totalProfiles / 8) > 1 && (
             <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-3 flex items-center justify-between shadow-lg">
               <button
                 onClick={() => setGridPage(Math.max(0, gridPage - 1))}
@@ -1461,20 +1512,20 @@ function PersonDetailPage() {
               </button>
               
               <div className="text-sm font-semibold text-gray-700">
-                Page {gridPage + 1} of {Math.ceil(filteredProfiles.length / 8)}
+                Page {gridPage + 1} of {Math.ceil(totalProfiles / 8)}
               </div>
 
               <button
-                onClick={() => setGridPage(Math.min(Math.ceil(filteredProfiles.length / 8) - 1, gridPage + 1))}
-                disabled={gridPage >= Math.ceil(filteredProfiles.length / 8) - 1}
+                onClick={() => setGridPage(Math.min(Math.ceil(totalProfiles / 8) - 1, gridPage + 1))}
+                disabled={gridPage >= Math.ceil(totalProfiles / 8) - 1}
                 className="flex items-center gap-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                <span className="text-sm" style={{color: gridPage < Math.ceil(filteredProfiles.length / 8) - 1 ? '#4242ea' : '#9ca3af'}}>Next</span>
+                <span className="text-sm" style={{color: gridPage < Math.ceil(totalProfiles / 8) - 1 ? '#4242ea' : '#9ca3af'}}>Next</span>
                 <div 
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
-                  style={{backgroundColor: gridPage < Math.ceil(filteredProfiles.length / 8) - 1 ? '#4242ea' : '#e5e7eb'}}
+                  style={{backgroundColor: gridPage < Math.ceil(totalProfiles / 8) - 1 ? '#4242ea' : '#e5e7eb'}}
                 >
-                  <ChevronRight className="w-5 h-5" style={{color: gridPage < Math.ceil(filteredProfiles.length / 8) - 1 ? 'white' : '#9ca3af'}} />
+                  <ChevronRight className="w-5 h-5" style={{color: gridPage < Math.ceil(totalProfiles / 8) - 1 ? 'white' : '#9ca3af'}} />
                 </div>
               </button>
             </div>
