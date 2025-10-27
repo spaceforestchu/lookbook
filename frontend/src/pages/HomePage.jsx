@@ -283,11 +283,12 @@ function HomePage() {
               onMouseLeave={handlePeopleCardMouseLeave}
             >
             <Card 
-              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden sm:max-w-[300px] sm:min-h-[280px] relative"
+              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden sm:max-w-[300px] relative"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                 backdropFilter: 'blur(10px)',
                 width: '100%',
+                height: '420px',
                 animation: 'slideUpFadeIn 0.8s ease-out',
                 animationDelay: '0.3s',
                 animationFillMode: 'both'
@@ -400,11 +401,12 @@ function HomePage() {
               onMouseLeave={handleProjectsCardMouseLeave}
             >
             <Card 
-              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden sm:max-w-[300px] sm:min-h-[280px] relative"
+              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden sm:max-w-[300px] relative"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                 backdropFilter: 'blur(10px)',
                 width: '100%',
+                height: '420px',
                 animation: 'slideUpFadeIn 0.8s ease-out',
                 animationDelay: '0.5s',
                 animationFillMode: 'both'
