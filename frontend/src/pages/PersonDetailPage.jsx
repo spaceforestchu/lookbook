@@ -248,6 +248,257 @@ const MemoizedProfileCard = memo(ProfileCard, (prevProps, nextProps) => {
          prevProps.prof.featured === nextProps.prof.featured;
 });
 
+// ProjectCard component with holographic effect
+const ProjectCard = ({ proj, onClick }) => {
+  const [cardRef, setCardRef] = useState(null);
+  const isFeatured = proj.featured === true;
+  
+  const handleMouseMove = (e) => {
+    if (!cardRef) return;
+    const rect = cardRef.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    // Featured cards get more dramatic tilt (10 degrees vs 5 degrees)
+    const maxRotation = isFeatured ? 10 : 5;
+    const rotateX = ((y - centerY) / centerY) * -maxRotation;
+    const rotateY = ((x - centerX) / centerX) * maxRotation;
+    
+    // Featured cards lift higher on hover
+    const liftAmount = isFeatured ? -8 : -4;
+    cardRef.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(${liftAmount}px)`;
+    
+    // Update holographic gradient position
+    const holoElement = cardRef.querySelector('.holo-effect');
+    if (holoElement) {
+      holoElement.style.backgroundPosition = `${(x / rect.width) * 100}% ${(y / rect.height) * 100}%`;
+    }
+
+    // Update reflection position for featured cards
+    if (isFeatured) {
+      const reflectionElement = cardRef.querySelector('.reflection-effect');
+      if (reflectionElement) {
+        const xPercent = (x / rect.width) * 100;
+        reflectionElement.style.backgroundPosition = `${xPercent}% 0`;
+      }
+    }
+  };
+  
+  const handleMouseLeave = () => {
+    if (!cardRef) return;
+    cardRef.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+  };
+  
+  const adjustColor = (color, amount) => {
+    const clamp = (val) => Math.min(Math.max(val, 0), 255);
+    const num = parseInt(color.replace('#', ''), 16);
+    const r = clamp((num >> 16) + amount);
+    const g = clamp(((num >> 8) & 0x00ff) + amount);
+    const b = clamp((num & 0x0000ff) + amount);
+    return `#${(0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1)}`;
+  };
+  
+  const formatNameShort = (name) => {
+    if (!name) return '';
+    const parts = name.split(' ');
+    if (parts.length < 2) return name;
+    return `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
+  };
+  
+  return (
+    <div 
+      ref={setCardRef}
+      className={`rounded-xl project-card-wrapper ${isFeatured ? 'featured' : ''}`}
+      style={{
+        transformStyle: 'preserve-3d',
+        WebkitTransformStyle: 'preserve-3d',
+        cursor: 'pointer'
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <Card 
+        className="rounded-xl border-0 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden relative project-card"
+        style={{backgroundColor: 'white', height: '380px'}}
+        onClick={onClick}
+      >
+        {/* Background Image or Color */}
+        {proj.main_image_url ? (
+          <div className="absolute inset-0 z-0">
+            <img 
+              src={getImageUrl((() => {
+                try {
+                  const images = JSON.parse(proj.main_image_url);
+                  if (Array.isArray(images)) {
+                    return typeof images[0] === 'string' ? images[0] : images[0].url;
+                  }
+                } catch {}
+                return proj.main_image_url;
+              })())}
+              alt={proj.title}
+              className="w-full h-full object-cover opacity-90"
+              loading="lazy"
+            />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80"></div>
+            
+            {/* Holographic Effect Overlay - Enhanced for featured */}
+            <div className={`holo-effect ${isFeatured ? 'featured' : ''} absolute inset-0 opacity-0 hover:opacity-30 transition-opacity duration-300 pointer-events-none`}></div>
+            
+            {/* Ultra Premium effects - Only for featured cards */}
+            {isFeatured && (
+              <>
+                {/* Foil texture */}
+                <div className="foil-texture"></div>
+                
+                {/* Sparkle particles */}
+                <div className="sparkle" style={{zIndex: 20}}></div>
+                <div className="sparkle" style={{zIndex: 20}}></div>
+                <div className="sparkle" style={{zIndex: 20}}></div>
+                <div className="sparkle" style={{zIndex: 20}}></div>
+                <div className="sparkle" style={{zIndex: 20}}></div>
+                
+                {/* Reflection effect */}
+                <div className="reflection-effect"></div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="absolute inset-0 z-0" style={{
+            background: `linear-gradient(135deg, ${proj.background_color || '#6366f1'} 0%, ${adjustColor(proj.background_color || '#6366f1', -30)} 100%)`
+          }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60"></div>
+            {/* Holographic Effect Overlay */}
+            <div className={`holo-effect ${isFeatured ? 'featured' : ''} absolute inset-0 opacity-0 hover:opacity-30 transition-opacity duration-300 pointer-events-none`}></div>
+            
+            {/* Display icon if available */}
+            {proj.icon_url && (
+              <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                <img 
+                  src={getImageUrl(proj.icon_url)} 
+                  alt={`${proj.title} icon`}
+                  className="w-32 h-32 object-contain"
+                />
+              </div>
+            )}
+            
+            {/* Ultra Premium effects - Only for featured cards */}
+            {isFeatured && (
+              <>
+                {/* Foil texture */}
+                <div className="foil-texture"></div>
+                
+                {/* Sparkle particles */}
+                <div className="sparkle" style={{zIndex: 20}}></div>
+                <div className="sparkle" style={{zIndex: 20}}></div>
+                <div className="sparkle" style={{zIndex: 20}}></div>
+                <div className="sparkle" style={{zIndex: 20}}></div>
+                <div className="sparkle" style={{zIndex: 20}}></div>
+                
+                {/* Reflection effect */}
+                <div className="reflection-effect"></div>
+              </>
+            )}
+          </div>
+        )}
+        
+        <CardContent className="relative z-10 p-6 h-full flex flex-col justify-between">
+          {/* Icon Badge (top-right) */}
+          {proj.icon_url && (
+            <div className="absolute top-4 right-4 w-12 h-12 bg-white rounded-lg shadow-lg p-2 flex items-center justify-center">
+              <img 
+                src={getImageUrl(proj.icon_url)} 
+                alt={`${proj.title} icon`}
+                className="w-full h-full object-contain"
+              />
+            </div>
+          )}
+          
+          {/* Top Section - Title and Description */}
+          <div>
+            <h3 className="font-bold text-white uppercase mb-3 leading-tight" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '1.5rem'}}>{proj.title}</h3>
+            {proj.short_description && (
+              <p className="text-white leading-snug mb-2" style={{fontSize: '14px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{proj.short_description}</p>
+            )}
+          </div>
+          
+          {/* Bottom Section - Team and Category */}
+          <div>
+            {/* Project Team */}
+            <div className="mb-4">
+              <h4 className="text-white font-semibold mb-2" style={{fontSize: '14px'}}>Project Team</h4>
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
+                {proj.participants && proj.participants.slice(0, 4).map((participant, i) => (
+                    <div 
+                      key={i}
+                      className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-semibold"
+                      title={participant.name || participant}
+                    >
+                      {(participant.photo_url || participant.photoUrl) ? (
+                        <img 
+                          src={getImageUrl(participant.photo_url || participant.photoUrl)}
+                          alt={participant.name || participant}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span>{(participant.name || participant).split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}</span>
+                      )}
+                  </div>
+                ))}
+                  {proj.participants && proj.participants.length > 4 && (
+                    <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-400 flex items-center justify-center text-white text-xs font-semibold">
+                      +{proj.participants.length - 4}
+                    </div>
+                  )}
+                </div>
+                <p className="text-white text-sm">
+                  {proj.participants && proj.participants.map(p => formatNameShort(p.name || p)).join(', ')}
+                </p>
+              </div>
+            </div>
+            
+            {/* Category Badge and Arrow */}
+            <div className="flex items-center justify-between">
+              <div className="flex flex-wrap gap-1">
+              {proj.sectors && proj.sectors.length > 0 ? (
+                  proj.sectors.map((sector, i) => (
+                    <span key={i} className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase">
+                      {sector}
+                  </span>
+                  ))
+              ) : proj.skills && proj.skills.length > 0 ? (
+                  proj.skills.slice(0, 2).map((skill, i) => (
+                    <span key={i} className="text-xs px-2 py-1 rounded-full bg-blue-600 text-white font-semibold">
+                      {skill}
+                  </span>
+                  ))
+                ) : null}
+                </div>
+              
+              {/* Arrow Button */}
+              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+                <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Memoize ProjectCard to prevent unnecessary re-renders
+const MemoizedProjectCard = memo(ProjectCard, (prevProps, nextProps) => {
+  return prevProps.proj.slug === nextProps.proj.slug && 
+         prevProps.proj.featured === nextProps.proj.featured;
+});
+
 function PersonDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -1059,137 +1310,14 @@ function PersonDetailPage() {
                 }
               `}</style>
               {filteredProjects.slice(gridPage * 8, (gridPage + 1) * 8).map((proj, idx) => (
-                <Card 
-                  key={proj.slug} 
-                  className="rounded-xl border-0 shadow-md cursor-pointer hover:shadow-2xl transition-all duration-300 overflow-hidden relative hover:-translate-y-1"
-                  style={{backgroundColor: 'white', height: '380px'}}
+                <MemoizedProjectCard 
+                  key={proj.slug}
+                  proj={proj}
                   onClick={() => {
                     setLayoutView('detail');
                     navigate(`/projects/${proj.slug}`);
                   }}
-                >
-                  {/* Background Image or Color */}
-                  {proj.main_image_url ? (
-                    <div className="absolute inset-0 z-0">
-                      <img 
-                        src={getImageUrl((() => {
-                          try {
-                            const images = JSON.parse(proj.main_image_url);
-                            if (Array.isArray(images)) {
-                              return typeof images[0] === 'string' ? images[0] : images[0].url;
-                            }
-                          } catch {}
-                          return proj.main_image_url;
-                        })())}
-                        alt={proj.title}
-                        className="w-full h-full object-cover opacity-90"
-                        loading="lazy"
-                      />
-                      {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80"></div>
-                    </div>
-                  ) : (
-                    <div className="absolute inset-0 z-0" style={{
-                      background: `linear-gradient(135deg, ${proj.background_color || '#6366f1'} 0%, ${adjustColor(proj.background_color || '#6366f1', -30)} 100%)`
-                    }}>
-                      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60"></div>
-                      {/* Display icon if available */}
-                      {proj.icon_url && (
-                        <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                          <img 
-                            src={getImageUrl(proj.icon_url)} 
-                            alt={`${proj.title} icon`}
-                            className="w-32 h-32 object-contain"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  <CardContent className="relative z-10 p-6 h-full flex flex-col justify-between">
-                    {/* Icon Badge (top-right) */}
-                    {proj.icon_url && (
-                      <div className="absolute top-4 right-4 w-12 h-12 bg-white rounded-lg shadow-lg p-2 flex items-center justify-center">
-                        <img 
-                          src={getImageUrl(proj.icon_url)} 
-                          alt={`${proj.title} icon`}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Top Section - Title and Description */}
-                    <div>
-                      <h3 className="font-bold text-white uppercase mb-3 leading-tight" style={{fontFamily: "'Galano Grotesque', sans-serif", fontSize: '1.5rem'}}>{proj.title}</h3>
-                      {proj.short_description && (
-                        <p className="text-white leading-snug mb-2" style={{fontSize: '14px', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{proj.short_description}</p>
-                      )}
-                    </div>
-                    
-                    {/* Bottom Section - Team and Category */}
-                    <div>
-                      {/* Project Team */}
-                      <div className="mb-4">
-                        <h4 className="text-white font-semibold mb-2" style={{fontSize: '14px'}}>Project Team</h4>
-                        <div className="flex items-center gap-2">
-                          <div className="flex -space-x-2">
-                          {proj.participants && proj.participants.slice(0, 4).map((participant, i) => (
-                              <div 
-                                key={i}
-                                className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-xs font-semibold"
-                                title={participant.name || participant}
-                              >
-                                {(participant.photo_url || participant.photoUrl) ? (
-                                  <img 
-                                    src={getImageUrl(participant.photo_url || participant.photoUrl)}
-                                    alt={participant.name || participant}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <span>{(participant.name || participant).split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}</span>
-                                )}
-                            </div>
-                          ))}
-                            {proj.participants && proj.participants.length > 4 && (
-                              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-400 flex items-center justify-center text-white text-xs font-semibold">
-                                +{proj.participants.length - 4}
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-white text-sm">
-                            {proj.participants && proj.participants.map(p => formatNameShort(p.name || p)).join(', ')}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Category Badge and Arrow */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-wrap gap-1">
-                        {proj.sectors && proj.sectors.length > 0 ? (
-                            proj.sectors.map((sector, i) => (
-                              <span key={i} className="text-xs px-2 py-1 rounded-full bg-purple-600 text-white font-semibold uppercase">
-                                {sector}
-                            </span>
-                            ))
-                        ) : proj.skills && proj.skills.length > 0 ? (
-                            proj.skills.slice(0, 2).map((skill, i) => (
-                              <span key={i} className="text-xs px-2 py-1 rounded-full bg-blue-600 text-white font-semibold">
-                                {skill}
-                            </span>
-                            ))
-                          ) : null}
-                          </div>
-                        
-                        {/* Arrow Button */}
-                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
-                          <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                />
               ))}
             </div>
 

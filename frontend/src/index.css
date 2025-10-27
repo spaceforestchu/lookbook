@@ -308,6 +308,95 @@
   animation-delay: 1.2s;
 }
 
+/* ============================================ */
+/* PROJECT CARD HOLOGRAPHIC EFFECTS */
+/* ============================================ */
+
+/* Project card wrapper */
+.project-card-wrapper {
+  transition: transform 0.2s ease-out;
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+
+.project-card {
+  transition: box-shadow 0.3s ease;
+  overflow: hidden !important;
+}
+
+.project-card-wrapper:hover .holo-effect {
+  opacity: 0.3 !important;
+}
+
+/* Featured project cards - more dramatic transforms */
+.project-card-wrapper.featured {
+  position: relative;
+}
+
+/* Featured project cards get stronger holographic effect */
+.project-card-wrapper.featured:hover .holo-effect {
+  opacity: 0.6 !important;
+}
+
+/* Animated rainbow border for featured project cards */
+.project-card-wrapper.featured::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 0.75rem;
+  padding: 2px;
+  background: linear-gradient(
+    45deg,
+    #ff0080,
+    #ff8c00,
+    #40e0d0,
+    #9370db,
+    #ff1493,
+    #ff0080
+  );
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: rotateBorder 4s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.project-card-wrapper.featured:hover::before {
+  opacity: 1;
+}
+
+/* Edge glow effect for featured project cards */
+.project-card-wrapper.featured::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem;
+  box-shadow: 
+    0 0 20px rgba(255, 0, 128, 0.4),
+    0 0 40px rgba(64, 224, 208, 0.3),
+    0 0 60px rgba(147, 112, 219, 0.2);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.project-card-wrapper.featured:hover::after {
+  opacity: 1;
+}
+
+/* Foil texture overlay for featured project cards */
+.project-card-wrapper.featured:hover .foil-texture {
+  opacity: 1;
+}
+
 /* Reflection effect for featured cards */
 .reflection-effect {
   position: absolute;
