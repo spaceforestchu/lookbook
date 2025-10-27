@@ -6,6 +6,40 @@ import { apiCache } from './cache';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4002/api';
 
+// Helper to get the backend base URL (without /api)
+const BACKEND_BASE_URL = API_BASE_URL.replace('/api', '');
+
+// Helper function to convert relative image URLs to absolute URLs
+export const getImageUrl = (url) => {
+  if (!url) return url;
+  
+  // Debug logging
+  console.log('getImageUrl called with:', url);
+  
+  // If it's already an absolute URL (http:// or https://), return as-is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    console.log('  -> Already absolute, returning:', url);
+    return url;
+  }
+  
+  // If it's a base64 image, return as-is
+  if (url.startsWith('data:image')) {
+    console.log('  -> Base64 image, returning as-is');
+    return url;
+  }
+  
+  // If it starts with /uploads, prepend the backend base URL
+  if (url.startsWith('/uploads')) {
+    const fullUrl = `${BACKEND_BASE_URL}${url}`;
+    console.log('  -> Converting to:', fullUrl);
+    return fullUrl;
+  }
+  
+  // Otherwise return as-is
+  console.log('  -> No match, returning as-is:', url);
+  return url;
+};
+
 // Create axios instance with defaults
 const api = axios.create({
   baseURL: API_BASE_URL,

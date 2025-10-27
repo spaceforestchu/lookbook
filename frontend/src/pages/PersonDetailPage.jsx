@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { profilesAPI, projectsAPI } from '../utils/api';
+import { profilesAPI, projectsAPI, getImageUrl } from '../utils/api';
 import analytics from '../utils/analytics';
+import LazyVideo from '../components/LazyVideo';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -11,6 +12,23 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Linkedin, Globe, Camera, Code, Rocket, Zap, Lightbulb, Target, Square, Grid3x3, List, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
+
+// Custom hook for debounced value
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 // Helper function to adjust color brightness for gradients
 const adjustColor = (hex, percent) => {
@@ -131,7 +149,7 @@ const ProfileCard = ({ prof, onClick }) => {
       {(prof.photo_url || prof.photoUrl) && (
         <div className="absolute inset-0 z-0">
           <img 
-            src={prof.photo_url || prof.photoUrl}
+            src={getImageUrl(prof.photo_url || prof.photoUrl)}
             alt={prof.name}
             className="w-full h-full object-cover opacity-90"
             loading="lazy"
@@ -224,6 +242,12 @@ const ProfileCard = ({ prof, onClick }) => {
   );
 };
 
+// Memoize ProfileCard to prevent unnecessary re-renders
+const MemoizedProfileCard = memo(ProfileCard, (prevProps, nextProps) => {
+  return prevProps.prof.slug === nextProps.prof.slug && 
+         prevProps.prof.featured === nextProps.prof.featured;
+});
+
 function PersonDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -279,11 +303,15 @@ function PersonDetailPage() {
     sectors: []
   });
 
+  // Debounce search terms to reduce filtering operations
+  const debouncedPeopleSearch = useDebounce(peopleFilters.search, 300);
+  const debouncedProjectSearch = useDebounce(projectFilters.search, 300);
+
   // Filtered data based on search and filters
-  const filteredProfiles = allProfiles.filter(profile => {
-    // Search filter
-    if (peopleFilters.search) {
-      const searchLower = peopleFilters.search.toLowerCase();
+  const filteredProfiles = useMemo(() => allProfiles.filter(profile => {
+    // Search filter (using debounced value)
+    if (debouncedPeopleSearch) {
+      const searchLower = debouncedPeopleSearch.toLowerCase();
       const matchesName = profile.name?.toLowerCase().includes(searchLower);
       const matchesBio = profile.bio?.toLowerCase().includes(searchLower);
       const matchesSkills = profile.skills?.some(skill => skill.toLowerCase().includes(searchLower));
@@ -312,12 +340,12 @@ function PersonDetailPage() {
     }
     
     return true;
-  });
+  }), [allProfiles, debouncedPeopleSearch, peopleFilters.skills, peopleFilters.industries, peopleFilters.openToWork]);
 
-  const filteredProjects = allProjects.filter(project => {
-    // Search filter
-    if (projectFilters.search) {
-      const searchLower = projectFilters.search.toLowerCase();
+  const filteredProjects = useMemo(() => allProjects.filter(project => {
+    // Search filter (using debounced value)
+    if (debouncedProjectSearch) {
+      const searchLower = debouncedProjectSearch.toLowerCase();
       const matchesTitle = project.title?.toLowerCase().includes(searchLower);
       const matchesSummary = project.summary?.toLowerCase().includes(searchLower);
       const matchesDescription = project.short_description?.toLowerCase().includes(searchLower);
@@ -342,7 +370,7 @@ function PersonDetailPage() {
     }
     
     return true;
-  });
+  }), [allProjects, debouncedProjectSearch, projectFilters.skills, projectFilters.sectors]);
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -1044,7 +1072,7 @@ function PersonDetailPage() {
                   {proj.main_image_url ? (
                     <div className="absolute inset-0 z-0">
                       <img 
-                        src={(() => {
+                        src={getImageUrl((() => {
                           try {
                             const images = JSON.parse(proj.main_image_url);
                             if (Array.isArray(images)) {
@@ -1052,7 +1080,7 @@ function PersonDetailPage() {
                             }
                           } catch {}
                           return proj.main_image_url;
-                        })()}
+                        })())}
                         alt={proj.title}
                         className="w-full h-full object-cover opacity-90"
                         loading="lazy"
@@ -1069,7 +1097,7 @@ function PersonDetailPage() {
                       {proj.icon_url && (
                         <div className="absolute inset-0 flex items-center justify-center opacity-20">
                           <img 
-                            src={proj.icon_url} 
+                            src={getImageUrl(proj.icon_url)} 
                             alt={`${proj.title} icon`}
                             className="w-32 h-32 object-contain"
                           />
@@ -1083,7 +1111,7 @@ function PersonDetailPage() {
                     {proj.icon_url && (
                       <div className="absolute top-4 right-4 w-12 h-12 bg-white rounded-lg shadow-lg p-2 flex items-center justify-center">
                         <img 
-                          src={proj.icon_url} 
+                          src={getImageUrl(proj.icon_url)} 
                           alt={`${proj.title} icon`}
                           className="w-full h-full object-contain"
                         />
@@ -1113,7 +1141,7 @@ function PersonDetailPage() {
                               >
                                 {(participant.photo_url || participant.photoUrl) ? (
                                   <img 
-                                    src={participant.photo_url || participant.photoUrl}
+                                    src={getImageUrl(participant.photo_url || participant.photoUrl)}
                                     alt={participant.name || participant}
                                     className="w-full h-full object-cover"
                                   />
@@ -1256,7 +1284,7 @@ function PersonDetailPage() {
                 }
               `}</style>
               {filteredProfiles.slice(gridPage * 8, (gridPage + 1) * 8).map((prof, idx) => (
-                <ProfileCard 
+                <MemoizedProfileCard 
                   key={prof.slug}
                   prof={prof}
                   onClick={() => {
@@ -1329,7 +1357,7 @@ function PersonDetailPage() {
                         <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-orange-500 to-red-500">
                           {(proj.icon_url || proj.main_image_url) ? (
                             <img 
-                              src={(() => {
+                              src={getImageUrl((() => {
                                 // Use icon_url if available, otherwise use main_image_url
                                 const imageUrl = proj.icon_url || proj.main_image_url;
                                 try {
@@ -1339,7 +1367,7 @@ function PersonDetailPage() {
                                   }
                                 } catch {}
                                 return imageUrl;
-                              })()}
+                              })())}
                               alt={proj.title}
                               className="w-full h-full object-cover"
                             />
@@ -1393,7 +1421,7 @@ function PersonDetailPage() {
                                   >
                                     {(participant.photo_url || participant.photoUrl) ? (
                                       <img 
-                                        src={participant.photo_url || participant.photoUrl}
+                                        src={getImageUrl(participant.photo_url || participant.photoUrl)}
                                         alt={participant.name || participant}
                                         className="w-full h-full object-cover"
                                       />
@@ -1430,7 +1458,7 @@ function PersonDetailPage() {
                           <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0">
                             {(prof.photo_url || prof.photoUrl) ? (
                               <img 
-                                src={prof.photo_url || prof.photoUrl}
+                                src={getImageUrl(prof.photo_url || prof.photoUrl)}
                                 alt={prof.name}
                                 className="w-full h-full object-cover"
                               />
@@ -1596,7 +1624,7 @@ function PersonDetailPage() {
                   <div className="rounded-lg overflow-hidden mb-4" style={{height: '270px'}}>
                     {(person.photo_url || person.photoUrl) ? (
                       <img 
-                        src={person.photo_url || person.photoUrl} 
+                        src={getImageUrl(person.photo_url || person.photoUrl)} 
                         alt={person.name}
                         className="w-full h-full object-cover"
                       />
@@ -1713,30 +1741,45 @@ function PersonDetailPage() {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-3">
                         {person.projects.slice(projectCarouselIndex, projectCarouselIndex + 3).map((project, idx) => {
-                          // Cycle through different icons for variety
+                          // Cycle through different icons for variety (fallback if no image)
                           const icons = [Camera, Code, Rocket, Zap, Lightbulb, Target];
                           const Icon = icons[(projectCarouselIndex + idx) % icons.length];
                           
-                          // Check if project has an icon_url or main_image_url
-                          const hasProjectImage = project.icon_url || project.main_image_url;
-                          const imageUrl = project.icon_url || project.main_image_url;
+                          // Debug: Log what we have
+                          console.log('Project:', project.title);
+                          console.log('mainImageUrl:', project.mainImageUrl);
+                          console.log('main_image_url:', project.main_image_url);
+                          
+                          // Check if project has main_image_url (prioritize this) or icon_url
+                          const hasProjectImage = project.mainImageUrl || project.main_image_url || project.icon_url;
+                          const imageUrl = project.mainImageUrl || project.main_image_url || project.icon_url;
+                          
+                          console.log('Using imageUrl:', imageUrl);
+                          console.log('hasProjectImage:', hasProjectImage);
                           
                           return (
                             <div key={idx} className="flex gap-3 items-start">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white flex-shrink-0 overflow-hidden">
+                              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white flex-shrink-0 overflow-hidden">
                                 {hasProjectImage ? (
                                   <img
-                                    src={(() => {
+                                    src={getImageUrl((() => {
                                       try {
+                                        // If it's a JSON string with array of images, get the first one
                                         const images = JSON.parse(imageUrl);
-                                        if (Array.isArray(images)) {
+                                        if (Array.isArray(images) && images.length > 0) {
                                           return typeof images[0] === 'string' ? images[0] : images[0].url;
                                         }
-                                      } catch {}
+                                      } catch {
+                                        // If not JSON, use the URL as-is
+                                      }
                                       return imageUrl;
-                                    })()}
+                                    })())}
                                     alt={project.title}
                                     className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      console.log('Image failed to load for:', project.title);
+                                      e.target.style.display = 'none';
+                                    }}
                                   />
                                 ) : (
                                 <Icon className="w-6 h-6" />
@@ -1848,7 +1891,7 @@ function PersonDetailPage() {
                             <>
                               <div className="mb-2">
                                 <img 
-                                  src={project.partner_logo_url} 
+                                  src={getImageUrl(project.partner_logo_url)} 
                                   alt={project.partner_name || 'Partner logo'} 
                                   className="max-h-12 object-contain"
                                   style={{ maxWidth: '180px' }}
@@ -1938,7 +1981,7 @@ function PersonDetailPage() {
                                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
                                 {participant.photoUrl ? (
                                   <img 
-                                    src={participant.photoUrl} 
+                                    src={getImageUrl(participant.photoUrl)} 
                                     alt={participant.name}
                                     className="w-full h-full object-cover"
                                   />
@@ -2012,7 +2055,7 @@ function PersonDetailPage() {
                         return (
                           <div className="rounded-lg overflow-hidden">
                             <img 
-                              src={project.main_image_url} 
+                              src={getImageUrl(project.main_image_url)} 
                               alt={`${project.title} screenshot`}
                               className="w-full h-auto"
                             />
@@ -2042,16 +2085,12 @@ function PersonDetailPage() {
                           if (Array.isArray(videos)) {
                             return videos.map((video, idx) => (
                               <div key={idx}>
-                                <div className="rounded-lg overflow-hidden" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
-                                  <iframe
-                                    src={getEmbedUrl(typeof video === 'string' ? video : video.url)}
-                                    title={`Demo Video ${idx + 1}`}
-                                    style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                  />
-                                </div>
+                                <LazyVideo
+                                  src={getEmbedUrl(typeof video === 'string' ? video : video.url)}
+                                  title={`Demo Video ${idx + 1}`}
+                                  className="rounded-lg overflow-hidden"
+                                  style={{position: 'relative', paddingBottom: '56.25%', height: 0}}
+                                />
                                 {typeof video === 'object' && video.description && (
                                   <p className="mt-12 mb-12 text-gray-700 leading-snug" style={{fontSize: '16px', maxWidth: '75%'}}>{video.description}</p>
                                 )}
@@ -2072,16 +2111,12 @@ function PersonDetailPage() {
                         }
                         // Single video
                         return (
-                          <div className="rounded-lg overflow-hidden" style={{position: 'relative', paddingBottom: '56.25%', height: 0}}>
-                            <iframe
-                              src={getEmbedUrl(project.demo_video_url)}
-                              title="Demo Video"
-                              style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}
-                              frameBorder="0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                            />
-                          </div>
+                          <LazyVideo
+                            src={getEmbedUrl(project.demo_video_url)}
+                            title="Demo Video"
+                            className="rounded-lg overflow-hidden"
+                            style={{position: 'relative', paddingBottom: '56.25%', height: 0}}
+                          />
                         );
                       })()}
                     </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Briefcase, ArrowRight } from 'lucide-react';
-import { projectsAPI, profilesAPI } from '../utils/api';
+import { projectsAPI, profilesAPI, getImageUrl } from '../utils/api';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -34,13 +34,13 @@ function HomePage() {
                 if (Array.isArray(parsed)) {
                   parsed.forEach(img => {
                     const url = typeof img === 'string' ? img : img.url;
-                    if (url) images.push(url);
+                    if (url) images.push(getImageUrl(url));
                   });
                 } else {
-                  images.push(project.main_image_url);
+                  images.push(getImageUrl(project.main_image_url));
                 }
               } catch {
-                images.push(project.main_image_url);
+                images.push(getImageUrl(project.main_image_url));
               }
             }
           });
@@ -248,7 +248,7 @@ function HomePage() {
                       >
                         {(profile.photo_url || profile.photoUrl) ? (
                           <img 
-                            src={profile.photo_url || profile.photoUrl}
+                            src={getImageUrl(profile.photo_url || profile.photoUrl)}
                             alt={`${profile.user?.first_name || ''} ${profile.user?.last_name || ''}`}
                             className="w-full h-full object-cover"
                           />
@@ -340,17 +340,18 @@ function HomePage() {
                       // Get project icon or first image
                       let imageUrl = null;
                       if (project.icon_url) {
-                        imageUrl = project.icon_url;
+                        imageUrl = getImageUrl(project.icon_url);
                       } else if (project.main_image_url) {
                         try {
                           const parsed = JSON.parse(project.main_image_url);
                           if (Array.isArray(parsed) && parsed.length > 0) {
-                            imageUrl = typeof parsed[0] === 'string' ? parsed[0] : parsed[0].url;
+                            const url = typeof parsed[0] === 'string' ? parsed[0] : parsed[0].url;
+                            imageUrl = getImageUrl(url);
                           } else {
-                            imageUrl = project.main_image_url;
+                            imageUrl = getImageUrl(project.main_image_url);
                           }
                         } catch {
-                          imageUrl = project.main_image_url;
+                          imageUrl = getImageUrl(project.main_image_url);
                         }
                       }
 

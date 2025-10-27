@@ -4,6 +4,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const { pool } = require('./db/dbConfig');
 
 const app = express();
@@ -12,6 +13,19 @@ const PORT = process.env.PORT || 4002; // Different port to avoid conflicts
 // =====================================================
 // MIDDLEWARE
 // =====================================================
+
+// Enable gzip compression for all responses
+app.use(compression({
+  // Compress all responses
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  // Compression level (0-9, 6 is default, 9 is best but slowest)
+  level: 6
+}));
 
 // CORS configuration
 const corsOptions = {
@@ -23,6 +37,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static files from public directory (for uploaded images)
+app.use('/uploads', express.static('public/uploads'));
 
 // Request logging middleware
 app.use((req, res, next) => {
