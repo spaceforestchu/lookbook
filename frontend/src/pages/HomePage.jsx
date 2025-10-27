@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Briefcase, ArrowRight } from 'lucide-react';
@@ -14,6 +14,8 @@ function HomePage() {
   const [projectImages, setProjectImages] = useState([]);
   const [isImageInitialLoad, setIsImageInitialLoad] = useState(true);
   const [visibleProjects, setVisibleProjects] = useState([]);
+  const peopleCardRef = useRef(null);
+  const projectsCardRef = useRef(null);
 
   // Fetch projects on mount
   useEffect(() => {
@@ -139,6 +141,60 @@ function HomePage() {
     };
   }, [projects.length, isInitialLoad]); // Removed projects from dependencies
 
+  // Holographic effect handlers for people card
+  const handlePeopleCardMouseMove = (e) => {
+    if (!peopleCardRef.current) return;
+    const rect = peopleCardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const maxRotation = 5;
+    const rotateX = ((y - centerY) / centerY) * -maxRotation;
+    const rotateY = ((x - centerX) / centerX) * maxRotation;
+    
+    peopleCardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+    
+    const holoElement = peopleCardRef.current.querySelector('.holo-effect');
+    if (holoElement) {
+      holoElement.style.backgroundPosition = `${(x / rect.width) * 100}% ${(y / rect.height) * 100}%`;
+    }
+  };
+  
+  const handlePeopleCardMouseLeave = () => {
+    if (!peopleCardRef.current) return;
+    peopleCardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+  };
+
+  // Holographic effect handlers for projects card
+  const handleProjectsCardMouseMove = (e) => {
+    if (!projectsCardRef.current) return;
+    const rect = projectsCardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const maxRotation = 5;
+    const rotateX = ((y - centerY) / centerY) * -maxRotation;
+    const rotateY = ((x - centerX) / centerX) * maxRotation;
+    
+    projectsCardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+    
+    const holoElement = projectsCardRef.current.querySelector('.holo-effect');
+    if (holoElement) {
+      holoElement.style.backgroundPosition = `${(x / rect.width) * 100}% ${(y / rect.height) * 100}%`;
+    }
+  };
+  
+  const handleProjectsCardMouseLeave = () => {
+    if (!projectsCardRef.current) return;
+    projectsCardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden" style={{backgroundColor: '#1a1a1a'}}>
       {/* Background Image Slideshow */}
@@ -215,8 +271,19 @@ function HomePage() {
           {/* Feature Cards */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-stretch px-4 sm:px-8">
             {/* People Card */}
+            <div 
+              ref={peopleCardRef}
+              className="person-card-wrapper"
+              style={{
+                transformStyle: 'preserve-3d',
+                WebkitTransformStyle: 'preserve-3d',
+                cursor: 'pointer'
+              }}
+              onMouseMove={handlePeopleCardMouseMove}
+              onMouseLeave={handlePeopleCardMouseLeave}
+            >
             <Card 
-              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden sm:max-w-[300px] sm:min-h-[280px]"
+              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden sm:max-w-[300px] sm:min-h-[280px] relative"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                 backdropFilter: 'blur(10px)',
@@ -227,7 +294,10 @@ function HomePage() {
               }}
               onClick={() => navigate('/people')}
             >
-              <CardContent className="p-8 h-full flex flex-col justify-between">
+              {/* Holographic Effect Overlay */}
+              <div className="holo-effect absolute inset-0 opacity-0 hover:opacity-30 transition-opacity duration-300 pointer-events-none"></div>
+              
+              <CardContent className="p-8 h-full flex flex-col justify-between relative z-10">
                 <div>
                   {/* Profile Avatars */}
                   <div 
@@ -315,10 +385,22 @@ function HomePage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
 
             {/* Projects Card */}
+            <div 
+              ref={projectsCardRef}
+              className="project-card-wrapper"
+              style={{
+                transformStyle: 'preserve-3d',
+                WebkitTransformStyle: 'preserve-3d',
+                cursor: 'pointer'
+              }}
+              onMouseMove={handleProjectsCardMouseMove}
+              onMouseLeave={handleProjectsCardMouseLeave}
+            >
             <Card 
-              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden sm:max-w-[300px] sm:min-h-[280px]"
+              className="rounded-xl border-2 border-white shadow-lg hover:shadow-2xl transition-all cursor-pointer overflow-hidden sm:max-w-[300px] sm:min-h-[280px] relative"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                 backdropFilter: 'blur(10px)',
@@ -329,7 +411,10 @@ function HomePage() {
               }}
               onClick={() => navigate('/projects')}
             >
-              <CardContent className="p-8 h-full flex flex-col justify-between">
+              {/* Holographic Effect Overlay */}
+              <div className="holo-effect absolute inset-0 opacity-0 hover:opacity-30 transition-opacity duration-300 pointer-events-none"></div>
+              
+              <CardContent className="p-8 h-full flex flex-col justify-between relative z-10">
                 <div>
                   {/* Project Icons */}
                   <div 
@@ -395,6 +480,7 @@ function HomePage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </div>
 
           {/* Footer */}
