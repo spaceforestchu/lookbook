@@ -288,7 +288,7 @@ function HomePage() {
                 backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                 backdropFilter: 'blur(10px)',
                 width: '100%',
-                height: '360px',
+                height: '320px',
                 animation: 'slideUpFadeIn 0.8s ease-out',
                 animationDelay: '0.3s',
                 animationFillMode: 'both'
@@ -406,7 +406,7 @@ function HomePage() {
                 backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                 backdropFilter: 'blur(10px)',
                 width: '100%',
-                height: '360px',
+                height: '320px',
                 animation: 'slideUpFadeIn 0.8s ease-out',
                 animationDelay: '0.5s',
                 animationFillMode: 'both'
