@@ -34,7 +34,8 @@ router.get('/', async (req, res) => {
       hasDemoVideo: hasDemoVideo === 'true' ? true : hasDemoVideo === 'false' ? false : undefined,
       status: status || 'active',
       limit: parseInt(limit) || 50,
-      offset: page ? (parseInt(page) - 1) * (parseInt(limit) || 50) : parseInt(offset) || 0
+      offset: page ? (parseInt(page) - 1) * (parseInt(limit) || 50) : parseInt(offset) || 0,
+      includeParticipants: true // Always include participants for display
     };
     
     const result = await projectQueries.getAllProjects(filters);
