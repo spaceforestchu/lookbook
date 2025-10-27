@@ -15,12 +15,15 @@ const getAllProfiles = async (filters = {}) => {
   const params = [];
   let paramCount = 1;
   
-  // Text search (name, title, bio)
+  // Text search (name, title, skills)
   if (search) {
     conditions.push(`(
       (u.first_name || ' ' || u.last_name) ILIKE $${paramCount} OR 
       p.title ILIKE $${paramCount} OR 
-      p.bio ILIKE $${paramCount}
+      EXISTS (
+        SELECT 1 FROM unnest(p.skills) AS skill 
+        WHERE skill ILIKE $${paramCount}
+      )
     )`);
     params.push(`%${search}%`);
     paramCount++;

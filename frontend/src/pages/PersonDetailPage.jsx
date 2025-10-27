@@ -576,9 +576,9 @@ function PersonDetailPage() {
     sectors: []
   });
 
-  // Debounce search terms to reduce filtering operations
-  const debouncedPeopleSearch = useDebounce(peopleFilters.search, 300);
-  const debouncedProjectSearch = useDebounce(projectFilters.search, 300);
+  // Debounce search terms to reduce API calls (500ms feels more responsive)
+  const debouncedPeopleSearch = useDebounce(peopleFilters.search, 500);
+  const debouncedProjectSearch = useDebounce(projectFilters.search, 500);
 
   // Filtered data based on search and filters
   const filteredProfiles = useMemo(() => allProfiles.filter(profile => {
@@ -645,58 +645,99 @@ function PersonDetailPage() {
     return true;
   }), [allProjects, debouncedProjectSearch, projectFilters.skills, projectFilters.sectors]);
 
-  // Reset to first page when filters change
+  // Reset to first page when filters or search changes
   useEffect(() => {
     setGridPage(0);
-  }, [peopleFilters, projectFilters]);
+  }, [peopleFilters.skills, peopleFilters.industries, peopleFilters.openToWork, projectFilters.skills, projectFilters.sectors, debouncedPeopleSearch, debouncedProjectSearch]);
 
-  // Fetch paginated data when page or filters change (for grid view only)
+  // Fetch data based on current view
   useEffect(() => {
-    if (layoutView !== 'grid') return; // Only fetch when in grid view
-    
-    const fetchPaginatedData = async () => {
-      const pageSize = 8;
-      const offset = gridPage * pageSize;
-      
-      if (viewMode === 'people') {
-        try {
-          const response = await profilesAPI.getAll({
-            limit: pageSize,
-            offset,
-            search: debouncedPeopleSearch,
-            skills: peopleFilters.skills.length > 0 ? peopleFilters.skills : undefined,
-            industries: peopleFilters.industries.length > 0 ? peopleFilters.industries : undefined,
-            openToWork: peopleFilters.openToWork ? true : undefined
-          });
-          
-          if (response.success) {
-            setAllProfiles(response.data);
-            setTotalProfiles(response.total || response.data.length);
+    const fetchData = async () => {
+      if (layoutView === 'grid') {
+        // Grid view: fetch paginated data (8 per page)
+        const pageSize = 8;
+        const offset = gridPage * pageSize;
+        
+        if (viewMode === 'people') {
+          try {
+            const response = await profilesAPI.getAll({
+              limit: pageSize,
+              offset,
+              search: debouncedPeopleSearch,
+              skills: peopleFilters.skills.length > 0 ? peopleFilters.skills : undefined,
+              industries: peopleFilters.industries.length > 0 ? peopleFilters.industries : undefined,
+              openToWork: peopleFilters.openToWork ? true : undefined
+            });
+            
+            if (response.success) {
+              setAllProfiles(response.data);
+              const total = response.pagination?.total || response.total || response.data.length;
+              setTotalProfiles(total);
+            }
+          } catch (err) {
+            console.error('Error fetching profiles:', err);
           }
-        } catch (err) {
-          console.error('Error fetching profiles:', err);
+        } else if (viewMode === 'projects') {
+          try {
+            const response = await projectsAPI.getAll({
+              limit: pageSize,
+              offset,
+              search: debouncedProjectSearch,
+              skills: projectFilters.skills.length > 0 ? projectFilters.skills : undefined,
+              sectors: projectFilters.sectors.length > 0 ? projectFilters.sectors : undefined
+            });
+            
+            if (response.success) {
+              setAllProjects(response.data);
+              const total = response.pagination?.total || response.total || response.data.length;
+              setTotalProjects(total);
+            }
+          } catch (err) {
+            console.error('Error fetching projects:', err);
+          }
         }
-      } else if (viewMode === 'projects') {
-        try {
-          const response = await projectsAPI.getAll({
-            limit: pageSize,
-            offset,
-            search: debouncedProjectSearch,
-            skills: projectFilters.skills.length > 0 ? projectFilters.skills : undefined,
-            sectors: projectFilters.sectors.length > 0 ? projectFilters.sectors : undefined
-          });
-          
-          if (response.success) {
-            setAllProjects(response.data);
-            setTotalProjects(response.total || response.data.length);
+      } else {
+        // Detail or list view: fetch all data for navigation
+        if (viewMode === 'people') {
+          try {
+            const response = await profilesAPI.getAll({
+              limit: 100,
+              search: debouncedPeopleSearch,
+              skills: peopleFilters.skills.length > 0 ? peopleFilters.skills : undefined,
+              industries: peopleFilters.industries.length > 0 ? peopleFilters.industries : undefined,
+              openToWork: peopleFilters.openToWork ? true : undefined
+            });
+            
+            if (response.success) {
+              setAllProfiles(response.data);
+              const total = response.pagination?.total || response.total || response.data.length;
+              setTotalProfiles(total);
+            }
+          } catch (err) {
+            console.error('Error fetching profiles:', err);
           }
-        } catch (err) {
-          console.error('Error fetching projects:', err);
+        } else if (viewMode === 'projects') {
+          try {
+            const response = await projectsAPI.getAll({
+              limit: 100,
+              search: debouncedProjectSearch,
+              skills: projectFilters.skills.length > 0 ? projectFilters.skills : undefined,
+              sectors: projectFilters.sectors.length > 0 ? projectFilters.sectors : undefined
+            });
+            
+            if (response.success) {
+              setAllProjects(response.data);
+              const total = response.pagination?.total || response.total || response.data.length;
+              setTotalProjects(total);
+            }
+          } catch (err) {
+            console.error('Error fetching projects:', err);
+          }
         }
       }
     };
     
-    fetchPaginatedData();
+    fetchData();
   }, [gridPage, viewMode, debouncedPeopleSearch, debouncedProjectSearch, peopleFilters, projectFilters, layoutView]);
 
   // Fetch filters once on mount - these are cached
@@ -722,22 +763,11 @@ function PersonDetailPage() {
   }, []); // Run once on mount
 
   useEffect(() => {
-    // If no slug, default to grid view and fetch lists if needed
+    // If no slug, default to grid view
     if (!slug) {
       setLayoutView('grid');
       setLoading(false);
-      
-      // Fetch lists if not already loaded
-      if (allProfiles.length === 0) {
-        profilesAPI.getAll({ limit: 100 }).then(data => {
-          if (data.success) setAllProfiles(data.data);
-        }).catch(err => console.error('Error fetching profiles:', err));
-      }
-      if (allProjects.length === 0) {
-        projectsAPI.getAll({ limit: 30 }).then(data => {
-          if (data.success) setAllProjects(data.data);
-        }).catch(err => console.error('Error fetching projects:', err));
-      }
+      // Data will be fetched by the paginated useEffect
       return;
     }
     
@@ -1362,7 +1392,7 @@ function PersonDetailPage() {
               </div>
 
               <div 
-                key={`projects-grid-${gridPage}-${projectFilters.skills.join(',')}-${projectFilters.sectors.join(',')}-${projectFilters.search}`}
+                key={`projects-grid-${gridPage}`}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-2 gap-6 md:mb-0 mb-20" 
                 style={{
                 animation: 'fadeIn 0.3s ease-in-out',
@@ -1380,7 +1410,7 @@ function PersonDetailPage() {
                   }
                 }
               `}</style>
-              {filteredProjects.map((proj, idx) => (
+              {allProjects.map((proj, idx) => (
                 <MemoizedProjectCard 
                   key={proj.slug}
                   proj={proj}
@@ -1464,7 +1494,7 @@ function PersonDetailPage() {
               </div>
 
               <div 
-                key={`people-grid-${gridPage}-${peopleFilters.skills.join(',')}-${peopleFilters.industries.join(',')}-${peopleFilters.search}-${peopleFilters.openToWork}`}
+                key={`people-grid-${gridPage}`}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid-rows-2 gap-6 md:mb-0 mb-20" 
                 style={{
                 animation: 'fadeIn 0.3s ease-in-out',
@@ -1482,7 +1512,7 @@ function PersonDetailPage() {
                   }
                 }
               `}</style>
-              {filteredProfiles.map((prof, idx) => (
+              {allProfiles.map((prof, idx) => (
                 <MemoizedProfileCard 
                   key={prof.slug}
                   prof={prof}
@@ -1542,7 +1572,7 @@ function PersonDetailPage() {
               <CardContent className="p-6">
                 {viewMode === 'projects' && (
                   <div>
-                    {filteredProjects.map((proj, index) => (
+                    {allProjects.map((proj, index) => (
                       <div key={proj.slug}>
                         {index > 0 && <div className="border-t border-gray-200 my-0"></div>}
                         <div 

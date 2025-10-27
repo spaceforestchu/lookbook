@@ -29,8 +29,8 @@ router.get('/', async (req, res) => {
   try {
     const { search, skills, openToWork, industries, limit, offset, page } = req.query;
     
-    // If no filters and cache is valid, return cached data
-    const hasFilters = search || skills || openToWork || industries;
+    // If no filters, no pagination, and cache is valid, return cached data
+    const hasFilters = search || skills || openToWork || industries || limit || offset || page;
     if (!hasFilters && cache.profiles && isCacheValid(cache.profilesTimestamp)) {
       // Add cache headers for browser caching
       res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
